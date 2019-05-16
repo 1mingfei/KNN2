@@ -25,6 +25,7 @@ KNSRC 	=  ./KNHome.cpp   \
                            ./KNParam.cpp\
                            ./FCCConfig.cpp\
                            ./KNSolidSol.cpp\
+                           ./KNvasp.cpp\
                            ./neighbor.cpp
 
 # parallel

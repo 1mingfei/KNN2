@@ -10,8 +10,7 @@ inline int myRandom (int i) {
 void KNHome::gbCnf::getRandConf(Config& cnf,\
                                 const vector<string>& elems,\
                                 const vector<int>& nums) {
-  assert(("input nums does not sum up to configuration sites",\
-        cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0)));
+  assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
   vector<int> TPArr(nums[0], 0);
   for (unsigned int i = 1; i < nums.size(); ++i) {
     for (unsigned int j = 0; j < nums[i]; ++j) {
@@ -26,9 +25,12 @@ void KNHome::gbCnf::getRandConf(Config& cnf,\
       if (TPArr[i] == j) {
         cnf.atoms[i].tp = elems[j];
       }
-      if (cnf.atoms[i].tp == "X") {
-        cnf.vacList.push_back(i);
-      }
+    }
+  }
+  std::sort(cnf.atoms.begin(), cnf.atoms.end());
+  for (unsigned int i = 0; i < TPArr.size(); ++i) {
+    if (cnf.atoms[i].tp == "X") {
+      cnf.vacList.push_back(i);
     }
   }
 }
@@ -63,7 +65,7 @@ Config KNHome::gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   return c1;
 }
 
-void KNHome::createPreNEB(){
+void KNHome::createPreNEB() {
   gbCnf cnfModifier(*this);
   vector<int> dupFactors = viparams["factors"];
   double LC = dparams["LC"];
@@ -87,17 +89,20 @@ void KNHome::createPreNEB(){
       cnfModifier.getRandConf(c0, elems, nums);
       Config c0copy = c0;
 
-      string baseDir = "mkdir -p config" + to_string(i) + "/start";
-      const char *cbaseDir = baseDir.c_str();
-      const int dir_err = std::system(cbaseDir);
+      string baseDir = "config" + to_string(i) + "/start";
+      string mkBaseDir = "mkdir -p " + baseDir;
+      const char *cmkBaseDir = mkBaseDir.c_str();
+      const int dir_err = std::system(cmkBaseDir);
       if (-1 == dir_err) {
         cout << "Error creating directory!\n";
         exit(1);
       }
 
       cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
-      cnfModifier.writePOSCARVis(c0, "config" + to_string(i) + "/start/POSCAR.vis");
-      cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/start/0.cfg");
+      cnfModifier.writePOSCARVis(c0, \
+                           "config" + to_string(i) + "/start/vis.vasp", " ");
+      cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/start/start.cfg");
+      prepVASPFiles(baseDir, dupFactors);
       vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
       std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
       int end = MIN(NBars, pairs.size());
@@ -105,7 +110,8 @@ void KNHome::createPreNEB(){
 
         string subDir = "config" + to_string(i) + "/end_" + to_string(k);
         const char *csubDir = subDir.c_str();
-        const int dir_err = mkdir(csubDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        const int dir_err = mkdir(csubDir, \
+                                  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if (-1 == dir_err) {
           cout << "Error creating directory!\n";
           exit(1);
@@ -114,8 +120,11 @@ void KNHome::createPreNEB(){
         Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
         string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
         cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
-        cnfModifier.writePOSCARVis(c1, name1 + "POSCAR.vis");
+        string comment = to_string(pairs[k].first) + " " + \
+                         to_string(pairs[k].second);
+        cnfModifier.writePOSCARVis(c1, name1 + "vis.vasp", comment);
         cnfModifier.writeCfgData(c0, name1 + "end.cfg");
+        prepVASPFiles(name1, dupFactors);
       }
     }
   }

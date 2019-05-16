@@ -55,8 +55,12 @@ public:
   void parseArgs(int argc, char* argv[]);
   void initParam();
   void readParam();
-
+  
+  /* KNSolidSol.cpp */
   void createPreNEB();
+  /* KNvasp.cpp */
+  void prepVASPFiles(const string, const vector<int>&);
+
 };
 
 #endif

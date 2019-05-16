@@ -29,7 +29,7 @@ public:
   void writeLmpData(Config&, string);
   //void writeLmpDataDebug(Config&, string);
   void writeCfgData(const Config& c, string);
-  void writePOSCARVis(Config&, string);
+  void writePOSCARVis(Config&, string, string);
   void writePOSCAR(Config&, string);
 
   /* gbInCnf.cpp */

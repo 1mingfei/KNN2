@@ -2,7 +2,7 @@
  * @Author: chaomy
  * @Date:   2018-07-07 16:58:27
  * @Last Modified by:  1mingfei 
- * @Last Modified time: 2019-4-17 05:32:23
+ * @Last Modified time: 2019-5-16
  */
 
 #include "gbCnf.h"
@@ -120,9 +120,11 @@ Cartesian
      12.13800000       14.16100000       14.16100000
  */
 /* this output vac as X to visualize it */
-void KNHome::gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR") {
+void KNHome::gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR", \
+                                   string comment = "") {
   ofstream ofs(fnm, std::ofstream::out);
-  ofs << "#comment\n1.00000\n";
+  ofs << "# " << comment << "\n";
+  ofs << "1.00000\n";
   for (int i = 0; i < DIM; ++i) {
     ofs << c.bvx[i] << " ";
   }
@@ -150,7 +152,7 @@ void KNHome::gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR") {
   for (auto i = names.begin(); i != names.end(); ++i) {
     ofs << i->second << " "; 
   }
-  std::sort(c.atoms.begin(), c.atoms.end());
+  //std::sort(c.atoms.begin(), c.atoms.end());
   ofs << "\nDirect\n";
   for (unsigned int i = 0 ; i < c.atoms.size(); ++i) {
     for (int j = 0; j < DIM; ++j) {
@@ -195,7 +197,7 @@ void KNHome::gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
       ofs << i->second << " ";
     }
   }
-  std::sort(c.atoms.begin(), c.atoms.end());
+  //std::sort(c.atoms.begin(), c.atoms.end());
   ofs << "\nDirect\n";
   for (unsigned int i = 0 ; i < c.atoms.size(); ++i) {
     if (c.atoms[i].tp != "X") {
