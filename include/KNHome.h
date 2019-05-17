@@ -13,6 +13,7 @@
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <set>
 #include <algorithm> 
 #include "gbDef.h"
 #include "gbCnf.h"
@@ -31,6 +32,7 @@ using std::stringstream;
 using std::to_string;
 using std::unordered_map;
 using std::vector;
+using std::set;
 using std::pair;
 using std::min;
 
@@ -59,7 +61,8 @@ public:
   /* KNSolidSol.cpp */
   void createPreNEB();
   /* KNvasp.cpp */
-  void prepVASPFiles(const string, const vector<int>&);
+  void prepVASPFiles(const string, const vector<int>&,
+                     const set<string>&);
 
 };
 

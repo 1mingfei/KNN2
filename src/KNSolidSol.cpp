@@ -52,9 +52,6 @@ vector<pair<int, int>> KNHome::gbCnf::getPairToSwap(Config& cnf) {
 Config KNHome::gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   int idx0 = atomPair.first;
   int idx1 = atomPair.second;
-#ifdef DEBUG
-  cout << idx0 << " " << idx1 << endl;
-#endif
   Config c1 = c0;
   //c1.atoms[idx0].tp.swap( c1.atoms[idx1].tp );
 
@@ -62,6 +59,7 @@ Config KNHome::gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   c1.atoms[idx0].tp = c1.atoms[idx1].tp;
   c1.atoms[idx1].tp = tmpType;
 
+  std::sort(c1.atoms.begin(), c1.atoms.end());
   return c1;
 }
 
@@ -73,6 +71,12 @@ void KNHome::createPreNEB() {
   vector<int> nums = viparams["nums"]; 
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
+
+  std::set<string> species;
+  for (const auto& elem : elems) {
+    if (elem == "X") continue;
+    species.insert(elem);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
@@ -87,7 +91,7 @@ void KNHome::createPreNEB() {
       if ((i % nProcs != me) || (i >= NConfigs)) continue;
 
       cnfModifier.getRandConf(c0, elems, nums);
-      Config c0copy = c0;
+      Config c0copy = c0; //because write POS will sort c0, hence change index
 
       string baseDir = "config" + to_string(i) + "/start";
       string mkBaseDir = "mkdir -p " + baseDir;
@@ -98,11 +102,10 @@ void KNHome::createPreNEB() {
         exit(1);
       }
 
+      cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
+                                   "/start/start.cfg");
       cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
-      cnfModifier.writePOSCARVis(c0, \
-                           "config" + to_string(i) + "/start/vis.vasp", " ");
-      cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/start/start.cfg");
-      prepVASPFiles(baseDir, dupFactors);
+      prepVASPFiles(baseDir, dupFactors, species);
       vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
       std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
       int end = MIN(NBars, pairs.size());
@@ -119,12 +122,11 @@ void KNHome::createPreNEB() {
 
         Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
         string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
+        cnfModifier.writeCfgData(c1, name1 + "end.cfg");
         cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
-        string comment = to_string(pairs[k].first) + " " + \
-                         to_string(pairs[k].second);
-        cnfModifier.writePOSCARVis(c1, name1 + "vis.vasp", comment);
-        cnfModifier.writeCfgData(c0, name1 + "end.cfg");
-        prepVASPFiles(name1, dupFactors);
+        cout << "config " << i << " end " << j << " pair: " << pairs[k].first \
+             << " "<< pairs[k].second << "\n";
+        prepVASPFiles(name1, dupFactors, species);
       }
     }
   }

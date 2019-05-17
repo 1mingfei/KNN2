@@ -19,13 +19,13 @@ MAKETARGET 	=  kn.exe
 # The source files
 KNSRC 	=  ./KNHome.cpp   \
 			   ./KNMain.cpp\
+                           ./KNSolidSol.cpp\
+                           ./KNvasp.cpp\
+                           ./KNParam.cpp\
                            ./gbInCnf.cpp\
                            ./gbOutCnf.cpp\
                            ./gbBox.cpp\
-                           ./KNParam.cpp\
                            ./FCCConfig.cpp\
-                           ./KNSolidSol.cpp\
-                           ./KNvasp.cpp\
                            ./neighbor.cpp
 
 # parallel

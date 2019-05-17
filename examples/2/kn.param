@@ -1,0 +1,9 @@
+============example1================
+mode generate
+LC 4.046
+factors 1 1 1
+elems Al
+nums  4
+NConfigs 1
+NBarriers 1
+====================================
