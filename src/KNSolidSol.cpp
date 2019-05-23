@@ -84,7 +84,6 @@ void KNHome::createPreNEB() {
   int quotient = NConfigs / nProcs;
   int remainder = NConfigs % nProcs;
   int nCycle = remainder ? (quotient + 1) : quotient;
-  /*calculate total boltzmann energy Z*/
   Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
   for (int j = 0; j < nCycle; ++j) {
     for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
@@ -107,6 +106,16 @@ void KNHome::createPreNEB() {
       cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
       prepVASPFiles(baseDir, dupFactors, species);
       vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
+
+#ifdef DEBUG
+      if (me == 0) {
+        cout << "config " << i << "\n";
+        for (const auto& p : pairs) {
+          cout << p.first << " " << p.second << "\n";
+        }
+      }
+#endif
+
       std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
       int end = MIN(NBars, pairs.size());
       for (unsigned int k = 0; k < end; ++k) {
@@ -124,7 +133,7 @@ void KNHome::createPreNEB() {
         string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
         cnfModifier.writeCfgData(c1, name1 + "end.cfg");
         cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
-        cout << "config " << i << " end " << j << " pair: " << pairs[k].first \
+        cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
              << " "<< pairs[k].second << "\n";
         prepVASPFiles(name1, dupFactors, species);
       }
