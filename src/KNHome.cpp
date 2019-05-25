@@ -14,14 +14,19 @@ KNHome::KNHome(int argc, char* argv[]) {
 
   sparams["mode"] = "generate";
   dparams["LC"] = 4.046;
+  dparams["Rcut"] = 6.0;
 
   parseArgs(argc, argv);
   srand(time(NULL) + me);
   initParam();
 
   gbCnf cnfModifier(*this);
-
-  createPreNEB();
+  
+  if (sparams["mode"] == "generate") {
+    createPreNEB();
+  } else if (sparams["mode"] == "encode") {
+    //KNEncode();
+  }
 
 }
 

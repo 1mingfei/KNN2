@@ -27,6 +27,7 @@ KNSRC 	=  ./KNHome.cpp   \
                            ./gbBox.cpp\
                            ./FCCConfig.cpp\
                            ./neighbor.cpp
+			   #./KNEncode.cpp
 
 # parallel
 PARALLEL = MPI

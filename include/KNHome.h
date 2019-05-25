@@ -63,7 +63,8 @@ public:
   /* KNvasp.cpp */
   void prepVASPFiles(const string, const vector<int>&,
                      const set<string>&);
-
+  /* KNEncode.cpp */
+  void KNEncode();
 };
 
 #endif

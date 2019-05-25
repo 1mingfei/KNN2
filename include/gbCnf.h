@@ -42,8 +42,7 @@ public:
   vector<KNAtom> expandCellZ(const Config&, const int);
   double calDist(const vector<double>, const KNAtom&, const KNAtom&);
   double calDistPrl(const vector<double>, const KNAtom&, const KNAtom&);
-  void getNBL(Config&, double);
-
+  void getNBL(const Config&, double);
 
   /* gbBox.cpp */
   void initBox(Config&);
@@ -63,6 +62,9 @@ public:
   vector<pair<int, int>> getPairToSwap(Config&);
   Config swapPair(const Config&, pair<int, int>);
 
+  /* KNEncode.cpp */
+  vector<int> encodeConfig(const Config&, const vector<int>, double);
+  vector<pair<int, int>> readPairs(string);
 };
 
 #include "Elem.inl"

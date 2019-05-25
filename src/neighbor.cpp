@@ -6,7 +6,7 @@
 
 #include "gbCnf.h"
 
-void KNHome::gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
+void KNHome::gbCnf::getNBL(const Config& cnf, double Rcut = 3.8) {
   //int factor = getExpdParam(cnf, Rcut);
   vector<double> tmpLength;
   tmpLength = cnf.length;

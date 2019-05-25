@@ -25,6 +25,8 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("RCut")) {
+      dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("factors")) {
       vector<int> tmpVec;
       for (unsigned int i = 1; i < segs.size(); ++i) {
