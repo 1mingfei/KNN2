@@ -6,7 +6,7 @@
 
 #include "gbCnf.h"
 
-void KNHome::gbCnf::getNBL(const Config& cnf, double Rcut = 3.8) {
+void KNHome::gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   //int factor = getExpdParam(cnf, Rcut);
   vector<double> tmpLength;
   tmpLength = cnf.length;
@@ -21,7 +21,7 @@ void KNHome::gbCnf::getNBL(const Config& cnf, double Rcut = 3.8) {
       if ((dist <= Rcut) && (j % cnf.atoms.size() - i != 0))
         res.push_back(j);
     }
-    cnf.atoms[i].NBL = move(res);
+    cnf.atoms[i].NBL = std::move(res);
   }
 }
 

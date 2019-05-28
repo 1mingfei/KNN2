@@ -22,6 +22,7 @@ public:
 
   /* gbInCnf.cpp */
   Config readLmpData(const string&);
+  Config readCfg(const string&);
 
   /* output
    * gbOutCnf.cpp */
@@ -42,7 +43,7 @@ public:
   vector<KNAtom> expandCellZ(const Config&, const int);
   double calDist(const vector<double>, const KNAtom&, const KNAtom&);
   double calDistPrl(const vector<double>, const KNAtom&, const KNAtom&);
-  void getNBL(const Config&, double);
+  void getNBL(Config&, double);
 
   /* gbBox.cpp */
   void initBox(Config&);
@@ -63,7 +64,7 @@ public:
   Config swapPair(const Config&, pair<int, int>);
 
   /* KNEncode.cpp */
-  vector<int> encodeConfig(const Config&, const vector<int>, double);
+  vector<int> encodeConfig(Config&, const vector<int>, double);
   vector<pair<int, int>> readPairs(string);
 };
 

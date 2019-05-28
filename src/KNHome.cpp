@@ -1,6 +1,6 @@
 /*
  * Author: 1mingfei 
- * Date:   2019-04-14
+ * Date:   2019-05-27
  * Purpose: inline functions for KNHome
  * self-explained
  */
@@ -25,8 +25,14 @@ KNHome::KNHome(int argc, char* argv[]) {
   if (sparams["mode"] == "generate") {
     createPreNEB();
   } else if (sparams["mode"] == "encode") {
-    //KNEncode();
+    KNEncode();
+  } else if (sparams["mode"] == "test") {
+    gbCnf cnfModifier(*this);
+    Config c1 = cnfModifier.readCfg("in.cfg");
+    cnfModifier.writePOSCARVis(c1, "POSCAR", "");
+    cnfModifier.writeCfgData(c1, "test_out.cfg");
   }
+
 
 }
 

@@ -1,8 +1,8 @@
 /*
  * @Author: chaomy
- * @Date:   2018-06-20 15:52:26
- * @Last Modified by:   chaomy
- * @Last Modified time: 2018-11-11 13:51:06
+ * @Date:   2018-06-20
+ * @Last Modified by:  1mingfei 
+ * @Last Modified time: 2019-05-27
  */
 
 #include "gbCnf.h"
@@ -102,4 +102,63 @@ Config KNHome::gbCnf::readLmpData(const string& fname) {
   return cnf;
 }
 */
+
+/**************************************************
+ * read cfg data files
+ **************************************************/
+
+Config KNHome::gbCnf::readCfg(const string& fname) {
+  ifstream ifs(fname.empty() ? sparams["datafile"] : fname, std::ifstream::in);
+  string buff;
+  Config cnf;
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "Number of particles = %i", &cnf.natoms);
+  getline(ifs, buff); // A = 1.0 Angstrom (basic length-scale)
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(1,1) = %lf A", &cnf.bvx[X]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(1,2) = %lf A", &cnf.bvx[Y]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(1,3) = %lf A", &cnf.bvx[Z]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(2,1) = %lf A", &cnf.bvy[X]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(2,2) = %lf A", &cnf.bvy[Y]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(2,3) = %lf A", &cnf.bvy[Z]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(3,1) = %lf A", &cnf.bvz[X]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(3,2) = %lf A", &cnf.bvz[Y]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(3,3) = %lf A", &cnf.bvz[Z]);
+  getline(ifs, buff); // .NO_VELOCITY.
+  getline(ifs, buff);
+  int entry = 3;
+  sscanf(buff.c_str(), "entry_count = %i", &entry);
+  vector<string> s;
+
+  for (int i = 0; i < cnf.natoms; ++i) {
+    KNAtom a;
+    double mass;
+    getline(ifs, buff);
+    sscanf(buff.c_str(), "%lf", &mass);
+    getline(ifs, buff);
+    s.clear();
+    split(buff, " ", s);
+    a.tp = s[0];
+    getline(ifs, buff);
+    sscanf(buff.c_str(), "%lf %lf %lf", &a.prl[0], &a.prl[1], &a.prl[2]);
+    a.id = i;
+    cnf.atoms.push_back(a);
+  }
+
+  cnf.length[X] = cnf.bvx[X];
+  cnf.length[Y] = cnf.bvy[Y];
+  cnf.length[Z] = cnf.bvz[Z];
+
+  std::sort(cnf.atoms.begin(), cnf.atoms.end());
+
+  return cnf;
+}
 

@@ -65,6 +65,7 @@ public:
                      const set<string>&);
   /* KNEncode.cpp */
   void KNEncode();
+  vector<vector<int>> readPairs(const string&);
 };
 
 #endif
