@@ -1,9 +1,10 @@
 ============example1================
 mode generate
+method uniform
 LC 4.046
-factors 10 10 10
-elems Al Zn X
-nums 3800 160 40
+factors 4 4 4
+elems Al Zn X Mg
+nums  240 11 3 2
 NConfigs 4
 NBarriers 10
 ====================================

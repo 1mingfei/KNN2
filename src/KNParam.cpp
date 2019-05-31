@@ -23,6 +23,8 @@ void KNHome::readParam() {
     split(buff, " ", segs);
     if (!segs[0].compare("mode")) { 
       sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("method")) {
+      sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("RCut")) {

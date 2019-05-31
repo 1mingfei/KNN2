@@ -60,6 +60,9 @@ public:
    */
   void getRandConf(Config& cnf, const vector<string>& elems,\
                    const vector<int>& nums);
+
+  void getRandConfUniformDist(Config& cnf, vector<string>& elems,\
+                              const vector<int>& nums);
   vector<pair<int, int>> getPairToSwap(Config&);
   Config swapPair(const Config&, pair<int, int>);
 

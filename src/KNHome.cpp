@@ -27,10 +27,14 @@ KNHome::KNHome(int argc, char* argv[]) {
   } else if (sparams["mode"] == "encode") {
     KNEncode();
   } else if (sparams["mode"] == "test") {
+    /* test encoding */
+    /*
     gbCnf cnfModifier(*this);
     Config c1 = cnfModifier.readCfg("in.cfg");
     cnfModifier.writePOSCARVis(c1, "POSCAR", "");
     cnfModifier.writeCfgData(c1, "test_out.cfg");
+    */
+    /* test uniform type */
   }
 
 
