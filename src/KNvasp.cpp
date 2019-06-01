@@ -22,7 +22,7 @@ inline void prepINCAR(const string path) {
   ofs << "SIGMA  = 0.4     \n";    
   ofs << "                 \n";    
   ofs << "IALGO  = 48      \n";    
-  ofs << "LREAL  = .FALSE. \n";    
+  ofs << "LREAL  = AUTO    \n";    
   ofs << "ENCUT  = 450.00  \n";    
   ofs << "ENAUG  = 600.00  \n";    
   ofs << "EDIFF  = 1e-7    \n";    
