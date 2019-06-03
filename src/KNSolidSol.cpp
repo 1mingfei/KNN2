@@ -92,7 +92,7 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
   vector<int> resType;
 
   //int locRand = myRandInt(0, nVac);
-  int locRand = nVac - 1;
+  int locRand = nVac;
   int carryOver = nVac;
 
   /* do vacancy separately because -1 vacancy */
@@ -107,7 +107,7 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
   }
 
   for (unsigned int i = 0; i < elems.size(); ++i) {
-    if (elems[i] == "X" || elems[i] == "Al")
+    if ((elems[i] == "X") || (elems[i] == "Al"))
       continue;
     carryOver = nums[i];
     //for (int j = 0; j < myRandInt(0, nums[i]); ++j) {
@@ -130,7 +130,6 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
   }
   std::random_shuffle(nblType.begin(), nblType.end(), myRandom);
   std::random_shuffle(resType.begin(), resType.end(), myRandom);
-
   /* type alignment 
    * not starting from 0 becasue 0 is the default vacancy
    */
@@ -140,12 +139,9 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
     if (nblSet.find(i) != nblSet.end()) {
       TPArr[i] = nblType[countNBL++];
     } else {
-      TPArr[i] = nblType[countRes++];
+      TPArr[i] = resType[countRes++];
     }
   }
-  assert(TPArr.size() == cnf.natoms);
-
-  /* end */
 
   for (unsigned int i = 0; i < TPArr.size(); ++i) {
     for (unsigned int j = 0; j < elems.size(); ++j) {
