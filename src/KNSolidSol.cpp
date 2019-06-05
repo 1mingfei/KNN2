@@ -4,10 +4,10 @@
 
 // random generator function:
 inline int myRandom (int i) {
-  return std::rand()%i;
+  return std::rand() % i;
 }
-inline int myRandInt(int min, int max) {
-  return min + (std::rand() % static_cast<int>(max - min + 1));
+inline int myRandInt(int minVal, int maxVal) {
+  return minVal + (std::rand() % static_cast<int>(maxVal - minVal + 1));
 }
 
 vector<pair<int, int>> KNHome::gbCnf::getPairToSwap(Config& cnf) {
@@ -232,13 +232,35 @@ void KNHome::createPreNEB() {
           string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
-          cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
+          cout << "config " << i << " end " << k << " pair: " << pairs[k].first\
                << " "<< pairs[k].second << "\n";
           prepVASPFiles(name1, dupFactors, species);
         }
       }
     }
   } else if (subMode == "uniform") {
+    /*
+     * the idea is NConfigs be iterating over possible combinations for each
+     * elements in range
+     * and NBars is still how many possible pairs for each configuration
+     */
+    /* in uniform subMode, input nums is the upper limits of each element */
+    /*
+    vector<vector<int>> numsVec;
+    vector<int> tmpNums;
+    for (int i = 1; i < nums.size(); ++i) {
+      int offset;
+      if (elems[i] == "X") { //make sure starting from 1
+        offset = 1; 
+      } else {
+        offset = 0;
+      }
+      for (int j = myRandInt(offset, 1); j <= nums[i]; j += myRandInt(1, 3)) {
+
+      }
+    }
+    NConfigs = numsVec.size();
+    */
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;
     int nCycle = remainder ? (quotient + 1) : quotient;
@@ -247,7 +269,28 @@ void KNHome::createPreNEB() {
       for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
         
-        cnfModifier.getRandConfUniformDist(c0, elems, nums);
+        //cnfModifier.getRandConfUniformDist(c0, elems, numsVec[i]);
+        /* get rand ints */
+        vector<int> numsVec;
+        for (int k = 0; k < nums.size(); ++k) {
+          if (elems[k] == "Al") continue;
+          int offset;
+          if (elems[k] == "X") {
+            offset = 1;
+          } else {
+            offset = 0;
+          }
+          numsVec.push_back(myRandInt(offset, nums[k]));
+        }
+        int others = 0;
+        for (const auto val : numsVec) {
+          others += val;
+        }
+        auto it = numsVec.insert(numsVec.begin(), (c0.natoms - others));
+        assert(std::accumulate(numsVec.begin(), numsVec.end(), 0) == c0.natoms);
+
+        /* get rand ints end */
+        cnfModifier.getRandConfUniformDist(c0, elems, numsVec);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
         string baseDir = "config" + to_string(i) + "/start";
