@@ -12,7 +12,7 @@ inline int myRandInt(int minVal, int maxVal) {
 
 vector<pair<int, int>> KNHome::gbCnf::getPairToSwap(Config& cnf) {
   vector<pair<int, int>> res;
-  getNBL(cnf, rcut);
+  getNBL(cnf, 3.0);
   for (unsigned int i = 0; i < cnf.vacList.size(); ++i) {
     for (unsigned int j = 0; j < cnf.atoms[cnf.vacList[i]].NBL.size(); ++j) {
       if (cnf.atoms[j].tp != cnf.atoms[cnf.vacList[i]].tp) {
@@ -150,6 +150,7 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
       }
     }
   }
+
   std::sort(cnf.atoms.begin(), cnf.atoms.end());
   for (unsigned int i = 0; i < TPArr.size(); ++i) {
     if (cnf.atoms[i].tp == "X") {
@@ -183,11 +184,11 @@ void KNHome::createPreNEB() {
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;
     int nCycle = remainder ? (quotient + 1) : quotient;
-    Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
     for (int j = 0; j < nCycle; ++j) {
       for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
         
+        Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
         cnfModifier.getRandConf(c0, elems, nums);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
@@ -264,11 +265,10 @@ void KNHome::createPreNEB() {
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;
     int nCycle = remainder ? (quotient + 1) : quotient;
-    Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
     for (int j = 0; j < nCycle; ++j) {
       for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
-        
+        Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
         //cnfModifier.getRandConfUniformDist(c0, elems, numsVec[i]);
         /* get rand ints */
         vector<int> numsVec;
