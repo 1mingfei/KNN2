@@ -1,7 +1,7 @@
 /*
  * Author: 1mingfei 
  * Date:   2019-05-27
- * Purpose: inline functions for KNHome
+ * Purpose: functions for KNHome
  * self-explained
  */
 

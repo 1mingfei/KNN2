@@ -40,7 +40,8 @@ inline void prepKPOINTS(const string path, const vector<int>& dupFac) {
   ofs << "Automatic mesh\n";
   ofs << "0             \n";
   ofs << "Monkhorst-Pack\n";
-  ofs << KP/dupFac[X] << "   " << KP/dupFac[Y] << "   " << KP/dupFac[Z] << "\n";
+  //ofs << KP/dupFac[X] << "   " << KP/dupFac[Y] << "   " << KP/dupFac[Z] << "\n";
+  ofs << "1    1    1   \n";
   ofs << "0.   0.   0.  \n";
 }  
 

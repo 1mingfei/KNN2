@@ -282,7 +282,7 @@ void KNHome::createPreNEB() {
           }
           numsVec.push_back(myRandInt(offset, nums[k]));
         }
-        int others = 0;
+        int others = 0; //other than Al
         for (const auto val : numsVec) {
           others += val;
         }
@@ -291,6 +291,64 @@ void KNHome::createPreNEB() {
 
         /* get rand ints end */
         cnfModifier.getRandConfUniformDist(c0, elems, numsVec);
+        Config c0copy = c0; //because write POS will sort c0, hence change index
+
+        string baseDir = "config" + to_string(i) + "/start";
+        string mkBaseDir = "mkdir -p " + baseDir;
+        const char *cmkBaseDir = mkBaseDir.c_str();
+        const int dir_err = std::system(cmkBaseDir);
+        if (-1 == dir_err) {
+          cout << "Error creating directory!\n";
+          exit(1);
+        }
+
+        cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
+                                     "/start/start.cfg");
+        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
+        prepVASPFiles(baseDir, dupFactors, species);
+        vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
+
+#ifdef DEBUG
+        if (me == 0) {
+          cout << "config " << i << "\n";
+          for (const auto& p : pairs) {
+            cout << p.first << " " << p.second << "\n";
+          }
+        }
+#endif
+
+        std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        int end = MIN(NBars, pairs.size());
+        for (unsigned int k = 0; k < end; ++k) {
+
+          string subDir = "config" + to_string(i) + "/end_" + to_string(k);
+          const char *csubDir = subDir.c_str();
+          const int dir_err = mkdir(csubDir, \
+                                    S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+          if (-1 == dir_err) {
+            cout << "Error creating directory!\n";
+            exit(1);
+          }
+
+          Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
+          string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
+          cnfModifier.writeCfgData(c1, name1 + "end.cfg");
+          cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
+          cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
+               << " "<< pairs[k].second << "\n";
+          prepVASPFiles(name1, dupFactors, species);
+        }
+      }
+    }
+  } else if (subMode == "specific") {
+    int quotient = NConfigs / nProcs;
+    int remainder = NConfigs % nProcs;
+    int nCycle = remainder ? (quotient + 1) : quotient;
+    for (int j = 0; j < nCycle; ++j) {
+      for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
+        if ((i % nProcs != me) || (i >= NConfigs)) continue;
+        Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
+        cnfModifier.getRandConfUniformDist(c0, elems, nums);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
         string baseDir = "config" + to_string(i) + "/start";

@@ -1,7 +1,7 @@
 ============example1================
 mode generate
 method uniform
-LC 4.046
+LC 4.05837897273
 factors 4 4 4
 elems Al Zn X Mg
 nums  240 11 3 2
