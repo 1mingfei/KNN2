@@ -1,7 +1,8 @@
 #include "gbCnf.h"
 #include "KNHome.h"
-#define KP 16
-const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
+#define KP 9
+//const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
+const string PBE="/Users/mzhang/Personal/pot_old/potpaw_PBE/elements/";
 
 inline void prepINCAR(const string path) {
   string fnm = path + "/INCAR";
@@ -40,8 +41,8 @@ inline void prepKPOINTS(const string path, const vector<int>& dupFac) {
   ofs << "Automatic mesh\n";
   ofs << "0             \n";
   ofs << "Monkhorst-Pack\n";
-  //ofs << KP/dupFac[X] << "   " << KP/dupFac[Y] << "   " << KP/dupFac[Z] << "\n";
-  ofs << "1    1    1   \n";
+  ofs << KP/dupFac[X] << "   " << KP/dupFac[Y] << "   " << KP/dupFac[Z] << "\n";
+  //ofs << "1    1    1   \n";
   ofs << "0.   0.   0.  \n";
 }  
 
@@ -52,6 +53,29 @@ inline void prepSUBMIT(const string path) {
     queue=nahpc_matls_lg  proj=VASP  input_dir=`pwd` \
     jid=Al_job output_dir=`pwd`";
 }
+
+inline void prepSUBMITCORI(const string path) {
+  string fnm = path + "/submit.cori";
+  ofstream ofs(fnm, std::ofstream::out);
+  ofs << "#!/bin/bash\n";
+  ofs << "#SBATCH -N 1\n";
+  ofs << "#SBATCH -C knl\n";
+  ofs << "#SBATCH -q regular\n";
+  ofs << "#SBATCH -J start\n";
+  ofs << "#SBATCH --mail-user=mingfei@umich.edu\n";
+  ofs << "#SBATCH --mail-type=ALL\n";
+  ofs << "#SBATCH -t 48:00:00\n";
+  ofs << "#SBATCH -L SCRATCH\n";
+  ofs << "\n";
+  ofs << "#OpenMP settings:\n";
+  ofs << "export OMP_NUM_THREADS=4\n";
+  ofs << "export OMP_PLACES=threads\n";
+  ofs << "export OMP_PROC_BIND=spread\n";
+  ofs << "\n";
+  ofs << "module load vasp/5.4.4-knl\n";
+  ofs << "srun -n 64 -c 4 --cpu_bind=cores vasp_std\n";
+  ofs << "rm CHG* WAVE*\n";
+}  
 
 inline void prepPOTCAR(const string path, const set<string> species) {
   string mkPOT = "cat ";
@@ -73,4 +97,5 @@ void KNHome::prepVASPFiles(const string path, const vector<int>& dupFac,
   prepKPOINTS(path, dupFac);
   prepPOTCAR(path, species);
   prepSUBMIT(path);
+  prepSUBMITCORI(path);
 }

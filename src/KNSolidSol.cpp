@@ -192,7 +192,7 @@ void KNHome::createPreNEB() {
         cnfModifier.getRandConf(c0, elems, nums);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
-        string baseDir = "config" + to_string(i) + "/start";
+        string baseDir = "config" + to_string(i) + "/s";
         string mkBaseDir = "mkdir -p " + baseDir;
         const char *cmkBaseDir = mkBaseDir.c_str();
         const int dir_err = std::system(cmkBaseDir);
@@ -202,8 +202,8 @@ void KNHome::createPreNEB() {
         }
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/start/start.cfg");
-        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
+                                     "/s/start.cfg");
+        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, species);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
@@ -220,7 +220,7 @@ void KNHome::createPreNEB() {
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 
-          string subDir = "config" + to_string(i) + "/end_" + to_string(k);
+          string subDir = "config" + to_string(i) + "/e_" + to_string(k);
           const char *csubDir = subDir.c_str();
           const int dir_err = mkdir(csubDir, \
                                     S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -230,7 +230,7 @@ void KNHome::createPreNEB() {
           }
 
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
+          string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first\
@@ -293,7 +293,7 @@ void KNHome::createPreNEB() {
         cnfModifier.getRandConfUniformDist(c0, elems, numsVec);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
-        string baseDir = "config" + to_string(i) + "/start";
+        string baseDir = "config" + to_string(i) + "/s";
         string mkBaseDir = "mkdir -p " + baseDir;
         const char *cmkBaseDir = mkBaseDir.c_str();
         const int dir_err = std::system(cmkBaseDir);
@@ -303,8 +303,8 @@ void KNHome::createPreNEB() {
         }
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/start/start.cfg");
-        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
+                                     "/s/start.cfg");
+        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, species);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
@@ -321,7 +321,7 @@ void KNHome::createPreNEB() {
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 
-          string subDir = "config" + to_string(i) + "/end_" + to_string(k);
+          string subDir = "config" + to_string(i) + "/e_" + to_string(k);
           const char *csubDir = subDir.c_str();
           const int dir_err = mkdir(csubDir, \
                                     S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -331,7 +331,7 @@ void KNHome::createPreNEB() {
           }
 
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
+          string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
@@ -351,7 +351,7 @@ void KNHome::createPreNEB() {
         cnfModifier.getRandConfUniformDist(c0, elems, nums);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
-        string baseDir = "config" + to_string(i) + "/start";
+        string baseDir = "config" + to_string(i) + "/s";
         string mkBaseDir = "mkdir -p " + baseDir;
         const char *cmkBaseDir = mkBaseDir.c_str();
         const int dir_err = std::system(cmkBaseDir);
@@ -361,8 +361,8 @@ void KNHome::createPreNEB() {
         }
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/start/start.cfg");
-        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/start/POSCAR");
+                                     "/s/start.cfg");
+        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, species);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
@@ -379,7 +379,7 @@ void KNHome::createPreNEB() {
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 
-          string subDir = "config" + to_string(i) + "/end_" + to_string(k);
+          string subDir = "config" + to_string(i) + "/f_" + to_string(k);
           const char *csubDir = subDir.c_str();
           const int dir_err = mkdir(csubDir, \
                                     S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -389,7 +389,7 @@ void KNHome::createPreNEB() {
           }
 
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/end_" + to_string(k) + "/";
+          string name1 = "config" + to_string(i) + "/f_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first \

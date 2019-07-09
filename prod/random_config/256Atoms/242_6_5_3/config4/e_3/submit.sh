@@ -1,0 +1,1 @@
+/data/submit/unix/submit vasp ver=5.3.5 ncpu=48 spool_files=yes     queue=nahpc_matls_lg  proj=VASP  input_dir=`pwd`     jid=Al_job output_dir=`pwd`

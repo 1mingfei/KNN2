@@ -1,1 +1,2 @@
 # KNN2
+Al alloy 7075 LC SQS 256 Atoms 16.2335158909 A

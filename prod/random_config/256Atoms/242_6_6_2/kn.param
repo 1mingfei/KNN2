@@ -1,0 +1,10 @@
+============example1================
+mode generate
+method random
+LC 4.05837897273
+factors 4 4 4
+elems Al Mg Zn X
+nums  242 6 6 2
+NConfigs 10
+NBarriers 5
+====================================

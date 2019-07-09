@@ -3,8 +3,8 @@ mode generate
 method uniform
 LC 4.05837897273
 factors 4 4 4
-elems Al Zn X Mg
-nums  240 11 3 2
+elems Al Mg X Zn
+nums  241 7 3 5
 NConfigs 4
 NBarriers 10
 ====================================
