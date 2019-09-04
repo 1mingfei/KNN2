@@ -56,20 +56,25 @@ void KNHome::KNEncode() {
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
   double RCut = dparams["RCut"];
-  string fpname = "pairs.txt";//
+  //string fpname = "pairs.txt";//
+  string fpname = sparams["PairFile"];
   vector<vector<int>> pairs = readPairs(fpname);
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
     std::cout << "encoding configurations\n";
-  int quotient = NConfigs / nProcs;
-  int remainder = NConfigs % nProcs;
+  //int quotient = NConfigs / nProcs;
+  //int remainder = NConfigs % nProcs;
+  int quotient = pairs.size() / nProcs;
+  int remainder = pairs.size() % nProcs;
   int nCycle = remainder ? (quotient + 1) : quotient;
   for (int j = 0; j < nCycle; ++j) {
     for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
       if ((i % nProcs != me) || (i >= NConfigs)) continue;
-      string fname = "in.cfg";//
+      //string fname = "in.cfg";//
+      string fname = "config" + to_string(pairs[i][0]) + "/s/start.cfg";
+
       Config cfg = cnfModifier.readCfg(fname);
-      vector<int> pair = pairs[i];
+      vector<int> pair = {pairs[i][2], pairs[i][3]};
       vector<int> tmp = cnfModifier.encodeConfig(cfg, pair, RCut);
       writeVector(to_string(i) + ".txt", tmp);
 #ifdef DEBUG
@@ -79,7 +84,7 @@ void KNHome::KNEncode() {
       for (unsigned int i = 0 ; i < tmp.size(); ++i) {
         cNew.atoms.push_back(cfg.atoms[tmp[i]]);
       }
-      cnfModifier.writeCfgData(cNew, to_string(i) + "encode.cfg");
+      cnfModifier.writeCfgData(cNew, to_string(i) + "_encode.cfg");
 #endif
     }
   }
@@ -96,9 +101,13 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
   while (getline(ifs, buff)) {
     s.clear();
     split(buff, " ", s);
+    if (s[0] == "Delta") //for the very last line
+      continue;
     vector<int> tmp;
-    assert(s.size() == 4);
-    for (int i = 2; i < 4; ++i) {
+    //assert(s.size() == 4);
+    tmp.push_back(stoi(s[1]));
+    tmp.push_back(stoi(s[3]));
+    for (int i = 5; i < 7; ++i) {
       tmp.push_back(stoi(s[i]));
     }
     res.push_back(tmp);
