@@ -48,6 +48,7 @@ public:
   /* gbBox.cpp */
   void initBox(Config&);
   void wrapAtomPos(Config&);
+  void wrapAtomPrl(Config&);
   void cnvprl2pst(Config&);
   void cnvpst2prl(Config&);
 
@@ -67,8 +68,11 @@ public:
   Config swapPair(const Config&, pair<int, int>);
 
   /* KNEncode.cpp */
-  vector<int> encodeConfig(Config&, const vector<int>, double);
+  vector<int> encodeConfig(Config&, const vector<int>, double, vector<string>&);
   vector<pair<int, int>> readPairs(string);
+  Config rotate(Config&, const vector<int>);
+  vec getCenterShift(Config&);
+
 };
 
 #include "Elem.inl"

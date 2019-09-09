@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <set>
 #include <algorithm> 
+#include "armadillo"
 #include "gbDef.h"
 #include "gbCnf.h"
 #include "gbUtl.h"
@@ -35,6 +36,8 @@ using std::vector;
 using std::set;
 using std::pair;
 using std::min;
+using arma::vec;
+using arma::mat;
 
 class KNHome {
 private:

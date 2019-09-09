@@ -40,13 +40,14 @@ void KNHome::gbCnf::cnvprl2pst(Config& c) {
 }
 
 void KNHome::gbCnf::wrapAtomPos(Config& tmpc) {
+
   vector<double> boxlo(3), boxhi(3), npst(3);
   for (const int& k : {0, 1, 2}) {
     boxlo[k] = 0.0 * tmpc.bvx[k] + 0.0 * tmpc.bvy[k] + 0.0 * tmpc.bvz[k];
     boxhi[k] = 1.0 * tmpc.bvx[k] + 1.0 * tmpc.bvy[k] + 1.0 * tmpc.bvz[k];
   }
 
-  for (KNAtom& atm : tmpc.atoms) {
+  for (auto&& atm : tmpc.atoms) {
     for (int ix = -1; ix <= 1; ix++) {
       for (int iy = -1; iy <= 1; iy++) {
         for (int iz = -1; iz <= 1; iz++) {
@@ -94,5 +95,14 @@ void KNHome::gbCnf::cnvpst2prl(Config& c) {
     atm.prl[0] = X[0];
     atm.prl[1] = X[1];
     atm.prl[2] = X[2];
+  }
+}
+
+void KNHome::gbCnf::wrapAtomPrl(Config& tmpc) {
+  for (auto&& atm : tmpc.atoms) {
+    for (int i = 0; i < 3; ++i) {
+      double factor = std::floor(atm.prl[i]);
+      atm.prl[i] -= factor;
+    }
   }
 }

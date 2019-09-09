@@ -1,12 +1,16 @@
-#include "gbCnf.h"
-#include "KNHome.h"
-
 /*
  * Author: 1mingfei 
  * Date:   2019-05-25
  * Purpose: encoding neighbor atoms of the jumping pairs
  * self-explained
  */
+
+#include "gbCnf.h"
+#include "KNHome.h"
+#include "armadillo"
+using arma::mat;
+using arma::vec;
+
 
 /*
  * Sort points lexicographically 
@@ -41,13 +45,65 @@ inline bool sortPairs(const vector<int>& lhs, const vector<int>& rhs) {
     return lhs[0] < rhs[0];
   }
 }
+
 /* output vectors to file */
-inline void writeVector(const string& fname, const vector<int>& v) {
+template<class T>
+inline void writeVector(const string& fname, const vector<T>& v) {
   ofstream ofs(fname, std::ofstream::app);
   for (const auto& val : v) {
-    ofs << val << " ";
+    ofs << std::setw(4) << val << " ";
   }
   ofs << endl;
+}
+
+inline mat calculateRotateMatrix(
+    const vec& A, const vec& B) {
+  mat R; R.eye(3, 3);
+  vec v = cross(A, B);
+  double c = dot(A, B);
+  mat vx(3, 3);
+  vx << 0.0 << -v[2] << v[1] << arma::endr 
+     << v[2] << 0.0 << -v[0] << arma::endr
+     << -v[1] << v[0] << 0.0 <<arma::endr;
+
+  R = R + vx + vx * vx / (1.0 + c);
+  return R;
+}
+
+inline vector<double> rotateMatrix(
+    const mat& A, const vector<double>& X) {
+  vec Xv(3);
+  Xv << X[0] << X[1] << X[2];
+  vec B = A * Xv;
+  return {B[0], B[1], B[2]};
+}
+
+inline vector<double> rotateMatrix(
+    const mat& A, const vector<double>& X, const vec& center) {
+  vec Xv(3);
+  Xv << X[0] - center[0] << X[1] - center[1] << X[2] - center[2];
+  vec B = A * Xv;
+  //return {B[0] + center[0], B[1] + center[1], B[2] + center[2]};
+  return {B[0], B[1], B[2]};
+}
+
+vec KNHome::gbCnf::getCenterShift(Config& c) {
+  //unwrap atoms
+  vector<double> ave(3, 0.0);
+  wrapAtomPrl(c);
+  for (auto&& atm : c.atoms) {
+    for (int i = 0; i < 3; ++i) {
+      if (atm.prl[i] >= 0.5)
+        atm.prl[i] -= 1.0;
+      ave[i] += atm.prl[i];
+    }
+  }
+  for (int i = 0; i < 3; ++i) {
+    ave[i] /= c.atoms.size();
+  }
+  vec res(3);
+  res << ave[0] - 0.5 << ave[1] - 0.5 << ave[2] - 0.5;
+  return res;
 }
 
 void KNHome::KNEncode() {
@@ -75,20 +131,44 @@ void KNHome::KNEncode() {
 
       Config cfg = cnfModifier.readCfg(fname);
       vector<int> pair = {pairs[i][2], pairs[i][3]};
-      vector<int> tmp = cnfModifier.encodeConfig(cfg, pair, RCut);
-      writeVector(to_string(i) + ".txt", tmp);
-#ifdef DEBUG
+      vector<string> codes;
+      /*
+      vector<int> tmpId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
+      writeVector<int>(to_string(i) + ".txt", tmpId);
+      writeVector<string>(to_string(i) + ".txt", codes);
+
       Config cNew = cfg;
       cNew.atoms.clear();
-      cNew.natoms = tmp.size();
-      for (unsigned int i = 0 ; i < tmp.size(); ++i) {
-        cNew.atoms.push_back(cfg.atoms[tmp[i]]);
+      cNew.natoms = tmpId.size();
+      for (unsigned int i = 0 ; i < tmpId.size(); ++i) {
+        cNew.atoms.push_back(cfg.atoms[tmpId[i]]);
       }
-      cnfModifier.writeCfgData(cNew, to_string(i) + "_encode.cfg");
+#ifdef DEBUG
+      cnfModifier.writeCfgData(cNew, to_string(i) + "_encode_before.cfg");
 #endif
+
+      Config cfgRotated = cnfModifier.rotate(cNew, pair);
+      vector<string> codesR;
+      vector<int> resId;
+      sortAtomLexi(cfgRotated.atoms);
+      for (const auto& atm : cfgRotated.atoms) {
+        resId.push_back(atm.id);
+        codesR.push_back(atm.tp);
+      }
+      //vector<int> resId = cnfModifier.encodeConfig(cfgRotated, pair, RCut,\
+      //                                             codesR);
+      writeVector<int>(to_string(i) + ".txt", resId);
+      writeVector<string>(to_string(i) + ".txt", codesR);
+
+#ifdef DEBUG
+      cnfModifier.writeCfgData(cfgRotated, to_string(i) + "_encode_after.cfg");
+#endif
+     */
+      vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
+      writeVector<int>(to_string(i) + ".txt", resId);
+      writeVector<string>(to_string(i) + ".txt", codes);
     }
   }
-
 }
 
 
@@ -112,39 +192,29 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
     }
     res.push_back(tmp);
   }
-#ifdef DEBUG
-  for (int i = 0; i < res.size(); ++i) {
-    writeVector("before.txt", res[i]);
-  }
-#endif
   sort(res.begin(), res.end(), sortPairs);
-#ifdef DEBUG
-  for (int i = 0; i < res.size(); ++i) {
-    writeVector("after.txt", res[i]);
-  }
-#endif
   return res;
 }
 
 vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
                                         const vector<int> pair, \
-                                        double RCut) {
+                                        double RCut, vector<string>& codes) {
   assert(pair.size() == 2); //the size of input pair must equals 2
   getNBL(cnf, RCut);
   /* reverse wrap back so the lexi order is always not affected by Periodic 
    * boundary conditions */
   vector<KNAtom> atmList;
-  vector<int> res;
+  vector<int> tmpId;
   set<int> hsh;
   for (int i = 0; i < 2; ++i) {
     KNAtom atm = cnf.atoms[pair[i]];
     for (const int ii : atm.NBL) {
       KNAtom nbAtm = cnf.atoms[ii];
       for (int j = 0; j < DIM; ++j) {
-        if (std::abs(atm.prl[j] - 1.0) < RCut/cnf.length[j]) {
-          if ((1.0 - nbAtm.prl[j]) < RCut/cnf.length[j]) {
+        if (std::abs(atm.prl[j] - 1.0) < RCut / cnf.length[j]) {
+          if ((1.0 - nbAtm.prl[j]) < RCut / cnf.length[j]) {
             nbAtm.prl[j] -= 1.0;
-          } else if ((nbAtm.prl[j] - 1.0) < RCut/cnf.length[j]) {
+          } else if ((nbAtm.prl[j] - 1.0) < RCut / cnf.length[j]) {
             nbAtm.prl[j] += 1.0;
           }
         }
@@ -158,9 +228,79 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
       }
     }
   }
-  sortAtomLexi(atmList);
+  //sortAtomLexi(atmList);
+  vector<string> tmpCodes;
   for (const auto& atm : atmList) {
-    res.push_back(atm.id);
+    tmpId.push_back(atm.id);
+    tmpCodes.push_back(atm.tp);
   }
+
+#ifdef DEBUG
+  writeVector<int>("debug_encode.txt", tmpId);
+  writeVector<string>("debug_encode.txt", tmpCodes);
+#endif
+  Config cNew = cnf;
+  cNew.atoms.clear();
+  cNew.natoms = tmpId.size();
+  for (unsigned int i = 0 ; i < tmpId.size(); ++i) {
+    cNew.atoms.push_back(cnf.atoms[tmpId[i]]);
+  }
+#ifdef DEBUG
+  writeCfgData(cNew, "debug_encode_before.cfg");
+#endif
+
+  Config cfgRotated = rotate(cNew, pair);
+  vector<int> resId;
+  sortAtomLexi(cfgRotated.atoms);
+  for (const auto& atm : cfgRotated.atoms) {
+    resId.push_back(atm.id);
+    codes.push_back(atm.tp);
+  }
+  //vector<int> resId = cnfModifier.encodeConfig(cfgRotated, pair, RCut,\
+  //                                             codesR);
+#ifdef DEBUG
+  writeCfgData(cfgRotated, "debug_encode_after.cfg");
+#endif
+  return resId;
+}
+
+Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair) {
+
+  cnvprl2pst(cnf);
+  wrapAtomPos(cnf);
+  cnvpst2prl(cnf);
+  int id1 = pair[0], id2 = pair[1];
+  vector<double> v1(3, 0.0);
+  for (unsigned int i = 0; i < DIM; ++i) {
+    v1[i] = cnf.atoms[id2].prl[i] - cnf.atoms[id1].prl[i];
+  }
+  vec v1a(3);
+  v1a << v1[X] << v1[Y] << v1[Z];
+  v1a = arma::normalise(v1a);
+  vector<double> v2 = {1.0, 1.0, 0.0};
+  vec v2a;
+  v2a << v2[X] << v2[Y] << v2[Z];
+  v2a = arma::normalise(v2a);
+  mat R = calculateRotateMatrix(v1a, v2a);
+  cout << "initial jump direction: \n";
+  v1a.print();
+  cout << "reference jump direction: \n";
+  v2a.print();
+  cout << "rotation matrix: \n";
+  R.print();
+  Config res = cnf;
+
+  //the distance of center of atoms to the center of the cell
+  vec centerShift = getCenterShift(cnf); 
+  centerShift.print();
+
+  for (auto&& atm : res.atoms) {
+    vector<double> prl({atm.prl[0], atm.prl[1], atm.prl[2]});
+    prl = rotateMatrix(R, prl, centerShift);
+    atm.prl[0] = prl[0], atm.prl[1] = prl[1], atm.prl[2] = prl[2];
+  }
+  //cnvprl2pst(res);
+  wrapAtomPrl(res);
+  //cnvpst2prl(res);
   return res;
 }
