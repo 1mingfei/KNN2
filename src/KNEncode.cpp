@@ -48,8 +48,21 @@ inline bool sortPairs(const vector<int>& lhs, const vector<int>& rhs) {
 
 /* output vectors to file */
 template<class T>
-inline void writeVector(const string& fname, const vector<T>& v) {
+inline void writeVector(const string& fname, \
+                        const vector<T>& v) {
   ofstream ofs(fname, std::ofstream::app);
+  for (const auto& val : v) {
+    ofs << std::setw(4) << val << " ";
+  }
+  ofs << endl;
+}
+
+/* output vectors to file */
+template<class T>
+inline void writeVector(const string& fname, const int i, const int j, \
+                        const vector<T>& v) {
+  ofstream ofs(fname, std::ofstream::app);
+  ofs << "config " << i << " end " << j << " ";
   for (const auto& val : v) {
     ofs << std::setw(4) << val << " ";
   }
@@ -125,7 +138,7 @@ void KNHome::KNEncode() {
   int nCycle = remainder ? (quotient + 1) : quotient;
   for (int j = 0; j < nCycle; ++j) {
     for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
-      if ((i % nProcs != me) || (i >= NConfigs)) continue;
+      if ((i % nProcs != me) || (i >= pairs.size())) continue;
       //string fname = "in.cfg";//
       string fname = "config" + to_string(pairs[i][0]) + "/s/start.cfg";
 
@@ -165,8 +178,16 @@ void KNHome::KNEncode() {
 #endif
      */
       vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
-      writeVector<int>(to_string(i) + ".txt", resId);
-      writeVector<string>(to_string(i) + ".txt", codes);
+      //writeVector<int>(to_string(i) + ".txt", pairs[i][0], pairs[i][1],\
+      //                 resId);
+      writeVector<string>("encode.out.txt", pairs[i][0], pairs[i][1],\
+                         codes);
+      //vector<int> pairBack = {pairs[i][3], pairs[i][2]};
+      //vector<string> codesBack;
+      //vector<int> resIdBack = cnfModifier.encodeConfig(cfg, pairBack, RCut,\
+      //    codesBack);
+      //writeVector<string>("encode.out.txt", pairs[i][0], pairs[i][1],\
+      //                   codesBack);
     }
   }
 }
