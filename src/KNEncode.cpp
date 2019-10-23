@@ -177,6 +177,13 @@ void KNHome::KNEncode() {
       cnfModifier.writeCfgData(cfgRotated, to_string(i) + "_encode_after.cfg");
 #endif
      */
+
+      for (int i = 0; i < 5; ++i) {
+        cout << cfg.atoms[i].prl[0] << " " << cfg.atoms[i].prl[1] << " " << cfg.atoms[i].prl[2] << "\n" ;
+      }
+      cout << "\n";
+
+
       vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
       //writeVector<int>(to_string(i) + ".txt", pairs[i][0], pairs[i][1],\
       //                 resId);
@@ -260,6 +267,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_encode.txt", tmpId);
   writeVector<string>("debug_encode.txt", tmpCodes);
 #endif
+
   Config cNew = cnf;
   cNew.atoms.clear();
   cNew.natoms = tmpId.size();
@@ -286,6 +294,11 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
 }
 
 Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair) {
+
+  for (int i = 0; i < 5; ++i) {
+    cout << cnf.atoms[i].prl[0] << " " << cnf.atoms[i].prl[1] << " " << cnf.atoms[i].prl[2] << "\n" ;
+  }
+  cout << "\n";
 
   cnvprl2pst(cnf);
   wrapAtomPos(cnf);

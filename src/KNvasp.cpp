@@ -1,8 +1,8 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #define KP 9
-//const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
-const string PBE="/Users/mzhang/Personal/pot_old/potpaw_PBE/elements/";
+const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
+//const string PBE="/home/mingfei/Work/pot_old/potpaw_PBE/elements/";
 
 inline void prepINCAR(const string path) {
   string fnm = path + "/INCAR";
@@ -32,7 +32,7 @@ inline void prepINCAR(const string path) {
   ofs << "LWAVE  = .FALSE. \n";    
   ofs << "LCHARG = .TRUE.  \n";    
   ofs << "                 \n";    
-  ofs << "NPAR   = 8       \n";    
+  ofs << "NPAR   = 4       \n";    
 }
 
 inline void prepKPOINTS(const string path, const vector<int>& dupFac) {
@@ -77,6 +77,46 @@ inline void prepSUBMITCORI(const string path) {
   ofs << "rm CHG* WAVE*\n";
 }  
 
+inline void prepSUBMITGL(const string path) {
+  string fnm = path + "/submit.gl";
+  ofstream ofs(fnm, std::ofstream::out);
+
+  ofs << "#!/bin/bash\n";
+  ofs << "#SBATCH -N 1\n";
+  ofs << "#SBATCH --ntasks-per-node=36\n";
+  ofs << "#SBATCH --mail-user=mingfei@umich.edu\n";
+  ofs << "#SBATCH --mail-type=ALL\n";
+  ofs << "#SBATCH -t 96:00:00\n";
+  ofs << "#SBATCH --job-name=GOALI\n";
+  ofs << "#SBATCH --account=qiliang\n";
+  ofs << "#SBATCH --partition=standard\n";
+  ofs << "\n";
+  ofs << "module load RestrictedLicense\n";
+  ofs << "module load vasp/5.4.4.18Apr17.p1\n";
+  ofs << "srun  vasp\n";
+  ofs << "rm CHG* WAVE*\n";
+}
+
+inline void prepSUBMITSTAMPEDE2(const string path) {
+  string fnm = path + "/submit.stampede2";
+  ofstream ofs(fnm, std::ofstream::out);
+  ofs << "#!/bin/bash\n";
+  ofs << "#SBATCH -J vasp\n";
+  ofs << "#SBATCH -o vasp.%j.out\n";
+  ofs << "#SBATCH -e vasp.%j.err\n";
+  ofs << "#SBATCH -n 64\n";
+  ofs << "#SBATCH -N 1\n";
+  ofs << "#SBATCH -p normal\n";
+  ofs << "#SBATCH -t 32:00:00\n";
+  ofs << "#SBATCH -A  TG-MSS160003\n";
+  ofs << "\n";
+  ofs << "#TG-MSS160003 TG-DMR190035\n";
+  ofs << "\n";
+  ofs << "module load vasp/5.4.4\n";
+  ofs << "ibrun vasp_std > vasp_test.out\n";
+  ofs << "rm CHG* WAVE*\n";
+}
+
 inline void prepPOTCAR(const string path, const set<string> species) {
   string mkPOT = "cat ";
   for (const auto& ele : species) {
@@ -98,4 +138,6 @@ void KNHome::prepVASPFiles(const string path, const vector<int>& dupFac,
   prepPOTCAR(path, species);
   prepSUBMIT(path);
   prepSUBMITCORI(path);
+  prepSUBMITGL(path);
+  prepSUBMITSTAMPEDE2(path);
 }
