@@ -73,8 +73,8 @@ public:
   Config rotate(Config&, const vector<int>);
   vec getCenterShift(Config&);
   /* KNBondCount.cpp */
-  unordered_map<string, int> countPairs(Config&, const vector<string>&, \
-                                                 const vector<int>& );
+  map<string, int> countPairs(Config&, const vector<string>&, \
+                                       const vector<int>& );
 
 };
 
