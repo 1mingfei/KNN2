@@ -26,6 +26,8 @@ KNHome::KNHome(int argc, char* argv[]) {
     createPreNEB();
   } else if (sparams["mode"] == "encode") {
     KNEncode();
+  } else if (sparams["mode"] == "BondCount") {
+    KNBondCount();
   } else if (sparams["mode"] == "test") {
     /* test encoding */
     /*

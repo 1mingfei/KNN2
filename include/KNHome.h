@@ -69,6 +69,10 @@ public:
   /* KNEncode.cpp */
   void KNEncode();
   vector<vector<int>> readPairs(const string&);
+
+  /* KNBondCount.cpp */
+  void KNBondCount();
+  
 };
 
 #endif

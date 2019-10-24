@@ -72,6 +72,9 @@ public:
   vector<pair<int, int>> readPairs(string);
   Config rotate(Config&, const vector<int>);
   vec getCenterShift(Config&);
+  /* KNBondCount.cpp */
+  unordered_map<string, int> countPairs(Config&, const vector<string>&, \
+                                                 const vector<int>& );
 
 };
 

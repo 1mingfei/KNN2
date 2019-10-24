@@ -157,7 +157,7 @@ Config KNHome::gbCnf::readCfg(const string& fname) {
   cnf.length[Y] = cnf.bvy[Y];
   cnf.length[Z] = cnf.bvz[Z];
 
-  std::sort(cnf.atoms.begin(), cnf.atoms.end());
+  // std::sort(cnf.atoms.begin(), cnf.atoms.end());
 
   return cnf;
 }
