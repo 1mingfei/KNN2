@@ -176,12 +176,14 @@ void KNHome::KNEncode() {
 #ifdef DEBUG
       cnfModifier.writeCfgData(cfgRotated, to_string(i) + "_encode_after.cfg");
 #endif
-     */
 
+#ifdef DEBUG
       for (int i = 0; i < 5; ++i) {
         cout << cfg.atoms[i].prl[0] << " " << cfg.atoms[i].prl[1] << " " << cfg.atoms[i].prl[2] << "\n" ;
       }
       cout << "\n";
+#endif     
+      */
 
 
       vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
@@ -280,6 +282,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
 
   Config cfgRotated = rotate(cNew, pair);
   vector<int> resId;
+  codes.push_back(cnf.atoms[pair[1]].tp);//
   sortAtomLexi(cfgRotated.atoms);
   for (const auto& atm : cfgRotated.atoms) {
     resId.push_back(atm.id);
