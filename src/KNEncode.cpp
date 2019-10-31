@@ -145,6 +145,13 @@ void KNHome::KNEncode() {
       Config cfg = cnfModifier.readCfg(fname);
       vector<int> pair = {pairs[i][2], pairs[i][3]};
       vector<string> codes;
+      
+      vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
+
+      //writeVector<int>(to_string(i) + ".txt", pairs[i][0], pairs[i][1],\
+      //                 resId);
+      writeVector<string>("encode.out.txt", pairs[i][0], pairs[i][1],\
+                         codes);
       /*
       vector<int> tmpId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
       writeVector<int>(to_string(i) + ".txt", tmpId);
@@ -176,27 +183,8 @@ void KNHome::KNEncode() {
 #ifdef DEBUG
       cnfModifier.writeCfgData(cfgRotated, to_string(i) + "_encode_after.cfg");
 #endif
-
-#ifdef DEBUG
-      for (int i = 0; i < 5; ++i) {
-        cout << cfg.atoms[i].prl[0] << " " << cfg.atoms[i].prl[1] << " " << cfg.atoms[i].prl[2] << "\n" ;
-      }
-      cout << "\n";
-#endif     
       */
 
-
-      vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
-      //writeVector<int>(to_string(i) + ".txt", pairs[i][0], pairs[i][1],\
-      //                 resId);
-      writeVector<string>("encode.out.txt", pairs[i][0], pairs[i][1],\
-                         codes);
-      //vector<int> pairBack = {pairs[i][3], pairs[i][2]};
-      //vector<string> codesBack;
-      //vector<int> resIdBack = cnfModifier.encodeConfig(cfg, pairBack, RCut,\
-      //    codesBack);
-      //writeVector<string>("encode.out.txt", pairs[i][0], pairs[i][1],\
-      //                   codesBack);
     }
   }
 }
@@ -231,6 +219,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
                                         double RCut, vector<string>& codes) {
   assert(pair.size() == 2); //the size of input pair must equals 2
   getNBL(cnf, RCut);
+
   /* reverse wrap back so the lexi order is always not affected by Periodic 
    * boundary conditions */
   vector<KNAtom> atmList;
@@ -280,6 +269,13 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeCfgData(cNew, "debug_encode_before.cfg");
 #endif
 
+#ifdef DEBUG
+  cout << "before Rotate\n";
+  for (int i = 0; i < 5; ++i)
+    cout << cNew.atoms[i].prl[0] << " " << cNew.atoms[i].prl[1] << " " << cNew.atoms[i].prl[2] << "\n";
+  cout << "\n";
+#endif 
+
   Config cfgRotated = rotate(cNew, pair);
   vector<int> resId;
   codes.push_back(cnf.atoms[pair[1]].tp);//
@@ -298,14 +294,30 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
 
 Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair) {
 
-  for (int i = 0; i < 5; ++i) {
-    cout << cnf.atoms[i].prl[0] << " " << cnf.atoms[i].prl[1] << " " << cnf.atoms[i].prl[2] << "\n" ;
-  }
+#ifdef DEBUG
+  cout << "before rotate\n";
+  for (int i = 0; i < 5; ++i)
+    cout << cnf.atoms[i].prl[0] << " " << cnf.atoms[i].prl[1] << " " << cnf.atoms[i].prl[2] << "\n";
   cout << "\n";
+#endif 
 
   cnvprl2pst(cnf);
   wrapAtomPos(cnf);
+#ifdef DEBUG
+  writeCfgData(cnf, "debug_1.cfg");
+#endif
   cnvpst2prl(cnf);
+#ifdef DEBUG
+  writeCfgData(cnf, "debug_2.cfg");
+#endif
+
+// #ifdef DEBUG
+//   cout << "rotate step3\n";
+//   for (int i = 0; i < 5; ++i)
+//     cout << cnf.atoms[i].prl[0] << " " << cnf.atoms[i].prl[1] << " " << cnf.atoms[i].prl[2] << "\n";
+//   cout << "\n";
+// #endif 
+
   int id1 = pair[0], id2 = pair[1];
   vector<double> v1(3, 0.0);
   for (unsigned int i = 0; i < DIM; ++i) {
@@ -336,8 +348,14 @@ Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair) {
     prl = rotateMatrix(R, prl, centerShift);
     atm.prl[0] = prl[0], atm.prl[1] = prl[1], atm.prl[2] = prl[2];
   }
+#ifdef DEBUG
+  writeCfgData(res, "debug_3.cfg");
+#endif
   //cnvprl2pst(res);
   wrapAtomPrl(res);
+#ifdef DEBUG
+  writeCfgData(res, "debug_4.cfg");
+#endif
   //cnvpst2prl(res);
   return res;
 }

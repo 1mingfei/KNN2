@@ -70,8 +70,9 @@ public:
   /* KNEncode.cpp */
   vector<int> encodeConfig(Config&, const vector<int>, double, vector<string>&);
   vector<pair<int, int>> readPairs(string);
-  Config rotate(Config&, const vector<int>);
+  Config rotate(Config&, const vector<int>, const Config&);
   vec getCenterShift(Config&);
+  void shiftToCenter(Config&, vector<double>&);
   /* KNBondCount.cpp */
   map<string, int> countPairs(Config&, const vector<string>&, \
                                        const vector<int>& );
