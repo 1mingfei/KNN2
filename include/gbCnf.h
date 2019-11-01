@@ -73,6 +73,8 @@ public:
   Config rotate(Config&, const vector<int>, const Config&);
   vec getCenterShift(Config&);
   void shiftToCenter(Config&, vector<double>&);
+  mat getJumpCoor(const Config&, const vector<int>, const Config&);
+                       
   /* KNBondCount.cpp */
   map<string, int> countPairs(Config&, const vector<string>&, \
                                        const vector<int>& );

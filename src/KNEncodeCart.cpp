@@ -71,38 +71,39 @@ inline void writeVector(const string& fname, const int i, const int j, \
 
 inline mat calculateRotateMatrix(
     const vec& A, const vec& B) {
-  // mat R; R.eye(3, 3);
-  // vec v = cross(A, B);
-  // double c = dot(A, B);
-  // mat vx(3, 3);
-  // vx << 0.0 << -v[2] << v[1] << arma::endr 
-  //    << v[2] << 0.0 << -v[0] << arma::endr
-  //    << -v[1] << v[0] << 0.0 << arma::endr;
+  mat R; R.eye(3, 3);
+  vec v = cross(A, B);
+  double c = dot(A, B);
+  mat vx(3, 3);
+  vx << 0.0 << -v[2] << v[1] << arma::endr 
+     << v[2] << 0.0 << -v[0] << arma::endr
+     << -v[1] << v[0] << 0.0 << arma::endr;
 
-  // R = R + vx + vx * vx / (1.0 + c);
+  R = R + vx + vx * vx / (1.0 + c);
 
-  mat R(3, 3);
-  bool isEq = true;
-  for (int i : {0, 1, 2}) 
-    if (abs(A[i] - B[i]) > 1e-8)
-      isEq = false;
+  // mat R(3, 3);
+  // bool isEq = true;
+  // for (int i : {0, 1, 2}) 
+  //   if (abs(A[i] - B[i]) > 1e-8)
+  //     isEq = false;
 
-  if (isEq)
-    R.eye(3,3);
-  else {
-    vec X = arma::normalise(A);
-    vec Z = arma::normalise(cross(A, B));
-    vec Y = arma::normalise(cross(Z, X));
-    R << X[0] << X[1] << X[2] << arma::endr
-      << Y[0] << Y[1] << Y[2] << arma::endr
-      << Z[0] << Z[1] << Z[2] << arma::endr;
-  }
+  // if (isEq)
+  //   R.eye(3,3);
+  // else {
+  //   vec X = arma::normalise(A);
+  //   vec Z = arma::normalise(cross(A, B));
+  //   vec Y = arma::normalise(cross(Z, X));
+  //   R << X[0] << X[1] << X[2] << arma::endr
+  //     << Y[0] << Y[1] << Y[2] << arma::endr
+  //     << Z[0] << Z[1] << Z[2] << arma::endr;
+  // }
   return R;
 }
 
-inline mat getJumpCoor(const Config& cnf, const vector<int> pair, \
+mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
                        const Config& ref) {
 
+  vector<double> length({ ref.bvx[0], ref.bvy[1], ref.bvz[2] });
   int id1 = pair[0], id2 = pair[1];
   vector<double> v1(3, 0.0);
   for (unsigned int i = 0; i < 3; ++i) {
@@ -113,32 +114,40 @@ inline mat getJumpCoor(const Config& cnf, const vector<int> pair, \
   v1a = arma::normalise(v1a); // jumping direction
 
   vec v2a(3);
+  vec v3a(3);
   KNAtom atm = ref.atoms[pair[0]];
-  for (const int ii : atm.NBL) {
-    KNAtom nbAtm = ref.atoms[ii];
+
+  for (int i = 0; i < atm.NBL.size(); ++i) {
+    int ii = atm.NBL[i];
+    KNAtom nbAtm1 = ref.atoms[ii];
     vec v2tmp(3);
-    v2tmp << (nbAtm.prl[0] - atm.prl[0]) \
-              << (nbAtm.prl[1] - atm.prl[1]) \
-              << (nbAtm.prl[2] - atm.prl[2]);
+    v2tmp << (nbAtm1.prl[0] - atm.prl[0]) \
+          << (nbAtm1.prl[1] - atm.prl[1]) \
+          << (nbAtm1.prl[2] - atm.prl[2]);
 
     double dotProd = dot(v1a, v2tmp);
-    if (dotProd < 1e-8) {
-      v2a = arma::normalise(v2tmp);
-      break;
+    cout << "dot : " << dotProd << endl;
+    if (abs(dotProd) < 1e-6) {
+      double dist = calDistPrl(length, atm, nbAtm1);
+      cout << dist << endl;
+      if (dist < 3.0) {
+        v2a = arma::normalise(v2tmp);
+        break;
+      }
     }
   }
-  vec v3a = arma::normalise(cross(v1a, v2a));
+  v3a = arma::normalise(cross(v1a, v2a));
   mat M(3, 3);
   M << v1a[0] << v1a[1] << v1a[2] << arma::endr
     << v2a[0] << v2a[1] << v2a[2] << arma::endr
     << v3a[0] << v3a[1] << v3a[2] << arma::endr;
-  // M = arma::normalise(M);
-  return M;
+  cout << "det: " << arma::det(M) << endl;
+  return arma::normalise(M);
 }
 
 inline mat calculateRotateMatrix(
     const mat& A, const mat& B) {
-  return B * A.i(); // if A is inversable
+  return B * arma::inv(A);
 }
 
 inline vector<double> rotateMatrix(
@@ -408,7 +417,7 @@ Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair, \
 
   Config res = cnf;
 
-  //the distance of center of atoms to the center of the cell
+  // the distance of center of atoms to the center of the cell
   // vec centerShift = getCenterShift(res);
   shiftToCenter(res, PC);  
   
