@@ -100,6 +100,24 @@ inline mat calculateRotateMatrix(
   return R;
 }
 
+inline double getDistPrlDirect(double locA, double locB) {
+  double A = locA;
+  double B = locB;
+  double dist = A - B;
+  if (dist > 0.5) {
+    while (dist > 0.5) {
+      A -= 1.0;
+      dist = A - B;
+    }
+  } else if (dist < -0.5) {
+    while (dist < -0.5) {
+      A += 1.0;
+      dist = A - B;
+    }
+  }
+  return dist;
+}
+
 mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
                        const Config& ref) {
 
@@ -107,7 +125,8 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
   int id1 = pair[0], id2 = pair[1];
   vector<double> v1(3, 0.0);
   for (unsigned int i = 0; i < 3; ++i) {
-    v1[i] = ref.atoms[id2].prl[i] - ref.atoms[id1].prl[i];
+    // v1[i] = ref.atoms[id2].prl[i] - ref.atoms[id1].prl[i];
+    v1[i] = getDistPrlDirect(ref.atoms[id2].prl[i], ref.atoms[id1].prl[i]);
   }
   vec v1a(3);
   v1a << v1[X] << v1[Y] << v1[Z];
@@ -116,14 +135,22 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
   vec v2a(3);
   vec v3a(3);
   KNAtom atm = ref.atoms[pair[0]];
+  cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
 
   for (int i = 0; i < atm.NBL.size(); ++i) {
     int ii = atm.NBL[i];
     KNAtom nbAtm1 = ref.atoms[ii];
+    cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] << " " << nbAtm1.prl[2] << endl;
     vec v2tmp(3);
-    v2tmp << (nbAtm1.prl[0] - atm.prl[0]) \
-          << (nbAtm1.prl[1] - atm.prl[1]) \
-          << (nbAtm1.prl[2] - atm.prl[2]);
+    // v2tmp << (nbAtm1.prl[0] - atm.prl[0]) \
+    //       << (nbAtm1.prl[1] - atm.prl[1]) \
+    //       << (nbAtm1.prl[2] - atm.prl[2]);
+
+    v2tmp << getDistPrlDirect(nbAtm1.prl[0], atm.prl[0]) \
+          << getDistPrlDirect(nbAtm1.prl[1], atm.prl[1]) \
+          << getDistPrlDirect(nbAtm1.prl[2], atm.prl[2]);
+    
+
 
     double dotProd = dot(v1a, v2tmp);
     cout << "dot : " << dotProd << endl;
@@ -193,7 +220,7 @@ inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
     int index = static_cast<int>(dist / 0.5);
     while (index != 0) {
     // for (int j = 0; j < 2; ++j) {
-      locA -= index;
+      locA -= static_cast<double>(index);
       dist = locA - locB;
       index = static_cast<int>(dist / 0.5);
     }
