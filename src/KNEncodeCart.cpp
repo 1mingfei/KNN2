@@ -125,7 +125,6 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
   int id1 = pair[0], id2 = pair[1];
   vector<double> v1(3, 0.0);
   for (unsigned int i = 0; i < 3; ++i) {
-    // v1[i] = ref.atoms[id2].prl[i] - ref.atoms[id1].prl[i];
     v1[i] = getDistPrlDirect(ref.atoms[id2].prl[i], ref.atoms[id1].prl[i]);
   }
   vec v1a(3);
@@ -142,9 +141,6 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
     KNAtom nbAtm1 = ref.atoms[ii];
     cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] << " " << nbAtm1.prl[2] << endl;
     vec v2tmp(3);
-    // v2tmp << (nbAtm1.prl[0] - atm.prl[0]) \
-    //       << (nbAtm1.prl[1] - atm.prl[1]) \
-    //       << (nbAtm1.prl[2] - atm.prl[2]);
 
     v2tmp << getDistPrlDirect(nbAtm1.prl[0], atm.prl[0]) \
           << getDistPrlDirect(nbAtm1.prl[1], atm.prl[1]) \
@@ -174,14 +170,14 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
 
 inline mat calculateRotateMatrix(
     const mat& A, const mat& B) {
-  return B * arma::inv(A);
+  return solve(A, B);
 }
 
 inline vector<double> rotateMatrix(
     const mat& A, const vector<double>& X) {
   vec Xv(3);
   Xv << X[0] << X[1] << X[2];
-  vec B = A * Xv;
+  vec B = A.i() * Xv;
   return {B[0], B[1], B[2]};
 }
 
@@ -189,14 +185,13 @@ inline vector<double> rotateMatrix(
     const mat& A, const vector<double>& X, const vec& center) {
   vec Xv(3);
   Xv << (X[0] - center[0]) << (X[1] - center[1]) << (X[2] - center[2]);
-  vec B = A * Xv;
+  vec B = A.i() * Xv;
   //return {B[0] + center[0], B[1] + center[1], B[2] + center[2]};
   return {B[0], B[1], B[2]};
 }
 
 inline void changeBox(Config& c, double newSize) {
   double halfNewSize = newSize / 2.0;
-  // hardcode solution
   c.bvx[0] = newSize;
   c.bvy[1] = newSize;
   c.bvz[2] = newSize;
