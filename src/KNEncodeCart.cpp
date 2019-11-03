@@ -426,6 +426,44 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
                       codes2Fold);
 
+  // mirror y
+  v2 = {1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0};
+  Config cfgMirrorY = rotateConfig(cfgRotated, v2);
+
+  vector<string> codesMirrorY;
+  codesMirrorY.push_back(cnf.atoms[pair[1]].tp); 
+  sortAtomLexi(cfgMirrorY.atoms);
+  for (const auto& atm : cfgMirrorY.atoms) {
+    resId.push_back(atm.id);
+    codesMirrorY.push_back(atm.tp);
+  }
+  #ifdef DEBUG
+  writeCfgData(cfgMirrorY, "debug_encode_MirrorY.cfg");
+  writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
+                  resId);
+#endif
+  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+                      codesMirrorY);
+
+  // mirror z
+  v2 = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0};
+  Config cfgMirrorZ = rotateConfig(cfgRotated, v2);
+
+  vector<string> codesMirrorZ;
+  codesMirrorZ.push_back(cnf.atoms[pair[1]].tp); 
+  sortAtomLexi(cfgMirrorZ.atoms);
+  for (const auto& atm : cfgMirrorZ.atoms) {
+    resId.push_back(atm.id);
+    codesMirrorZ.push_back(atm.tp);
+  }
+  #ifdef DEBUG
+  writeCfgData(cfgMirrorZ, "debug_encode_MirrorZ.cfg");
+  writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
+                  resId);
+#endif
+  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+                      codesMirrorZ);
+
   return resId;
 }
 
