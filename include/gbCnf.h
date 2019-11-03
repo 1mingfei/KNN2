@@ -67,10 +67,14 @@ public:
   vector<pair<int, int>> getPairToSwap(Config&);
   Config swapPair(const Config&, pair<int, int>);
 
-  /* KNEncode.cpp */
-  vector<int> encodeConfig(Config&, const vector<int>, double, vector<string>&);
+  /* KNEncodeCart.cpp */
+  vector<int> encodeConfig(Config&, const vector<int>&, double, vector<string>&,\
+                                    const vector<int>&);
+
   vector<pair<int, int>> readPairs(string);
-  Config rotate(Config&, const vector<int>, const Config&);
+  Config rotateJumpPair(Config&, const vector<int>, const Config&);
+  Config rotateConfig(Config& cfgOld, const vector<double>& v2);
+
   vec getCenterShift(Config&);
   void shiftToCenter(Config&, vector<double>&);
   mat getJumpCoor(const Config&, const vector<int>, const Config&);

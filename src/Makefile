@@ -8,7 +8,7 @@ OMPI_CC       =  mpicxx
 OMPI_CLINKER  =  mpicxx
 MPI_LIB       =  ${MPI_HOME}
 OPTFLAGS	  =  -Wall -O3 -g
-CPPFLAGS	  =  -std=c++11  -DDEBUG
+CPPFLAGS	  =  -std=c++11 -DDEBUG
 
 LMP_LIB     =  ${HOME}/Softwares/lammps/src/
 CINCLUDE 	=  -I../include  
@@ -27,7 +27,7 @@ KNSRC 	=  ./KNHome.cpp   \
                            ./gbBox.cpp\
                            ./FCCConfig.cpp\
                            ./neighbor.cpp\
-			                  ./KNEncodeCart.cpp\
+   	                  ./KNEncodeCart.cpp\
                            ./KNBondCount.cpp
 
 

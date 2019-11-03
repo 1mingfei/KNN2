@@ -100,6 +100,8 @@ inline mat calculateRotateMatrix(
   return R;
 }
 
+
+
 inline double getDistPrlDirect(double locA, double locB) {
   double A = locA;
   double B = locB;
@@ -224,6 +226,23 @@ inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
   return res;
 }
 
+Config KNHome::gbCnf::rotateConfig(Config& cfgOld, const vector<double>& v2) {
+  Config cfgNew = cfgOld;
+  mat R2fold(3, 3);
+  R2fold << v2[0] << v2[1] << v2[2] << arma::endr
+      << v2[3] << v2[4] << v2[5] << arma::endr
+      << v2[6] << v2[7] << v2[8] << arma::endr;
+  for (auto&& atm : cfgNew.atoms) {
+    vector<double> prl1({atm.prl[0], atm.prl[1], atm.prl[2]});
+    vector<double> prl = rotateMatrix(R2fold, prl1);
+    atm.prl[0] = prl[0], atm.prl[1] = prl[1], atm.prl[2] = prl[2];
+  }
+  wrapAtomPrl(cfgNew);
+  cnvprl2pst(cfgNew);
+
+  return cfgNew;
+}
+
 void KNHome::gbCnf::shiftToCenter(Config& c, vector<double>& PC) {
 
   vector<double> diff({0.5 - PC[0], \
@@ -278,14 +297,12 @@ void KNHome::KNEncode() {
 
       Config cfg = cnfModifier.readCfg(fname);
       vector<int> pair = {pairs[i][2], pairs[i][3]};
+      //contain info abt which structure
+      vector<int> infoPair = {pairs[i][0], pairs[i][1]}; 
       vector<string> codes;
       
-      vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes);
-
-      writeVector<int>("debug_" + to_string(i) + ".txt", pairs[i][0], pairs[i][1],\
-                      resId);
-      writeVector<string>("encode.out.txt", pairs[i][0], pairs[i][1],\
-                         codes);
+      vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes,\
+                                                   infoPair);
     }
   }
 }
@@ -316,8 +333,9 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
 }
 
 vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
-                                        const vector<int> pair, \
-                                        double RCut, vector<string>& codes) {
+                                        const vector<int>& pair, \
+                                        double RCut, vector<string>& codes, \
+                                        const vector<int>& infoPair) {
   assert(pair.size() == 2); //the size of input pair must equals 2
   getNBL(cnf, RCut);
 
@@ -371,9 +389,10 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
 #endif
 
 
-  Config cfgRotated = rotate(cNew, pair, cnf);
+  Config cfgRotated = rotateJumpPair(cNew, pair, cnf);
   vector<int> resId;
-  codes.push_back(cnf.atoms[pair[1]].tp); //first, add the elem type of the previous one
+  //first, add the elem type of the previous one
+  codes.push_back(cnf.atoms[pair[1]].tp); 
   sortAtomLexi(cfgRotated.atoms);
   for (const auto& atm : cfgRotated.atoms) {
     resId.push_back(atm.id);
@@ -381,58 +400,55 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   }
 #ifdef DEBUG
   writeCfgData(cfgRotated, "debug_encode_after.cfg");
+  writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
+                  resId);
 #endif
+  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+                      codes);
+
+
+  // 2 fold rotation
+  vector<double> v2 = {1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0};
+  Config cfg2Fold = rotateConfig(cfgRotated, v2);
+
+  vector<string> codes2Fold;
+  codes2Fold.push_back(cnf.atoms[pair[1]].tp); 
+  sortAtomLexi(cfg2Fold.atoms);
+  for (const auto& atm : cfg2Fold.atoms) {
+    resId.push_back(atm.id);
+    codes2Fold.push_back(atm.tp);
+  }
+  #ifdef DEBUG
+  writeCfgData(cfg2Fold, "debug_encode_2fold.cfg");
+  writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
+                  resId);
+#endif
+  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+                      codes2Fold);
+
   return resId;
 }
 
-Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair, \
+Config KNHome::gbCnf::rotateJumpPair(Config& cnf, const vector<int> pair, \
                              const Config& ref) {
-// #ifdef DEBUG
-//   writeCfgData(cnf, "debug_1.cfg");
-// #endif
-  // cnvprl2pst(cnf);
-  // wrapAtomPos(cnf);
-
-  // cnvpst2prl(cnf);
-// #ifdef DEBUG
-//   writeCfgData(cnf, "debug_2.cfg");
-// #endif
-
-
-
-
   int id1 = pair[0], id2 = pair[1];
   vector<double> PC = getPairCenter(ref, id1, id2); // pair center of ref
 
-  // vector<double> v1(3, 0.0);
-  // for (unsigned int i = 0; i < DIM; ++i) {
-  //   v1[i] = ref.atoms[id2].prl[i] - ref.atoms[id1].prl[i];
-  // }
-  // vec v1a(3);
-  // v1a << v1[X] << v1[Y] << v1[Z];
-  // v1a = arma::normalise(v1a);
-
   mat m1a = getJumpCoor(cnf, pair, ref);
-  // vector<double> v2 = {1.0, 1.0, 0.0};
   vector<double> v2 = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 
-  // vec v2a;
   mat m2a(3, 3);
-  // v2a << v2[X] << v2[Y] << v2[Z];
   m2a << v2[0] << v2[1] << v2[2] << arma::endr
       << v2[3] << v2[4] << v2[5] << arma::endr
       << v2[6] << v2[7] << v2[8] << arma::endr;
 
   m2a = arma::normalise(m2a);
 
-  // mat R = calculateRotateMatrix(v1a, v2a);
   mat R = calculateRotateMatrix(m1a, m2a);
 
   cout << "initial jump direction:\n";
-  // v1a.print();
   m1a.print();
   cout << "reference jump direction:\n";
-  // v2a.print();
   m2a.print();
   cout << "rotation matrix:\n";
   R.print();
@@ -444,54 +460,19 @@ Config KNHome::gbCnf::rotate(Config& cnf, const vector<int> pair, \
   shiftToCenter(res, PC);  
   
   wrapAtomPrl(res);
-  // cnvprl2pst(res);
-  // changeBox(res, 100.0);
-
-  // cnvpst2prl(res);
-
-  // cout << "shift to center:\n";
-  // centerShift.print();
-
-// #ifdef DEBUG
-//   cout << "before rotation\n";
-//   for (auto&& atm : res.atoms) {
-//     cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
-//   }
-//   writeCfgData(res, "debug_3.cfg");
-// #endif
 
   for (auto&& atm : res.atoms) {
     vector<double> prl1({atm.prl[0], atm.prl[1], atm.prl[2]});
-    // pst = rotateMatrix(R, pst, centerShift);
     vector<double> prl = rotateMatrix(R, prl1);
     atm.prl[0] = prl[0], atm.prl[1] = prl[1], atm.prl[2] = prl[2];
   }
   PC = rotateMatrix(R, PC);
 
-  // cnvpst2prl(res);
   wrapAtomPrl(res);
-// #ifdef DEBUG
-
-//   cout << "after rotation\n";
-//   for (auto&& atm : res.atoms) {
-//     cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
-//   }
-//   writeCfgData(res, "debug_4.cfg");
-// #endif
   shiftToCenter(res, PC); 
-  // cnvpst2prl(res);
 
-
-// #ifdef DEBUG
-//   cout << "after shift\n";
-//   for (auto&& atm : res.atoms) {
-//     cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
-//   }
-//   writeCfgData(res, "debug_5.cfg");
-// #endif
   wrapAtomPrl(res);
-// #ifdef DEBUG
-//   writeCfgData(res, "debug_6.cfg");
-// #endif
+  cnvprl2pst(res);
+
   return res;
 }
