@@ -28,8 +28,8 @@ KNHome::KNHome(int argc, char* argv[]) {
     KNEncode();
   } else if (sparams["mode"] == "BondCount") {
     KNBondCount();
-  // } else if (sparams["mode"] == "kmc") {
-  //   KMCSimulation();
+  } else if (sparams["mode"] == "kmc") {
+    KMCSimulation();
   } else if (sparams["mode"] == "test") {
     /* test encoding */
     /*

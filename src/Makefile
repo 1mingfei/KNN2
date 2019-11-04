@@ -28,8 +28,9 @@ KNSRC 	=  ./KNHome.cpp   \
                            ./FCCConfig.cpp\
                            ./neighbor.cpp\
    	                     ./KNEncodeCart.cpp\
-                           ./KNBondCount.cpp
-#                            ./KMCEvent.cpp
+                           ./KNBondCount.cpp\
+                           ./KMCEvent.cpp\
+                           ./KMCSimulation.cpp
 
 
 # parallel

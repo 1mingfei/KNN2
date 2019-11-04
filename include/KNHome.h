@@ -17,9 +17,8 @@
 #include <algorithm> 
 #include "armadillo"
 #include "gbDef.h"
-#include "gbCnf.h"
+// #include "gbCnf.h"
 #include "gbUtl.h"
-// #include "KMCEvent.h"
 
 using std::cerr;
 using std::cout;
@@ -76,7 +75,7 @@ public:
   void KNBondCount();
 
   /* KMCSimulation.cpp */
-  // void KMCSimulation();
+  void KMCSimulation();
   
 };
 
