@@ -1,5 +1,5 @@
-#ifndef _GB_CNF_H
-#define _GB_CNF_H
+#ifndef _GB_CNF_H_
+#define _GB_CNF_H_
 
 #include "armadillo"
 #include "KNHome.h"

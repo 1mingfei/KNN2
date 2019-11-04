@@ -403,7 +403,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
                       codes);
 
 
@@ -423,7 +423,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
                       codes2Fold);
 
   // mirror y
@@ -442,7 +442,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
                       codesMirrorY);
 
   // mirror z
@@ -461,7 +461,7 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.out.txt", infoPair[0], infoPair[1],\
+  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
                       codesMirrorZ);
 
   return resId;

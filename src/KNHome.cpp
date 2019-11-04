@@ -22,12 +22,14 @@ KNHome::KNHome(int argc, char* argv[]) {
 
   gbCnf cnfModifier(*this);
   
-  if (sparams["mode"] == "generate") {
+  if ((sparams["mode"]) == "generate") {
     createPreNEB();
   } else if (sparams["mode"] == "encode") {
     KNEncode();
   } else if (sparams["mode"] == "BondCount") {
     KNBondCount();
+  // } else if (sparams["mode"] == "kmc") {
+  //   KMCSimulation();
   } else if (sparams["mode"] == "test") {
     /* test encoding */
     /*

@@ -1,0 +1,8 @@
+============example1================
+mode encode
+elems Al Mg Zn X
+NConfigs 10
+NBarriers 5
+RCut 4.5
+PairFile log.txt.test
+====================================

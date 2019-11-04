@@ -19,6 +19,7 @@
 #include "gbDef.h"
 #include "gbCnf.h"
 #include "gbUtl.h"
+// #include "KMCEvent.h"
 
 using std::cerr;
 using std::cout;
@@ -42,6 +43,7 @@ using arma::mat;
 class KNHome {
 private:
   class gbCnf;
+  class KMCEvent;
 
 public:
   int me, nProcs;
@@ -72,6 +74,9 @@ public:
 
   /* KNBondCount.cpp */
   void KNBondCount();
+
+  /* KMCSimulation.cpp */
+  // void KMCSimulation();
   
 };
 

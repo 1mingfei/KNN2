@@ -8,7 +8,7 @@ OMPI_CC       =  mpicxx
 OMPI_CLINKER  =  mpicxx
 MPI_LIB       =  ${MPI_HOME}
 OPTFLAGS	  =  -Wall -O3 -g
-CPPFLAGS	  =  -std=c++11 
+CPPFLAGS	  =  -std=c++11  #-DDEBUG
 
 ARMA_HOME  = ${HOME}/software/armadillo-code-8.300.x
 
@@ -20,12 +20,18 @@ MAKETARGET 	=  em.exe
 # The source files
 KNSRC 	=  ./KNHome.cpp   \
 			   ./KNMain.cpp\
+                           ./KNSolidSol.cpp\
+                           ./KNvasp.cpp\
+                           ./KNParam.cpp\
                            ./gbInCnf.cpp\
                            ./gbOutCnf.cpp\
                            ./gbBox.cpp\
-                           ./KNParam.cpp\
-                           ./KNAlign.cpp\
-                           ./KNStat.cpp
+                           ./FCCConfig.cpp\
+                           ./neighbor.cpp\
+   	                  ./KNEncodeCart.cpp\
+                           ./KNBondCount.cpp
+
+
 
 # parallel
 PARALLEL = MPI
