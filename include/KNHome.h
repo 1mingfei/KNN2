@@ -18,6 +18,7 @@
 #include "armadillo"
 #include "gbDef.h"
 // #include "gbCnf.h"
+#include "KMCEvent.h"
 #include "gbUtl.h"
 
 using std::cerr;
@@ -42,7 +43,12 @@ using arma::mat;
 class KNHome {
 private:
   class gbCnf;
-  class KMCEvent;
+
+  Config c0;
+  vector<KMCEvent> eventList;
+  vector<int> vacList;
+  double RCut;
+  long long maxIter;
 
 public:
   int me, nProcs;
@@ -54,10 +60,10 @@ public:
   unordered_map<string, vector<int>> viparams;
 
 
-
   KNHome(int argc, char* argv[]);
   ~KNHome();
 
+  /* KNParam.cpp */
   void parseArgs(int argc, char* argv[]);
   void initParam();
   void readParam();
@@ -75,7 +81,10 @@ public:
   void KNBondCount();
 
   /* KMCSimulation.cpp */
+  void KMCInit();
+  void getVacList();
   void KMCSimulation();
+  void buildEventList();
   
 };
 

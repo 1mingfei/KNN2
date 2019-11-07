@@ -1,21 +1,40 @@
 #ifndef _KMC_EVENT_H_
 #define _KMC_EVENT_H_
 
-#include "KNHome.h"
+#include <math.h>
+#include <mpi.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <chrono>
+#include <cstdlib>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <random>
+#include <string>
+#include <unordered_map>
+#include <set>
+#include <algorithm> 
 
-class KNHome::KMCEvent {
-  KNHome& kn;
-  unordered_map<string, double>& dparams;
-  unordered_map<string, int>& iparams;
-  unordered_map<string, string>& sparams;
-  unordered_map<string, vector<string>>& vsparams;
-  unordered_map<string, vector<int>>& viparams;
+// #include "KNHome.h"
+#include "gbDef.h"
+
+using std::pair;
+
+
+class KMCEvent {
+private:
+  double rate;
+  pair<int, int> jumpPair;
 
 public:
-  KMCEvent(KNHome&);
+  KMCEvent();
+  KMCEvent(const pair<int, int>&);
   ~KMCEvent();
-
-
+  void getRate(const Config&);
+  void calRate(const double&, const double&);
+  void exeEvent(Config&);
+// friend class KNHome;
 
 };
 #endif
