@@ -31,6 +31,8 @@ void KNHome::readParam() {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("RCut")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("temperature")) {
+      dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("factors")) {
       vector<int> tmpVec;
       for (unsigned int i = 1; i < segs.size(); ++i) {
@@ -52,6 +54,8 @@ void KNHome::readParam() {
     } else if (!segs[0].compare("NConfigs")) {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("NBarriers")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("maxIter")) {
       iparams[segs[0]] = stoi(segs[1]);
     }
 

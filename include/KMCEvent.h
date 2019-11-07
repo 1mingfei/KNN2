@@ -25,14 +25,20 @@ using std::pair;
 class KMCEvent {
 private:
   double rate;
+  double prob;
+  double cProb; // cumulative probability
   pair<int, int> jumpPair;
 
 public:
   KMCEvent();
   KMCEvent(const pair<int, int>&);
   ~KMCEvent();
-  void getRate(const Config&);
-  void calRate(const double&, const double&);
+  double getRate() const;
+  double getProb() const;
+  double getcProb() const;
+  void calRate(const Config&, const double&);
+  void calProb(const double&);
+  void setcProb(const double&);
   void exeEvent(Config&);
 // friend class KNHome;
 

@@ -15,7 +15,10 @@ KNHome::KNHome(int argc, char* argv[]) {
   sparams["mode"] = "generate";
   sparams["initconfig"] = "initconfig.cfg";
   dparams["LC"] = 4.046;
-  dparams["Rcut"] = 6.0;
+  // dparams["Rcut"] = 6.0; //encode
+  dparams["Rcut"] = 3.0; //kmc
+  
+
 
   parseArgs(argc, argv);
   srand(time(NULL) + me);

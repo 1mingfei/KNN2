@@ -10,13 +10,36 @@ KMCEvent::KMCEvent() {
 
 KMCEvent::~KMCEvent() {}
 
-void KMCEvent::getRate(const Config& cnf) {
-
+double KMCEvent::getRate() const {
+  return rate;
 }
 
-void KMCEvent::calRate(const double& deltaE, const double& T) {
-  rate = exp(deltaE / KB / T);
+double KMCEvent::getProb() const {
+  return prob;
 }
+
+double KMCEvent::getcProb() const {
+  return cProb;
+}
+
+void KMCEvent::calRate(const Config& cnf, const double& T) {
+
+  // need to be changed
+  double deltaE = (double) rand() / (RAND_MAX);
+  rate = exp(- deltaE / KB / T);
+#ifdef DEBUG
+  // cout << "activation barrier: " << deltaE << " rate: " << rate << endl;
+#endif
+}
+
+void KMCEvent::calProb(const double& sum) {
+  prob = rate / sum;
+}
+
+void KMCEvent::setcProb(const double& curr) {
+  cProb = curr;
+}
+
 
 void KMCEvent::exeEvent(Config& cnf) {
 

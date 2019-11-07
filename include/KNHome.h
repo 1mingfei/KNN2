@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -39,6 +40,7 @@ using std::pair;
 using std::min;
 using arma::vec;
 using arma::mat;
+using std::distance;
 
 class KNHome {
 private:
@@ -48,7 +50,9 @@ private:
   vector<KMCEvent> eventList;
   vector<int> vacList;
   double RCut;
+  double temperature;
   long long maxIter;
+  long long step;
 
 public:
   int me, nProcs;
@@ -85,6 +89,7 @@ public:
   void getVacList();
   void KMCSimulation();
   void buildEventList();
+  KMCEvent selectEvent();
   
 };
 
