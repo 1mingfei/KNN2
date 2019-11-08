@@ -21,10 +21,14 @@ inline void sortAtomLexi(vector<KNAtom>& atmList) {
   sort(
     atmList.begin(), atmList.end(),
     [](const KNAtom& a, const KNAtom& b) -> bool
-      { return (a.pst[X] < b.pst[X]) || 
-               (a.pst[X] == b.pst[X] && a.pst[Y] < b.pst[Y]) ||
-               (a.pst[X] == b.pst[X] && a.pst[Y] == b.pst[Y] && 
-                a.pst[Z] < b.pst[Z]); }
+      // { return (a.pst[X] < b.pst[X]) || 
+      //          (a.pst[X] == b.pst[X] && a.pst[Y] < b.pst[Y]) ||
+      //          (a.pst[X] == b.pst[X] && a.pst[Y] == b.pst[Y] && 
+      //           a.pst[Z] < b.pst[Z]); }
+      { return (a.prl[X] < b.prl[X]) || 
+               (a.prl[X] == b.prl[X] && a.prl[Y] < b.prl[Y]) ||
+               (a.prl[X] == b.prl[X] && a.prl[Y] == b.prl[Y] && 
+                a.prl[Z] < b.prl[Z]); }
     );
 }
 
@@ -120,56 +124,6 @@ inline double getDistPrlDirect(double locA, double locB) {
   return dist;
 }
 
-mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
-                       const Config& ref) {
-
-  vector<double> length({ ref.bvx[0], ref.bvy[1], ref.bvz[2] });
-  int id1 = pair[0], id2 = pair[1];
-  vector<double> v1(3, 0.0);
-  for (unsigned int i = 0; i < 3; ++i) {
-    v1[i] = getDistPrlDirect(ref.atoms[id2].prl[i], ref.atoms[id1].prl[i]);
-  }
-  vec v1a(3);
-  v1a << v1[X] << v1[Y] << v1[Z];
-  v1a = arma::normalise(v1a); // jumping direction
-
-  vec v2a(3);
-  vec v3a(3);
-  KNAtom atm = ref.atoms[pair[0]];
-  cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
-
-  for (int i = 0; i < atm.NBL.size(); ++i) {
-    int ii = atm.NBL[i];
-    KNAtom nbAtm1 = ref.atoms[ii];
-    cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] << " " << nbAtm1.prl[2] << endl;
-    vec v2tmp(3);
-
-    v2tmp << getDistPrlDirect(nbAtm1.prl[0], atm.prl[0]) \
-          << getDistPrlDirect(nbAtm1.prl[1], atm.prl[1]) \
-          << getDistPrlDirect(nbAtm1.prl[2], atm.prl[2]);
-    
-
-
-    double dotProd = dot(v1a, v2tmp);
-    cout << "dot : " << dotProd << endl;
-    if (abs(dotProd) < 1e-6) {
-      double dist = calDistPrl(length, atm, nbAtm1);
-      cout << dist << endl;
-      if (dist < 3.0) {
-        v2a = arma::normalise(v2tmp);
-        break;
-      }
-    }
-  }
-  v3a = arma::normalise(cross(v1a, v2a));
-  mat M(3, 3);
-  M << v1a[0] << v1a[1] << v1a[2] << arma::endr
-    << v2a[0] << v2a[1] << v2a[2] << arma::endr
-    << v3a[0] << v3a[1] << v3a[2] << arma::endr;
-  cout << "det: " << arma::det(M) << endl;
-  return arma::normalise(M);
-}
-
 inline mat calculateRotateMatrix(
     const mat& A, const mat& B) {
   return solve(A, B);
@@ -226,6 +180,57 @@ inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
   return res;
 }
 
+mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
+                       const Config& ref) {
+
+  vector<double> length({ ref.bvx[0], ref.bvy[1], ref.bvz[2] });
+  int id1 = pair[0], id2 = pair[1];
+  vector<double> v1(3, 0.0);
+  for (unsigned int i = 0; i < 3; ++i) {
+    v1[i] = getDistPrlDirect(ref.atoms[id2].prl[i], ref.atoms[id1].prl[i]);
+  }
+  vec v1a(3);
+  v1a << v1[X] << v1[Y] << v1[Z];
+  v1a = arma::normalise(v1a); // jumping direction
+
+  vec v2a(3);
+  vec v3a(3);
+  KNAtom atm = ref.atoms[pair[0]];
+  cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
+
+  for (int i = 0; i < atm.NBL.size(); ++i) {
+    int ii = atm.NBL[i];
+    KNAtom nbAtm1 = ref.atoms[ii];
+    cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] \
+         << " " << nbAtm1.prl[2] << endl;
+    vec v2tmp(3);
+
+    v2tmp << getDistPrlDirect(nbAtm1.prl[0], atm.prl[0]) \
+          << getDistPrlDirect(nbAtm1.prl[1], atm.prl[1]) \
+          << getDistPrlDirect(nbAtm1.prl[2], atm.prl[2]);
+    
+
+
+    double dotProd = dot(v1a, v2tmp);
+    cout << "dot : " << dotProd << endl;
+    if (abs(dotProd) < 1e-6) {
+      double dist = calDistPrl(length, atm, nbAtm1);
+      cout << dist << endl;
+      if (dist < 3.0) {
+        v2a = arma::normalise(v2tmp);
+        break;
+      }
+    }
+  }
+  v3a = arma::normalise(cross(v1a, v2a));
+  mat M(3, 3);
+  M << v1a[0] << v1a[1] << v1a[2] << arma::endr
+    << v2a[0] << v2a[1] << v2a[2] << arma::endr
+    << v3a[0] << v3a[1] << v3a[2] << arma::endr;
+  cout << "det: " << arma::det(M) << endl;
+  return arma::normalise(M);
+}
+
 Config KNHome::gbCnf::rotateConfig(Config& cfgOld, const vector<double>& v2) {
   Config cfgNew = cfgOld;
   mat R2fold(3, 3);
@@ -238,7 +243,7 @@ Config KNHome::gbCnf::rotateConfig(Config& cfgOld, const vector<double>& v2) {
     atm.prl[0] = prl[0], atm.prl[1] = prl[1], atm.prl[2] = prl[2];
   }
   wrapAtomPrl(cfgNew);
-  cnvprl2pst(cfgNew);
+  // cnvprl2pst(cfgNew);
 
   return cfgNew;
 }
@@ -301,8 +306,12 @@ void KNHome::KNEncode() {
       vector<int> infoPair = {pairs[i][0], pairs[i][1]}; 
       vector<string> codes;
       
-      vector<int> resId = cnfModifier.encodeConfig(cfg, pair, RCut, codes,\
-                                                   infoPair);
+      vector<vector<string>> encodes = cnfModifier.encodeConfig(cfg, pair, RCut,\ 
+                                                                codes, infoPair,\
+                                                                true);
+      for (int i = 0; i < encodes.size(); ++i)
+        writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
+                            encodes[i]);
     }
   }
 }
@@ -332,13 +341,16 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
   return res;
 }
 
-vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
+vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
                                         const vector<int>& pair, \
-                                        double RCut, vector<string>& codes, \
-                                        const vector<int>& infoPair) {
+                                        const double RCut, vector<string>& codes, \
+                                        const vector<int>& infoPair, \
+                                        const bool calNBL) {
   assert(pair.size() == 2); //the size of input pair must equals 2
-  getNBL(cnf, RCut);
+  if (calNBL)
+    getNBL(cnf, RCut);
 
+  vector<vector<string>> res;
   /* reverse wrap back so the lexi order is always not affected by Periodic 
    * boundary conditions */
   vector<KNAtom> atmList;
@@ -403,8 +415,9 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-                      codes);
+  res.push_back(codes);
+  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
+  //                     codes);
 
 
   // 2 fold rotation
@@ -423,8 +436,9 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-                      codes2Fold);
+  res.push_back(codes2Fold);
+  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
+  //                     codes2Fold);
 
   // mirror y
   v2 = {1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0};
@@ -442,8 +456,9 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-                      codesMirrorY);
+  res.push_back(codesMirrorY);
+  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
+  //                     codesMirrorY);
 
   // mirror z
   v2 = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0};
@@ -461,10 +476,11 @@ vector<int> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
-  writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-                      codesMirrorZ);
+  res.push_back(codesMirrorZ);
+  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
+  //                     codesMirrorZ);
 
-  return resId;
+  return res;
 }
 
 Config KNHome::gbCnf::rotateJumpPair(Config& cnf, const vector<int> pair, \
@@ -510,7 +526,7 @@ Config KNHome::gbCnf::rotateJumpPair(Config& cnf, const vector<int> pair, \
   shiftToCenter(res, PC); 
 
   wrapAtomPrl(res);
-  cnvprl2pst(res);
+  // cnvprl2pst(res);
 
   return res;
 }

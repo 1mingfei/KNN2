@@ -33,7 +33,7 @@ KNHome::KNHome(int argc, char* argv[]) {
   } else if (sparams["mode"] == "BondCount") {
     KNBondCount();
   } else if (sparams["mode"] == "kmc") {
-    KMCSimulation();
+    KMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "test") {
     /* test encoding */
     /*

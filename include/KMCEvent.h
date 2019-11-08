@@ -19,8 +19,11 @@
 // #include "KNHome.h"
 #include "gbDef.h"
 
-using std::pair;
 
+using std::pair;
+using std::unordered_map;
+
+class KNHome;
 
 class KMCEvent {
 private:
@@ -36,10 +39,11 @@ public:
   double getRate() const;
   double getProb() const;
   double getcProb() const;
-  void calRate(const Config&, const double&);
+  // void calRate(const Config&, const double&, const double&);
+  void setRate(const double&);
   void calProb(const double&);
   void setcProb(const double&);
-  void exeEvent(Config&);
+  void exeEvent(Config&, unordered_map<int, vector<int>>&, const double&);
 // friend class KNHome;
 
 };

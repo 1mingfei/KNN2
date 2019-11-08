@@ -38,9 +38,12 @@ using std::vector;
 using std::set;
 using std::pair;
 using std::min;
+using std::distance;
+using std::replace;
+using std::swap;
+
 using arma::vec;
 using arma::mat;
-using std::distance;
 
 class KNHome {
 private:
@@ -49,10 +52,12 @@ private:
   Config c0;
   vector<KMCEvent> eventList;
   vector<int> vacList;
+  unordered_map<int, vector<int>> jumpList;
   double RCut;
   double temperature;
   long long maxIter;
   long long step;
+  unordered_map<string, double> embedding;
 
 public:
   int me, nProcs;
@@ -85,10 +90,12 @@ public:
   void KNBondCount();
 
   /* KMCSimulation.cpp */
-  void KMCInit();
+  void KMCInit(gbCnf&);
   void getVacList();
-  void KMCSimulation();
-  void buildEventList();
+  void KMCSimulation(gbCnf&);
+  void buildEmbedding();
+  double calRate(Config&, const double&, gbCnf&, pair<int, int>);
+  void buildEventList(gbCnf&);
   KMCEvent selectEvent();
   
 };
