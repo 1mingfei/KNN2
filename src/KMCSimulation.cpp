@@ -76,6 +76,9 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
     cout << endl;
   }
 #endif
+
+  string modelFname = sparams["kerasModel"];
+  k2pModel = Model::load(modelFname);
 }
 
 // typedef struct cmp {

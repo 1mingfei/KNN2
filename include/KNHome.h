@@ -21,6 +21,7 @@
 // #include "gbCnf.h"
 #include "KMCEvent.h"
 #include "gbUtl.h"
+#include "model.h"
 
 using std::cerr;
 using std::cout;
@@ -45,6 +46,9 @@ using std::swap;
 using arma::vec;
 using arma::mat;
 
+using keras2cpp::Model;
+using keras2cpp::Tensor;
+
 class KNHome {
 private:
   class gbCnf;
@@ -58,6 +62,8 @@ private:
   long long maxIter;
   long long step;
   unordered_map<string, double> embedding;
+
+  Model k2pModel;
 
 public:
   int me, nProcs;

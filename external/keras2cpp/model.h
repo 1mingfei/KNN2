@@ -22,6 +22,7 @@ namespace keras2cpp {
 
     public:
         Model(Stream& file);
+        Model() {};
         Tensor operator()(const Tensor& in) const noexcept override;
     };
 }

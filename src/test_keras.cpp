@@ -12,7 +12,7 @@ void KNHome::testK2P() {
   // Initialize model.
   string fname = sparams["kerasModel"];
 
-  auto model = Model::load(fname);
+  auto kerasModel = Model::load(fname);
 
   // Create a 1D Tensor on length 10 for input data.
   Tensor in{2, 27};
@@ -22,12 +22,12 @@ void KNHome::testK2P() {
   cout << "model built by reading lib\n";
   in.print();
   // Run prediction.
-  Tensor out = model(in);
+  Tensor out = kerasModel(in);
   out.print();
   // cout << std::setprecision(8) << out(0, 0) << endl;
   in.data_[28] = 1.0;
   in.print();
-  out = model(in);
+  out = kerasModel(in);
   out.print();
   // cout << std::setprecision(8) << out(0, 0) << endl;
 
