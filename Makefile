@@ -3,6 +3,9 @@ SRC_DIR	=	./src
 TGT_DIR	=	./bin
 OBJ_DIR	=	./obj
 INC_DIR	=	./include
+K2C_INC_DIR	=	./external/keras2cpp
+LIB_DIR	=	./lib
+LMP_LIB     =  ${HOME}/Softwares/lammps/src/
 
 # compiler
 CC_SERIAL     =  g++
@@ -13,9 +16,9 @@ MPI_LIB       =  ${MPI_HOME}
 OPTFLAGS	  =  -Wall -O3 -g
 CPPFLAGS	  =  -std=c++17 -DDEBUG 
 
-LMP_LIB     =  ${HOME}/Softwares/lammps/src/
-CINCLUDE 	=  -I${INC_DIR}
-CDLINK  	=  -lm -lmpi -lpthread  -lgmp -larmadillo 
+#include and lib while compile
+CINCLUDE 	=  -I${INC_DIR} -I${K2C_INC_DIR}
+CDLINK  	=  -L${LIB_DIR} -lm -lmpi -lpthread  -lgmp -larmadillo -lkeras2cpp
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 

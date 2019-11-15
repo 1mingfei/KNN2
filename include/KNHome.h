@@ -97,6 +97,9 @@ public:
   double calRate(Config&, const double&, gbCnf&, pair<int, int>);
   void buildEventList(gbCnf&);
   KMCEvent selectEvent();
+
+  /* test keras2cpp */
+  void testK2P();
   
 };
 

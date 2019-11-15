@@ -2,7 +2,7 @@
  * @Author: chaomy
  * @Date:   2017-12-31 16:04:15
  * @Last Modified by:  1mingfei
- * @Last Modified time: 2019-03-25
+ * @Last Modified time: 2019-10-25
  */
 
 #include "gbCnf.h"
@@ -26,6 +26,8 @@ void KNHome::readParam() {
     } else if (!segs[0].compare("method")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("PairFile")) {
+      sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("kerasModel")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);

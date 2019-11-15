@@ -35,6 +35,7 @@ KNHome::KNHome(int argc, char* argv[]) {
   } else if (sparams["mode"] == "kmc") {
     KMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "test") {
+    testK2P();
     /* test encoding */
     /*
     gbCnf cnfModifier(*this);
