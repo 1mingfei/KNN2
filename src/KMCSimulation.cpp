@@ -50,6 +50,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   string fname = sparams["initconfig"];
   RCut = dparams["RCut"];
   maxIter = iparams["maxIter"];
+  ntally = iparams["ntally"];
   temperature = dparams["temperature"];
   c0 = cnfModifier.readCfg(fname);
 
@@ -238,7 +239,8 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     auto&& event = selectEvent();
     event.exeEvent(c0, jumpList, RCut);
     ++step;
-    cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+    if (step % ntally == 0)
+      cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
   }
 }

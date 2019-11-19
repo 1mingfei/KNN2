@@ -62,6 +62,7 @@ private:
   double temperature;
   long long maxIter;
   long long step;
+  int ntally;
   unordered_map<string, double> embedding;
 
   Model k2pModel;
