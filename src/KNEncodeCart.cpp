@@ -228,7 +228,9 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, \
 
     if (abs(dotProd) < 1e-6) {
       double dist = calDistPrl(length, atm, nbAtm1);
+#ifdef DEBUG
       cout << dist << endl;
+#endif
       if (dist < 3.0) {
         v2a = arma::normalise(v2tmp);
         break;

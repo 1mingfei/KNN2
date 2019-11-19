@@ -62,13 +62,15 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   for (auto&& i : vacList) {
     vector<int> tmpVector;
     for (auto&& j : c0.atoms[i].NBL) {
+      if (c0.atoms[j].tp == "X")
+        continue;
       tmpVector.push_back(j);
     }
     jumpList[i] = tmpVector;
 
   }
 
-  cnfModifier.getNBL(c0, 4.5);
+  cnfModifier.getNBL(c0, 4.5); //4.5 for 2NN encoding needed
 
 #ifdef DEBUG
   for (int i = 0; i < vacList.size(); ++i) {
@@ -95,14 +97,17 @@ KMCEvent KNHome::selectEvent() {
   auto it = mylower_bound(eventList.begin(), eventList.end(), randVal, \
                           [] (KMCEvent a, double value) \
                             {return (a.getcProb() < value);}); 
-#ifdef DEBUG
-  if(it != eventList.cend())
-    cout << "prob: " << randVal << " count: " << distance(eventList.begin(), it)\
-         << " event cprob: " << it->getcProb() << " jumpPair: " \
-         << it->getJumpPair().first << " " << it->getJumpPair().second \
-         << endl << endl;
-#endif
 
+  if(it == eventList.cend())
+    return eventList.back();
+
+// #ifdef DEBUG
+  cout << "step " << (step + 1) << " " \
+       << "prob: " << randVal << " count: " << distance(eventList.begin(), it)\
+       << " event cprob: " << it->getcProb() << " jumpPair: " \
+       << it->getJumpPair().first << " " << it->getJumpPair().second \
+       << endl << endl;
+// #endif
   return *it;
 }
 
@@ -119,6 +124,7 @@ double KNHome::calRate(Config& c0, \
     return 0.0;
 
   vector<string> codes; // atom location in original atom list
+  //4.5 for 2NN encoding needed
   vector<vector<string>> encodes = cnfModifier.encodeConfig(c0, \
                       {first, second}, \
                       4.5, \
