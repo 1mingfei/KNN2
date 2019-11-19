@@ -42,6 +42,7 @@ using std::min;
 using std::distance;
 using std::replace;
 using std::swap;
+using std::make_pair;
 
 using arma::vec;
 using arma::mat;

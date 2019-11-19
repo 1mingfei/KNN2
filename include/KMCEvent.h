@@ -14,7 +14,7 @@
 #include <string>
 #include <unordered_map>
 #include <set>
-#include <algorithm> 
+#include <algorithm>
 
 // #include "KNHome.h"
 #include "gbDef.h"
@@ -22,6 +22,7 @@
 
 using std::pair;
 using std::unordered_map;
+using std::find;
 
 class KNHome;
 
@@ -39,6 +40,8 @@ public:
   double getRate() const;
   double getProb() const;
   double getcProb() const;
+  pair<int, int> getJumpPair() const;
+
   // void calRate(const Config&, const double&, const double&);
   void setRate(const double&);
   void calProb(const double&);

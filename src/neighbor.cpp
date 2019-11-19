@@ -49,7 +49,8 @@ vector<KNAtom> KNHome::gbCnf::expandCellZ(const Config& cnf, const int factor) {
 }
 
 /*calculate distance between one atom in configuration and one from ref*/
-double KNHome::gbCnf::calDist(const vector<double> length, const KNAtom& atm1,\
+double KNHome::gbCnf::calDist(const vector<double> length, \
+                              const KNAtom& atm1, \
                               const KNAtom& atm2) {
   double xi = atm1.pst[X];
   double xj = atm2.pst[X];
@@ -82,7 +83,8 @@ double KNHome::gbCnf::calDist(const vector<double> length, const KNAtom& atm1,\
 }
 
 /*calculate distance between one atom in configuration and one from ref*/
-double KNHome::gbCnf::calDistPrl(const vector<double> length, const KNAtom& atm1,\
+double KNHome::gbCnf::calDistPrl(const vector<double> length, \
+                                 const KNAtom& atm1, \
                                  const KNAtom& atm2) {
   double xi = atm1.prl[X];
   double xj = atm2.prl[X];

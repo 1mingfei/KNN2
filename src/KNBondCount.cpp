@@ -15,9 +15,11 @@
 
 /* output hashmap to file */
 template<class T, class Y>
-inline void writeHashmap(const string& fname, const int i, const int j, \
-                        const map<T, Y>& v, \
-                        const bool isOutputKey = false) {
+inline void writeHashmap(const string& fname, \
+                         const int i, \
+                         const int j, \
+                         const map<T, Y>& v, \
+                         const bool isOutputKey = false) {
   ofstream ofs(fname, std::ofstream::app);
   ofs << "config " << i << " end " << j << " ";
   if (isOutputKey) {
@@ -76,8 +78,8 @@ void KNHome::KNBondCount() {
 }
 
 map<string, int> KNHome::gbCnf::countPairs(Config& cnf, \
-                                                 const vector<string>& elems, \
-                                                 const vector<int>& pair) {
+                                           const vector<string>& elems, \
+                                           const vector<int>& pair) {
   map<string, int> res;
   res["Al-Al"] = 0;
   res["Al-Mg"] = 0;

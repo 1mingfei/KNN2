@@ -63,7 +63,9 @@ inline void writeVector(const string& fname, \
 
 /* output vectors to file */
 template<class T>
-inline void writeVector(const string& fname, const int i, const int j, \
+inline void writeVector(const string& fname, \
+                        const int i, \
+                        const int j, \
                         const vector<T>& v) {
   ofstream ofs(fname, std::ofstream::app);
   ofs << "config " << i << " end " << j << " ";
@@ -73,8 +75,7 @@ inline void writeVector(const string& fname, const int i, const int j, \
   ofs << endl;
 }
 
-inline mat calculateRotateMatrix(
-    const vec& A, const vec& B) {
+inline mat calculateRotateMatrix(const vec& A, const vec& B) {
   mat R; R.eye(3, 3);
   vec v = cross(A, B);
   double c = dot(A, B);
@@ -180,8 +181,9 @@ inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
   return res;
 }
 
-mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
-                       const Config& ref) {
+mat KNHome::gbCnf::getJumpCoor(const Config& cnf, \
+                               const vector<int> pair, \
+                               const Config& ref) {
 
   vector<double> length({ ref.bvx[0], ref.bvy[1], ref.bvz[2] });
   int id1 = pair[0], id2 = pair[1];
@@ -196,13 +198,20 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
   vec v2a(3);
   vec v3a(3);
   KNAtom atm = ref.atoms[pair[0]];
-  cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
+
+// #ifdef DEBUG
+//   cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
+// #endif
 
   for (int i = 0; i < atm.NBL.size(); ++i) {
     int ii = atm.NBL[i];
     KNAtom nbAtm1 = ref.atoms[ii];
-    cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] \
-         << " " << nbAtm1.prl[2] << endl;
+
+// #ifdef DEBUG
+//     cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] \
+//          << " " << nbAtm1.prl[2] << endl;
+// #endif
+
     vec v2tmp(3);
 
     v2tmp << getDistPrlDirect(nbAtm1.prl[0], atm.prl[0]) \
@@ -212,7 +221,11 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
 
 
     double dotProd = dot(v1a, v2tmp);
-    cout << "dot : " << dotProd << endl;
+
+// #ifdef DEBUG
+//     cout << "dot : " << dotProd << endl;
+// #endif
+
     if (abs(dotProd) < 1e-6) {
       double dist = calDistPrl(length, atm, nbAtm1);
       cout << dist << endl;
@@ -227,11 +240,16 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, const vector<int> pair, \
   M << v1a[0] << v1a[1] << v1a[2] << arma::endr
     << v2a[0] << v2a[1] << v2a[2] << arma::endr
     << v3a[0] << v3a[1] << v3a[2] << arma::endr;
+
+#ifdef DEBUG
   cout << "det: " << arma::det(M) << endl;
+#endif
+
   return arma::normalise(M);
 }
 
-Config KNHome::gbCnf::rotateConfig(Config& cfgOld, const vector<double>& v2) {
+Config KNHome::gbCnf::rotateConfig(Config& cfgOld, \
+                                   const vector<double>& v2) {
   Config cfgNew = cfgOld;
   mat R2fold(3, 3);
   R2fold << v2[0] << v2[1] << v2[2] << arma::endr
@@ -306,11 +324,16 @@ void KNHome::KNEncode() {
       vector<int> infoPair = {pairs[i][0], pairs[i][1]}; 
       vector<string> codes;
       
-      vector<vector<string>> encodes = cnfModifier.encodeConfig(cfg, pair, RCut,\ 
-                                                                codes, infoPair,\
+      vector<vector<string>> encodes = cnfModifier.encodeConfig(cfg, \
+                                                                pair, \
+                                                                RCut, \ 
+                                                                codes, \
+                                                                infoPair, \
                                                                 true);
       for (int i = 0; i < encodes.size(); ++i)
-        writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
+        writeVector<string>("encode.symm.txt", \
+                            infoPair[0], \
+                            infoPair[1], \
                             encodes[i]);
     }
   }
@@ -342,10 +365,11 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
 }
 
 vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
-                                        const vector<int>& pair, \
-                                        const double RCut, vector<string>& codes, \
-                                        const vector<int>& infoPair, \
-                                        const bool calNBL) {
+                                                   const vector<int>& pair, \
+                                                   const double RCut, \
+                                                   vector<string>& codes, \
+                                                   const vector<int>& infoPair, \
+                                                   const bool calNBL) {
   assert(pair.size() == 2); //the size of input pair must equals 2
   if (calNBL)
     getNBL(cnf, RCut);
@@ -378,7 +402,6 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
       }
     }
   }  
-  //sortAtomLexi(atmList);
   vector<string> tmpCodes;
   for (const auto& atm : atmList) {
     tmpId.push_back(atm.id);
@@ -483,8 +506,9 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   return res;
 }
 
-Config KNHome::gbCnf::rotateJumpPair(Config& cnf, const vector<int> pair, \
-                             const Config& ref) {
+Config KNHome::gbCnf::rotateJumpPair(Config& cnf, \
+                                     const vector<int> pair, \
+                                     const Config& ref) {
   int id1 = pair[0], id2 = pair[1];
   vector<double> PC = getPairCenter(ref, id1, id2); // pair center of ref
 
@@ -500,12 +524,14 @@ Config KNHome::gbCnf::rotateJumpPair(Config& cnf, const vector<int> pair, \
 
   mat R = calculateRotateMatrix(m1a, m2a);
 
-  cout << "initial jump direction:\n";
-  m1a.print();
-  cout << "reference jump direction:\n";
-  m2a.print();
-  cout << "rotation matrix:\n";
-  R.print();
+// #ifdef DEBUG
+//   cout << "initial jump direction:\n";
+//   m1a.print();
+//   cout << "reference jump direction:\n";
+//   m2a.print();
+//   cout << "rotation matrix:\n";
+//   R.print();
+// #endif
 
   Config res = cnf;
 

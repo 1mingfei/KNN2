@@ -6,8 +6,10 @@
 /*  first element in the range [first, last) 
  *  that is not less than (i.e. greater or equal to) value */
 template<class ForwardIt, class T, class Compare>
-inline ForwardIt mylower_bound(ForwardIt first, ForwardIt last, const T& value,\
-                      Compare comp) {
+inline ForwardIt mylower_bound(ForwardIt first, \
+                               ForwardIt last, \
+                               const T& value,\
+                               Compare comp) {
   ForwardIt it;
   typename std::iterator_traits<ForwardIt>::difference_type count, step;
   count = std::distance(first, last);
@@ -77,6 +79,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   }
 #endif
 
+  /* reading the model binary file, initialize the model */
   string modelFname = sparams["kerasModel"];
   k2pModel = Model::load(modelFname);
 }
@@ -95,33 +98,33 @@ KMCEvent KNHome::selectEvent() {
 #ifdef DEBUG
   if(it != eventList.cend())
     cout << "prob: " << randVal << " count: " << distance(eventList.begin(), it)\
-         << " event cprob: " << it->getcProb() << endl << endl;
+         << " event cprob: " << it->getcProb() << " jumpPair: " \
+         << it->getJumpPair().first << " " << it->getJumpPair().second \
+         << endl << endl;
 #endif
 
   return *it;
 }
 
-void KNHome::KMCSimulation(gbCnf& cnfModifier) {
-  KMCInit(cnfModifier);
-  step = 0;
-  cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
-  while (step < maxIter) {
-    buildEventList(cnfModifier);
-    auto&& event = selectEvent();
-    event.exeEvent(c0, jumpList, RCut);
-    ++step;
-    cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+double KNHome::calRate(Config& c0, \
+                       const double& T, \
+                       gbCnf& cnfModifier, \
+                       pair<int, int> jumpPair) {
 
-  }
-}
+  int first = jumpPair.first;
+  int second = jumpPair.second;
 
-double KNHome::calRate(Config& c0, const double& T, \
-                     gbCnf& cnfModifier, pair<int, int> jumpPair) {
+  if (c0.atoms[first].tp == c0.atoms[second].tp)
+    return 0.0;
+
   vector<string> codes; // atom location in original atom list
   vector<vector<string>> encodes = cnfModifier.encodeConfig(c0, \
-                      {jumpPair.first, jumpPair.second}, 4.5, codes, \
-                      {jumpPair.first, jumpPair.second}, false);
+                      {first, second}, \
+                      4.5, \
+                      codes, \
+                      {first, second}, \
+                      false);
   vector<vector<double>> input(encodes.size(), \
                                vector<double>(encodes[0].size(), 0.0));
 
@@ -142,29 +145,58 @@ double KNHome::calRate(Config& c0, const double& T, \
   }
 #endif
 
+#ifdef DEBUG
+    cout << "predicted energies of pair " << first << " " \
+         << second << " : ";
+#endif
 
-    // need to be changed
-    // need to be changed
-    // need to be changed
-    // need to be changed
-    // need to be changed
-    // need to be changed
-    double deltaE = (double) rand() / (RAND_MAX);
-    return exp(- deltaE / KB / T);
+  int nRow = input.size(); // encodings for one jump pair considering symmetry
+  int nCol = nRow ? input[0].size() : 0;
+  Tensor in{ nRow, nCol };
+  for (int i = 0; i < nRow; ++i)
+    for (int j = 0; j < nCol; ++j)
+      in.data_[i * nCol + j] = input[i][j];
+
+  Tensor out = k2pModel(in);
+  double deltaE = 0.0;
+  for (int i = 0; i < nRow; ++i) {
+
+#ifdef DEBUG
+    cout << std::setprecision(8) << out(i, 0) << " ";
+#endif
+
+    deltaE += static_cast<double>(out(i, 0));
+  }
+  deltaE /= static_cast<double>(nRow);
+
+#ifdef DEBUG
+  cout << std::setprecision(8) << deltaE << endl;
+#endif
+
+  // double deltaE = (double) rand() / (RAND_MAX);
+  return exp(- deltaE / KB / T);
 }
 
 void KNHome::buildEventList(gbCnf& cnfModifier) {
   /* build event list */
+  // cnfModifier.getNBL(c0, 4.5);
+
   eventList.clear();
   double sum = 0.0;
   for (int i = 0; i < vacList.size(); ++i) {
     for (int j = 0; j < jumpList[vacList[i]].size(); ++j) {
-      KMCEvent event(std::make_pair(vacList[i], jumpList[vacList[i]][j]));
+      /* skip Vac jump to Vac in event list */
+      if (c0.atoms[vacList[i]].tp == c0.atoms[jumpList[vacList[i]][j]].tp)
+        continue;
+
+      KMCEvent event(make_pair(vacList[i], jumpList[vacList[i]][j]));
 
 
       // event.calRate(c0, temperature, RCut, cnfModifier);
-      double currRate = calRate(c0, temperature, cnfModifier, \
-                        std::make_pair(vacList[i], jumpList[vacList[i]][j]));
+      double currRate = calRate(c0, \
+                                temperature, \
+                                cnfModifier, \
+                                make_pair(vacList[i], jumpList[vacList[i]][j]));
       event.setRate(currRate);
       sum += event.getRate();
       eventList.push_back(event);
@@ -188,4 +220,19 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   }
   cout << endl;
 #endif
+}
+
+void KNHome::KMCSimulation(gbCnf& cnfModifier) {
+  KMCInit(cnfModifier);
+  step = 0;
+  cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+
+  while (step < maxIter) {
+    buildEventList(cnfModifier);
+    auto&& event = selectEvent();
+    event.exeEvent(c0, jumpList, RCut);
+    ++step;
+    cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+
+  }
 }
