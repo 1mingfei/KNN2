@@ -13,8 +13,12 @@ KNHome::KNHome(int argc, char* argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
   sparams["mode"] = "generate";
+  sparams["initconfig"] = "initconfig.cfg";
   dparams["LC"] = 4.046;
-  dparams["Rcut"] = 6.0;
+  // dparams["Rcut"] = 6.0; //encode
+  dparams["Rcut"] = 3.0; //kmc
+  
+
 
   parseArgs(argc, argv);
   srand(time(NULL) + me);
@@ -28,9 +32,10 @@ KNHome::KNHome(int argc, char* argv[]) {
     KNEncode();
   } else if (sparams["mode"] == "BondCount") {
     KNBondCount();
-  // } else if (sparams["mode"] == "kmc") {
-  //   KMCSimulation();
+  } else if (sparams["mode"] == "kmc") {
+    KMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "test") {
+    testK2P();
     /* test encoding */
     /*
     gbCnf cnfModifier(*this);

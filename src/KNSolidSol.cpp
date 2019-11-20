@@ -47,7 +47,10 @@ void KNHome::gbCnf::getRandConf(Config& cnf,\
       TPArr.push_back(i);
     }
   }
-  std::random_shuffle(TPArr.begin(), TPArr.end(), myRandom);
+  auto rng = std::default_random_engine {};
+  // std::random_shuffle(TPArr.begin(), TPArr.end(), myRandom);
+  std::shuffle(std::begin(TPArr), std::end(TPArr), rng);
+
   for (unsigned int i = 0; i < TPArr.size(); ++i) {
     for (unsigned int j = 0; j < elems.size(); ++j) {
       if (TPArr[i] == j) {
@@ -128,8 +131,12 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
   for (unsigned int i = resType.size(); i < (cnf.natoms - NBLSize - 1); ++i) {
     resType.push_back(0);
   }
-  std::random_shuffle(nblType.begin(), nblType.end(), myRandom);
-  std::random_shuffle(resType.begin(), resType.end(), myRandom);
+  auto rng = std::default_random_engine {};
+  // std::random_shuffle(nblType.begin(), nblType.end(), myRandom);
+  std::shuffle(std::begin(nblType), std::end(nblType), rng);
+  // std::random_shuffle(resType.begin(), resType.end(), myRandom);
+  std::shuffle(std::begin(resType), std::end(resType), rng);
+
   /* type alignment 
    * not starting from 0 becasue 0 is the default vacancy
    */
@@ -216,7 +223,10 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(pairs), std::end(pairs), rng);
+
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 
@@ -317,7 +327,10 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(pairs), std::end(pairs), rng);
+
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 
@@ -375,7 +388,10 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(pairs), std::end(pairs), rng);
+        
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 

@@ -2,7 +2,7 @@
  * @Author: chaomy
  * @Date:   2017-12-31 16:04:15
  * @Last Modified by:  1mingfei
- * @Last Modified time: 2019-03-25
+ * @Last Modified time: 2019-10-25
  */
 
 #include "gbCnf.h"
@@ -27,9 +27,13 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("PairFile")) {
       sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("kerasModel")) {
+      sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("RCut")) {
+      dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("temperature")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("factors")) {
       vector<int> tmpVec;
@@ -52,6 +56,10 @@ void KNHome::readParam() {
     } else if (!segs[0].compare("NConfigs")) {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("NBarriers")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("maxIter")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("ntally")) {
       iparams[segs[0]] = stoi(segs[1]);
     }
 

@@ -131,7 +131,8 @@ inline void prepPOTCAR(const string path, const set<string> species) {
   }
 }
 
-void KNHome::prepVASPFiles(const string path, const vector<int>& dupFac, 
+void KNHome::prepVASPFiles(const string path, \
+                           const vector<int>& dupFac, \
                            const set<string>& species) {
   prepINCAR(path);
   prepKPOINTS(path, dupFac);

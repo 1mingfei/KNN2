@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -17,9 +18,10 @@
 #include <algorithm> 
 #include "armadillo"
 #include "gbDef.h"
-#include "gbCnf.h"
+// #include "gbCnf.h"
+#include "KMCEvent.h"
 #include "gbUtl.h"
-// #include "KMCEvent.h"
+#include "model.h"
 
 using std::cerr;
 using std::cout;
@@ -37,13 +39,33 @@ using std::vector;
 using std::set;
 using std::pair;
 using std::min;
+using std::distance;
+using std::replace;
+using std::swap;
+using std::make_pair;
+
 using arma::vec;
 using arma::mat;
+
+using keras2cpp::Model;
+using keras2cpp::Tensor;
 
 class KNHome {
 private:
   class gbCnf;
-  class KMCEvent;
+
+  Config c0;
+  vector<KMCEvent> eventList;
+  vector<int> vacList;
+  unordered_map<int, vector<int>> jumpList;
+  double RCut;
+  double temperature;
+  long long maxIter;
+  long long step;
+  int ntally;
+  unordered_map<string, double> embedding;
+
+  Model k2pModel;
 
 public:
   int me, nProcs;
@@ -55,10 +77,10 @@ public:
   unordered_map<string, vector<int>> viparams;
 
 
-
   KNHome(int argc, char* argv[]);
   ~KNHome();
 
+  /* KNParam.cpp */
   void parseArgs(int argc, char* argv[]);
   void initParam();
   void readParam();
@@ -76,7 +98,16 @@ public:
   void KNBondCount();
 
   /* KMCSimulation.cpp */
-  // void KMCSimulation();
+  void KMCInit(gbCnf&);
+  void getVacList();
+  void KMCSimulation(gbCnf&);
+  void buildEmbedding();
+  double calRate(Config&, const double&, gbCnf&, pair<int, int>);
+  void buildEventList(gbCnf&);
+  KMCEvent selectEvent();
+
+  /* test keras2cpp */
+  void testK2P();
   
 };
 

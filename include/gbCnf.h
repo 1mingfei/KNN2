@@ -68,8 +68,9 @@ public:
   Config swapPair(const Config&, pair<int, int>);
 
   /* KNEncodeCart.cpp */
-  vector<int> encodeConfig(Config&, const vector<int>&, double, vector<string>&,\
-                                    const vector<int>&);
+  vector<vector<string>> encodeConfig(Config&, const vector<int>&, const double,\
+                                      vector<string>&, const vector<int>&,\
+                                      const bool);
 
   vector<pair<int, int>> readPairs(string);
   Config rotateJumpPair(Config&, const vector<int>, const Config&);

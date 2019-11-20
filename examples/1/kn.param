@@ -1,9 +1,0 @@
-============example1================
-mode generate
-LC 4.046
-factors 4 4 4
-elems Al Zn X Mg
-nums  240 11 3 2
-NConfigs 5
-NBarriers 5
-====================================
