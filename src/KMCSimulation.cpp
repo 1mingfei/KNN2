@@ -107,7 +107,7 @@ KMCEvent KNHome::selectEvent() {
        << "prob: " << randVal << " count: " << distance(eventList.begin(), it)\
        << " event cprob: " << it->getcProb() << " jumpPair: " \
        << it->getJumpPair().first << " " << it->getJumpPair().second \
-       << endl << endl;
+       << endl;
 // #endif
   return *it;
 }
