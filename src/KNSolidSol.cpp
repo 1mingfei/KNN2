@@ -312,8 +312,7 @@ void KNHome::createPreNEB() {
           exit(1);
         }
 
-        cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/s/start.cfg");
+        cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/s/start.cfg");
         cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, species);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);

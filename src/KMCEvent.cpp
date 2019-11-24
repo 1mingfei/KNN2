@@ -117,30 +117,36 @@ void KMCEvent::exeEvent(Config& cnf, \
     7 : 8 9 12 14 17 18 19 13
     13: 1 2 3 6 8 11 12 7
   */
+
+#ifdef DEBUGJUMP
+    cout << "atom " << first << endl;
+    for (const auto& nei : cnf.atoms[first].NBL)
+      cout << nei << " ";
+    cout << endl;
+    cout << "atom " << second << endl;
+    for (const auto& nei : cnf.atoms[second].NBL)
+      cout << nei << " ";
+    cout << endl;
+#endif
+
   std::swap(cnf.atoms[first].NBL, cnf.atoms[second].NBL);
-  replace(cnf.atoms[first].NBL.begin(), cnf.atoms[first].NBL.end(), \
-          second, first);
-  replace(cnf.atoms[second].NBL.begin(), cnf.atoms[second].NBL.end(), \
-          first, second);
+  // replace(cnf.atoms[first].NBL.begin(), cnf.atoms[first].NBL.end(), \
+  //         first, second);
+  // replace(cnf.atoms[second].NBL.begin(), cnf.atoms[second].NBL.end(), \
+  //         second, first);
+
+#ifdef DEBUGJUMP
+    cout << "atom " << first << endl;
+    for (const auto& nei : cnf.atoms[first].NBL)
+      cout << nei << " ";
+    cout << endl;
+    cout << "atom " << second << endl;
+    for (const auto& nei : cnf.atoms[second].NBL)
+      cout << nei << " ";
+    cout << endl;
+#endif
 
   /* 4 */
-  // for (int i : cnf.atoms[first].NBL) {
-  //   if (find(cnf.atoms[i].NBL.begin(), \
-  //            cnf.atoms[i].NBL.end(), \
-  //            second) == cnf.atoms[i].NBL.end()) {
-  //     replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
-  //             first, second);
-  //   }
-  // }
-  // for (int i : cnf.atoms[second].NBL) {
-  //   if (find(cnf.atoms[i].NBL.begin(), \
-  //            cnf.atoms[i].NBL.end(), \
-  //            first) == cnf.atoms[i].NBL.end()) {
-  //     replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
-  //             second, first);
-  //   } 
-  // }
-  // 4 new implementation
   vector<int> tmpList;
   for (int i : cnf.atoms[first].NBL)
     tmpList.push_back(i);
@@ -164,46 +170,70 @@ void KMCEvent::exeEvent(Config& cnf, \
             second, first);
     replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
             -first, second);
+    // if (i == first || i == second)
+    //   continue;
+    // for (int j = 0; j < cnf.atoms[i].NBL.size(); ++j) {
+    //   if (cnf.atoms[i].NBL[j] == first)
+    //     cnf.atoms[i].NBL[j] = second;
+    //   if (cnf.atoms[i].NBL[j] == second)
+    //     cnf.atoms[i].NBL[j] = first;
+    // }
+
+#ifdef DEBUGJUMP
+    cout << "atom " << i << endl;
+    for (const auto& nei : cnf.atoms[i].NBL)
+      cout << nei << " ";
+    cout << endl;
+#endif
+
+
   }
 
 
   /* 5: to do update jumpList by recalculating atoms within cutoff of 3.0A */
   /* find the previous vac; update its neighbor list */
-  // vector<int> res;
-  // for (int i = 0; i < cnf.atoms.size(); ++i) {
-  //   double dist = calDistPrl(cnf.length, \
-  //                            cnf.atoms[first], \
-  //                            cnf.atoms[i]);
-  //   if ((dist <= RCut) && (i != first)) {
-  //     res.push_back(i);
-  //   }
-  // }
-  // jumpList[first] = std::move(res);
-  // /* update other jump list by swap vac and the other element */
-  // for (auto&& it = jumpList.begin(); it != jumpList.end(); ++it) {
-  //   if (it->first == first)
-  //     continue;
-  //   auto&& vec = it->second;
-  //   int flag = 0;
-  //   for (auto && i : vec) {
-  //     if (i == first || i == second)
-  //       ++flag;
-  //   }
-  //   if (flag == 1) {
-  //     for (auto && i : vec)
-  //       if (i == first)
-  //         i = second;
-  //     for (auto && i : vec)
-  //       if (i == second)
-  //         i = first;
-  //   }
-  // }
-  
+  vector<int> res;
+  for (int i = 0; i < cnf.atoms.size(); ++i) {
+    if ((i == first) || (cnf.atoms[i].tp == "X"))
+      continue;
+    double dist = calDistPrl(cnf.length, \
+                             cnf.atoms[first], \
+                             cnf.atoms[i]);
+    if (dist <= RCut)
+      res.push_back(i);
+  }
+  jumpList[first] = std::move(res);
+  /* update other jump list by swap vac and the other element */
+  for (pair<int, vector<int>> i : jumpList) {
+    if (i.first == first)
+      continue;
+    for (int j = 0; j < i.second.size(); ++j) {
+      if (i.second[j] == first)
+        i.second[j] = second;
+      if (i.second[j] == second)
+        i.second[j] = first;
+    }
+  }
+
+#ifdef DEBUGJUMP
+  cout << " new method: " << endl;
   vector<int> vacList;
   for (auto&& it = jumpList.begin(); it != jumpList.end(); ++it)
     vacList.push_back(it->first);
+  for (int i = 0; i < vacList.size(); ++i) {
+    cout << vacList[i] << " size: " << jumpList[vacList[i]].size() << endl;
+    for (int j = 0; j < jumpList[vacList[i]].size(); ++j)
+      cout << jumpList[vacList[i]][j] << " ";
+    cout << endl;
+  }
 
-  for (auto&& i : vacList) {
+  cout << " brutal force: " << endl;
+  unordered_map<int, vector<int>> jumpListReference;
+  vector<int> vacListReference;
+  for (auto&& it = jumpList.begin(); it != jumpList.end(); ++it)
+    vacListReference.push_back(it->first);
+
+  for (auto&& i : vacListReference) {
     vector<int> tmpVector;
     for (int j = 0; j < cnf.atoms.size(); ++j) {
       if (cnf.atoms[j].tp == "X")
@@ -214,16 +244,18 @@ void KMCEvent::exeEvent(Config& cnf, \
       if (dist <= RCut)
         tmpVector.push_back(j);
     }
-    jumpList[i] = std::move(tmpVector);
+    jumpListReference[i] = std::move(tmpVector);
   }
-
-#ifdef DEBUG
-  for (int i = 0; i < vacList.size(); ++i) {
-    cout << vacList[i] << " size: " << jumpList[vacList[i]].size() << endl;
-    for (int j = 0; j < jumpList[vacList[i]].size(); ++j)
-      cout << jumpList[vacList[i]][j] << " ";
+  // for (auto&& i = jumpListReference.begin(); i != jumpListReference.end(); ++i)
+  //   vacListReference.push_back(i->first);
+  for (int i = 0; i < vacListReference.size(); ++i) {
+    cout << vacListReference[i] << " size: " \
+         << jumpListReference[vacListReference[i]].size() << endl;
+    for (int j = 0; j < jumpListReference[vacListReference[i]].size(); ++j)
+      cout << jumpListReference[vacListReference[i]][j] << " ";
     cout << endl;
   }
 #endif
+
 
 }

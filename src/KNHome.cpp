@@ -17,6 +17,7 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["LC"] = 4.046;
   // dparams["Rcut"] = 6.0; //encode
   dparams["Rcut"] = 3.0; //kmc
+  iparams["randSeed"] = 1234567; //kmc
   
 
 

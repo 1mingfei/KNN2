@@ -52,6 +52,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   maxIter = iparams["maxIter"];
   ntally = iparams["ntally"];
   temperature = dparams["temperature"];
+  srand(iparams["randSeed"]);
   c0 = cnfModifier.readCfg(fname);
 
   /* get initial vacancy position in atomList */

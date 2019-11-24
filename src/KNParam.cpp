@@ -61,6 +61,8 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("ntally")) {
       iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("randSeed")) {
+      iparams[segs[0]] = stoi(segs[1]);
     }
 
   }
