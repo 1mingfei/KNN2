@@ -53,6 +53,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   ntally = iparams["ntally"];
   temperature = dparams["temperature"];
   srand(iparams["randSeed"]);
+  prefix = dparams["prefix"];
   c0 = cnfModifier.readCfg(fname);
 
   /* get initial vacancy position in atomList */
@@ -74,6 +75,9 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
         tmpVector.push_back(j);
     }
     jumpList[i] = tmpVector;
+
+    /* update time */
+    time = 0.0;
   }
 
 #ifdef DEBUG
@@ -106,8 +110,8 @@ KMCEvent KNHome::selectEvent() {
     return eventList.back();
 
 // #ifdef DEBUG
-  cout << "step " << (step + 1) << " " \
-       << "prob: " << randVal << " count: " << distance(eventList.begin(), it)\
+  cout << "step " << (step + 1) << " time " << time
+       << " prob: " << randVal << " event: " << distance(eventList.begin(), it)\
        << " event cprob: " << it->getcProb() << " jumpPair: " \
        << it->getJumpPair().first << " " << it->getJumpPair().second \
        << endl;
@@ -184,7 +188,7 @@ double KNHome::calRate(Config& c0, \
 #endif
 
   // double deltaE = (double) rand() / (RAND_MAX);
-  return exp(- deltaE / KB / T);
+  return exp(-deltaE / KB / T);
 }
 
 void KNHome::buildEventList(gbCnf& cnfModifier) {
@@ -221,6 +225,10 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     curr += event.getProb();
     event.setcProb(curr);
   }
+
+  /* update time lapse */
+  double tau = prefix * sum * (-log(rand() / static_cast<double>(RAND_MAX)));
+  time += tau;
 
 #ifdef DEBUG
   for (int i = 0; i < eventList.size(); ++i) {

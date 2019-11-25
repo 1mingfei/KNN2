@@ -60,6 +60,8 @@ private:
   unordered_map<int, vector<int>> jumpList;
   double RCut;
   double temperature;
+  double time;
+  double prefix;
   long long maxIter;
   long long step;
   int ntally;

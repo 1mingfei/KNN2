@@ -180,9 +180,9 @@ void KMCEvent::exeEvent(Config& cnf, \
 
   /* 3 neighbor atom's neighbor list */
   unordered_set<int> tmpSet;
-  for (int i : cnf.atoms[first].NBL)
+  for (const int& i : cnf.atoms[first].NBL)
     tmpSet.insert(i);
-  for (int i : cnf.atoms[second].NBL)
+  for (const int&  i : cnf.atoms[second].NBL)
     tmpSet.insert(i);
 
   vector<int> tmpList(tmpSet.begin(), tmpSet.end());
