@@ -13,6 +13,7 @@
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <set>
 #include <algorithm>
 
@@ -22,7 +23,9 @@
 
 using std::pair;
 using std::unordered_map;
+using std::unordered_set;
 using std::find;
+using std::remove;
 
 class KNHome;
 

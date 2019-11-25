@@ -2,7 +2,7 @@
 // #include "gbCnf.h"
 
 /*calculate distance between one atom in configuration and one from ref*/
-inline double calDistPrl(const vector<double> length, \
+inline double calDistPrl(const vector<double>& length, \
                          const KNAtom& atm1,\
                          const KNAtom& atm2) {
   double xi = atm1.prl[X];
@@ -90,19 +90,19 @@ void KMCEvent::exeEvent(Config& cnf, \
     first : vac
     second : other element
     three things to swap here:
-    // 1) element id
-    2) element coordinates
-    3) element neighbour list
-    4) neighbor atom's neighbor list
-    5) jumpList
+    1) element coordinates
+    2) jump pair neighbour list
+    3) neighbor atom's neighbor list
+    4) jumpList
    */
   /* 1 */
   // std::swap(cnf.atoms[first].id, cnf.atoms[second].id);
-  /* 2 */
+  /* 1 */
+
   std::swap(cnf.atoms[first].prl, cnf.atoms[second].prl);
   std::swap(cnf.atoms[first].pst, cnf.atoms[second].pst);
 
-  /* 3 
+  /* 2 jump pair neighbour list
     e.g.
     1  2  3  4  5                    1  2  3  4  5  
     6  7  8  9  10          ==>      6 13  8  9 10
@@ -118,66 +118,85 @@ void KMCEvent::exeEvent(Config& cnf, \
     13: 1 2 3 6 8 11 12 7
   */
 
-#ifdef DEBUGJUMP
-    cout << "atom " << first << endl;
-    for (const auto& nei : cnf.atoms[first].NBL)
-      cout << nei << " ";
-    cout << endl;
-    cout << "atom " << second << endl;
-    for (const auto& nei : cnf.atoms[second].NBL)
-      cout << nei << " ";
-    cout << endl;
-#endif
+// #ifdef DEBUGJUMP
+//     cout << "atom " << first << endl;
+//     for (const auto& nei : cnf.atoms[first].NBL)
+//       cout << nei << " ";
+//     cout << endl;
+//     cout << "atom " << second << endl;
+//     for (const auto& nei : cnf.atoms[second].NBL)
+//       cout << nei << " ";
+//     cout << endl;
+// #endif
 
   std::swap(cnf.atoms[first].NBL, cnf.atoms[second].NBL);
-  // replace(cnf.atoms[first].NBL.begin(), cnf.atoms[first].NBL.end(), \
-  //         first, second);
-  // replace(cnf.atoms[second].NBL.begin(), cnf.atoms[second].NBL.end(), \
-  //         second, first);
+  replace(cnf.atoms[first].NBL.begin(), cnf.atoms[first].NBL.end(), \
+          first, second);
+  replace(cnf.atoms[second].NBL.begin(), cnf.atoms[second].NBL.end(), \
+          second, first);
 
-#ifdef DEBUGJUMP
-    cout << "atom " << first << endl;
-    for (const auto& nei : cnf.atoms[first].NBL)
-      cout << nei << " ";
-    cout << endl;
-    cout << "atom " << second << endl;
-    for (const auto& nei : cnf.atoms[second].NBL)
-      cout << nei << " ";
-    cout << endl;
-#endif
+// #ifdef DEBUGJUMP
+//     cout << "atom " << first << endl;
+//     for (const auto& nei : cnf.atoms[first].NBL)
+//       cout << nei << " ";
+//     cout << endl;
+//     cout << "atom " << second << endl;
+//     for (const auto& nei : cnf.atoms[second].NBL)
+//       cout << nei << " ";
+//     cout << endl;
+// #endif
 
-  /* 4 */
-  vector<int> tmpList;
+  /* 3 neighbor atom's neighbor list (old) */
+//   vector<int> tmpList;
+//   for (int i : cnf.atoms[first].NBL)
+//     tmpList.push_back(i);
+//   for (int i : cnf.atoms[second].NBL)
+//     tmpList.push_back(i);
+//   for (int i : tmpList) {
+//     int count = 0;
+//     if (find(cnf.atoms[i].NBL.begin(), \
+//              cnf.atoms[i].NBL.end(), \
+//              first) != cnf.atoms[i].NBL.end()) 
+//       ++count;
+//     if (find(cnf.atoms[i].NBL.begin(), \
+//              cnf.atoms[i].NBL.end(), \
+//              second) != cnf.atoms[i].NBL.end()) 
+//       ++count;
+//     if (count == 2) //nothing need to be done
+//       continue;
+//     replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
+//             first, -first);
+//     replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
+//             second, first);
+//     replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
+//             -first, second);
+// #ifdef DEBUGJUMP
+//     cout << "atom " << i << endl;
+//     for (const auto& nei : cnf.atoms[i].NBL)
+//       cout << nei << " ";
+//     cout << endl;
+// #endif
+//   }
+
+  /* 3 neighbor atom's neighbor list */
+  unordered_set<int> tmpSet;
   for (int i : cnf.atoms[first].NBL)
-    tmpList.push_back(i);
+    tmpSet.insert(i);
   for (int i : cnf.atoms[second].NBL)
-    tmpList.push_back(i);
+    tmpSet.insert(i);
+
+  vector<int> tmpList(tmpSet.begin(), tmpSet.end());
   for (int i : tmpList) {
-    int count = 0;
-    if (find(cnf.atoms[i].NBL.begin(), \
-             cnf.atoms[i].NBL.end(), \
-             first) != cnf.atoms[i].NBL.end()) 
-      ++count;
-    if (find(cnf.atoms[i].NBL.begin(), \
-             cnf.atoms[i].NBL.end(), \
-             second) != cnf.atoms[i].NBL.end()) 
-      ++count;
-    if (count == 2) //nothing need to be done
+    if (i == first || i == second)
       continue;
-    replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
-            first, -first);
-    replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
-            second, first);
-    replace(cnf.atoms[i].NBL.begin(), cnf.atoms[i].NBL.end(), \
-            -first, second);
-    // if (i == first || i == second)
-    //   continue;
-    // for (int j = 0; j < cnf.atoms[i].NBL.size(); ++j) {
-    //   if (cnf.atoms[i].NBL[j] == first)
-    //     cnf.atoms[i].NBL[j] = second;
-    //   if (cnf.atoms[i].NBL[j] == second)
-    //     cnf.atoms[i].NBL[j] = first;
-    // }
+    for (int j = 0; j < cnf.atoms[i].NBL.size(); ++j) {
+      if (cnf.atoms[i].NBL[j] == first) {
+        cnf.atoms[i].NBL[j] = second;
+        continue;
+      }
+      if (cnf.atoms[i].NBL[j] == second)
+        cnf.atoms[i].NBL[j] = first;
+    }
 
 #ifdef DEBUGJUMP
     cout << "atom " << i << endl;
@@ -186,33 +205,61 @@ void KMCEvent::exeEvent(Config& cnf, \
     cout << endl;
 #endif
 
-
   }
 
 
-  /* 5: to do update jumpList by recalculating atoms within cutoff of 3.0A */
+  /* 4: to do update jumpList by recalculating atoms within cutoff of 3.0A */
   /* find the previous vac; update its neighbor list */
-  vector<int> res;
-  for (int i = 0; i < cnf.atoms.size(); ++i) {
-    if ((i == first) || (cnf.atoms[i].tp == "X"))
-      continue;
-    double dist = calDistPrl(cnf.length, \
-                             cnf.atoms[first], \
-                             cnf.atoms[i]);
-    if (dist <= RCut)
-      res.push_back(i);
-  }
-  jumpList[first] = std::move(res);
-  /* update other jump list by swap vac and the other element */
-  for (pair<int, vector<int>> i : jumpList) {
-    if (i.first == first)
-      continue;
-    for (int j = 0; j < i.second.size(); ++j) {
-      if (i.second[j] == first)
-        i.second[j] = second;
-      if (i.second[j] == second)
-        i.second[j] = first;
+  // vector<int> res;
+  // // for (int i = 0; i < cnf.atoms.size(); ++i) {
+  // for (const int& i : cnf.atoms[first].NBL) {
+  //   if ((i == first) || (cnf.atoms[i].tp == "X"))
+  //     continue;
+  //   double dist = calDistPrl(cnf.length, \
+  //                            cnf.atoms[first], \
+  //                            cnf.atoms[i]);
+  //   if (dist <= RCut)
+  //     res.push_back(i);
+  // }
+  // jumpList[first] = std::move(res);
+  // /* update other jump list by swap vac and the other element */
+  // for (pair<int, vector<int>>&& elem : jumpList) {
+  // // for (auto&& elem : jumpList) {
+  //   if (elem.first == first)
+  //     continue;
+  //   // for (int j = 0; j < elem.second.size(); ++j) {
+  //   //   if (elem.second[j] == first) {
+  //   //     elem.second[j] = second;
+  //   //     continue;
+  //   //   }
+  //   //   if (elem.second[j] == second)
+  //   //     elem.second[j] = first;
+  //   // }
+
+  //   // remove second element
+  //   elem.second.erase(remove(elem.second.begin(), elem.second.end(), second), \
+  //                     elem.second.end());
+
+  //   for (auto&& j : elem.second)
+  //     if (j == first)
+  //       j = second;
+  // }
+
+  vector<int> VacList;
+  for (auto&& it = jumpList.begin(); it != jumpList.end(); ++it)
+    VacList.push_back(it->first);
+  for (auto&& i : VacList) {
+    vector<int> tmpVector;
+    for (const auto& j : cnf.atoms[i].NBL) {
+      if (cnf.atoms[j].tp == "X")
+        continue;
+      double dist = calDistPrl(cnf.length, \
+                               cnf.atoms[i], \
+                               cnf.atoms[j]);
+      if (dist <= RCut)
+        tmpVector.push_back(j);
     }
+    jumpList[i] = tmpVector;
   }
 
 #ifdef DEBUGJUMP
@@ -246,8 +293,7 @@ void KMCEvent::exeEvent(Config& cnf, \
     }
     jumpListReference[i] = std::move(tmpVector);
   }
-  // for (auto&& i = jumpListReference.begin(); i != jumpListReference.end(); ++i)
-  //   vacListReference.push_back(i->first);
+
   for (int i = 0; i < vacListReference.size(); ++i) {
     cout << vacListReference[i] << " size: " \
          << jumpListReference[vacListReference[i]].size() << endl;

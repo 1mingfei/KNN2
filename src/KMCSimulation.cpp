@@ -60,19 +60,21 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
 
   /* get neibour list of atoms */
   cnfModifier.wrapAtomPrl(c0);
-  cnfModifier.getNBL(c0, RCut);
+  cnfModifier.getNBL(c0, 4.5);
+
   for (auto&& i : vacList) {
     vector<int> tmpVector;
-    for (auto&& j : c0.atoms[i].NBL) {
+    for (const auto& j : c0.atoms[i].NBL) {
       if (c0.atoms[j].tp == "X")
         continue;
-      tmpVector.push_back(j);
+      double dist = cnfModifier.calDistPrl(c0.length, \
+                                           c0.atoms[i], \
+                                           c0.atoms[j]);
+      if (dist <= RCut)
+        tmpVector.push_back(j);
     }
     jumpList[i] = tmpVector;
-
   }
-
-  cnfModifier.getNBL(c0, 4.5); //4.5 for 2NN encoding needed
 
 #ifdef DEBUG
   for (int i = 0; i < vacList.size(); ++i) {
