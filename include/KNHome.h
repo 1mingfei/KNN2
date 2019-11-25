@@ -62,6 +62,7 @@ private:
   double temperature;
   double time;
   double prefix;
+  double kTot;
   long long maxIter;
   long long step;
   int ntally;
@@ -107,6 +108,7 @@ public:
   double calRate(Config&, const double&, gbCnf&, pair<int, int>);
   void buildEventList(gbCnf&);
   KMCEvent selectEvent();
+  void updateTime();
 
   /* test keras2cpp */
   void testK2P();

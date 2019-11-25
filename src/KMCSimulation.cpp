@@ -92,6 +92,8 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   /* reading the model binary file, initialize the model */
   string modelFname = sparams["kerasModel"];
   k2pModel = Model::load(modelFname);
+
+  cout << "step     time    jumpFrom     jumpTo\n";
 }
 
 // typedef struct cmp {
@@ -109,13 +111,17 @@ KMCEvent KNHome::selectEvent() {
   if(it == eventList.cend())
     return eventList.back();
 
-// #ifdef DEBUG
+  cout << std::setprecision(7) << (step + 1) << " " << time << " "
+       << it->getJumpPair().first << " " << it->getJumpPair().second \
+       << endl;
+
+#ifdef DEBUG
   cout << "step " << (step + 1) << " time " << time
        << " prob: " << randVal << " event: " << distance(eventList.begin(), it)\
        << " event cprob: " << it->getcProb() << " jumpPair: " \
        << it->getJumpPair().first << " " << it->getJumpPair().second \
        << endl;
-// #endif
+#endif
   return *it;
 }
 
@@ -191,12 +197,19 @@ double KNHome::calRate(Config& c0, \
   return exp(-deltaE / KB / T);
 }
 
+void KNHome::updateTime() {
+  /* update time elapsed */
+  double tau = 1.0 / (prefix * kTot) \
+               * (-log(rand() / static_cast<double>(RAND_MAX)));
+  time += tau;
+}
+
 void KNHome::buildEventList(gbCnf& cnfModifier) {
   /* build event list */
   // cnfModifier.getNBL(c0, 4.5);
 
   eventList.clear();
-  double sum = 0.0;
+  kTot = 0.0;
   for (int i = 0; i < vacList.size(); ++i) {
     for (int j = 0; j < jumpList[vacList[i]].size(); ++j) {
       /* skip Vac jump to Vac in event list */
@@ -212,7 +225,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
                                 cnfModifier, \
                                 make_pair(vacList[i], jumpList[vacList[i]][j]));
       event.setRate(currRate);
-      sum += event.getRate();
+      kTot += event.getRate();
       eventList.push_back(event);
     }
   }
@@ -221,14 +234,10 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   double curr = 0.0;
   for (int i = 0; i < eventList.size(); ++i) {
     auto&& event = eventList[i];
-    event.calProb(sum);
+    event.calProb(kTot);
     curr += event.getProb();
     event.setcProb(curr);
   }
-
-  /* update time lapse */
-  double tau = prefix * sum * (-log(rand() / static_cast<double>(RAND_MAX)));
-  time += tau;
 
 #ifdef DEBUG
   for (int i = 0; i < eventList.size(); ++i) {
@@ -247,6 +256,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
   while (step < maxIter) {
     buildEventList(cnfModifier);
+    updateTime();
     auto&& event = selectEvent();
     event.exeEvent(c0, jumpList, RCut);
     ++step;
