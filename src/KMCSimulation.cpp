@@ -47,7 +47,7 @@ void KNHome::getVacList() {
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
   buildEmbedding();
-
+  E_tot = 0.0;
   string fname = sparams["initconfig"];
   RCut = dparams["RCut"];
   RCut2 = 1.65 * RCut;
@@ -181,7 +181,7 @@ vector<double> KNHome::calRate(Config& c0, \
       in.data_[i * nCol + j] = input[i][j];
 
   Tensor outB = k2pModelB(in);
-  Tensor outD = k2pModelB(in);
+  Tensor outD = k2pModelD(in);
 
   double deltaE = 0.0;
   double tmpEdiff = 0.0;
@@ -190,7 +190,9 @@ vector<double> KNHome::calRate(Config& c0, \
 #ifdef DEBUG
     cout << std::setprecision(8) << outB(i, 0) << " ";
 #endif
-
+#ifdef DEBUGEDIFF
+    cout << std::setprecision(8) << outD(i, 0) << " ";
+#endif
     deltaE += static_cast<double>(outB(i, 0));
     tmpEdiff += static_cast<double>(outD(i, 0));
   }
@@ -201,7 +203,10 @@ vector<double> KNHome::calRate(Config& c0, \
   cout << std::setprecision(8) << deltaE << endl;
 #endif
 
-  // double deltaE = (double) rand() / (RAND_MAX);
+#ifdef DEBUGEDIFF
+  cout << std::setprecision(8) << tmpEdiff << endl;
+#endif
+
   return {exp(-deltaE / KB / T), tmpEdiff};
 }
 
