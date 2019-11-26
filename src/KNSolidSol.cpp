@@ -40,7 +40,7 @@ Config KNHome::gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
 void KNHome::gbCnf::getRandConf(Config& cnf,\
                                 const vector<string>& elems,\
                                 const vector<int>& nums) {
-  assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
+  // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
   vector<int> TPArr(nums[0], 0);
   for (unsigned int i = 1; i < nums.size(); ++i) {
     for (unsigned int j = 0; j < nums[i]; ++j) {
@@ -69,7 +69,7 @@ void KNHome::gbCnf::getRandConf(Config& cnf,\
 void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
                                            vector<string>& elems,\
                                            const vector<int>& nums) {
-  assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
+  // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
   /* initialize atom type array */
   vector<int> TPArr(cnf.natoms, 0);
   //TO-DO: looking for vacancy locations, and corresponding NBL
@@ -78,7 +78,7 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
   vector<string>::iterator it = std::find(elems.begin(), elems.end(), "X");
   int index = std::distance(elems.begin(), it);
   int nVac = nums[index];
-  assert(nVac > 0);
+  // assert(nVac > 0);
   // assign the atom#0 to be the vacancy site
   // and keep assigning neigbhors of it by numbers of Mg Zn and X
   TPArr[0] = index;
@@ -297,7 +297,7 @@ void KNHome::createPreNEB() {
           others += val;
         }
         auto it = numsVec.insert(numsVec.begin(), (c0.natoms - others));
-        assert(std::accumulate(numsVec.begin(), numsVec.end(), 0) == c0.natoms);
+        // assert(std::accumulate(numsVec.begin(), numsVec.end(), 0) == c0.natoms);
 
         /* get rand ints end */
         cnfModifier.getRandConfUniformDist(c0, elems, numsVec);
@@ -312,8 +312,7 @@ void KNHome::createPreNEB() {
           exit(1);
         }
 
-        cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/s/start.cfg");
+        cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/s/start.cfg");
         cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, species);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);

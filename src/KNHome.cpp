@@ -17,16 +17,16 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["LC"] = 4.046;
   // dparams["Rcut"] = 6.0; //encode
   dparams["Rcut"] = 3.0; //kmc
+  iparams["randSeed"] = 1234567; //kmc
   
-
-
   parseArgs(argc, argv);
-  srand(time(NULL) + me);
   initParam();
 
   gbCnf cnfModifier(*this);
   
   if ((sparams["mode"]) == "generate") {
+    // srand(time(NULL) + me);
+    srand(iparams["randSeed"] + me);
     createPreNEB();
   } else if (sparams["mode"] == "encode") {
     KNEncode();

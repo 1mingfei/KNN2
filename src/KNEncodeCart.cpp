@@ -42,7 +42,7 @@ inline void sortAtomLexi(vector<KNAtom>& atmList) {
  * 0 2 8 9               2 9 7 3
  */
 inline bool sortPairs(const vector<int>& lhs, const vector<int>& rhs) {
-  assert(lhs.size() >= 2 && rhs.size() >= 2);
+  // assert(lhs.size() >= 2 && rhs.size() >= 2);
   if (lhs[0] == rhs[0]) {
     return lhs[1] < rhs[1];
   } else {
@@ -372,7 +372,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
                                                    vector<string>& codes, \
                                                    const vector<int>& infoPair, \
                                                    const bool calNBL) {
-  assert(pair.size() == 2); //the size of input pair must equals 2
+  // assert(pair.size() == 2); //the size of input pair must equals 2
   if (calNBL)
     getNBL(cnf, RCut);
 

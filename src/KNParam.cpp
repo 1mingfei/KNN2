@@ -27,13 +27,17 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("PairFile")) {
       sparams[segs[0]] = segs[1];
-    } else if (!segs[0].compare("kerasModel")) {
+    } else if (!segs[0].compare("kerasModelBarrier")) {
+      sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("kerasModelEDiff")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("RCut")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("temperature")) {
+      dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("prefix")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("factors")) {
       vector<int> tmpVec;
@@ -60,6 +64,8 @@ void KNHome::readParam() {
     } else if (!segs[0].compare("maxIter")) {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("ntally")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("randSeed")) {
       iparams[segs[0]] = stoi(segs[1]);
     }
 
