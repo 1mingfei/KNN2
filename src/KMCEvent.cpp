@@ -68,6 +68,9 @@ pair<int, int> KMCEvent::getJumpPair() const {
   return jumpPair;
 }
 
+double KMCEvent::getEnergyChange() const {
+  return energyChange;
+}
 
 void KMCEvent::calProb(const double& sum) {
   prob = rate / sum;
@@ -80,6 +83,11 @@ void KMCEvent::setcProb(const double& curr) {
 void KMCEvent::setRate(const double& inRate) {
   rate = inRate;
 }
+
+void KMCEvent::setEnergyChange(const double& inEchange) {
+  energyChange = inEchange;
+}
+
 
 void KMCEvent::exeEvent(Config& cnf, \
                         unordered_map<int, vector<int>>& jumpList,\
@@ -251,8 +259,8 @@ void KMCEvent::exeEvent(Config& cnf, \
   for (auto&& i : VacList) {
     vector<int> tmpVector;
     for (const auto& j : cnf.atoms[i].NBL) {
-      if (cnf.atoms[j].tp == "X")
-        continue;
+      // if (cnf.atoms[j].tp == "X")
+      //   continue;
       double dist = calDistPrl(cnf.length, \
                                cnf.atoms[i], \
                                cnf.atoms[j]);
@@ -283,7 +291,9 @@ void KMCEvent::exeEvent(Config& cnf, \
   for (auto&& i : vacListReference) {
     vector<int> tmpVector;
     for (int j = 0; j < cnf.atoms.size(); ++j) {
-      if (cnf.atoms[j].tp == "X")
+      // if (cnf.atoms[j].tp == "X")
+      //   continue;
+      if (i == j)
         continue;
       double dist = calDistPrl(cnf.length, \
                                cnf.atoms[i], \

@@ -27,7 +27,9 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("PairFile")) {
       sparams[segs[0]] = segs[1];
-    } else if (!segs[0].compare("kerasModel")) {
+    } else if (!segs[0].compare("kerasModelBarrier")) {
+      sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("kerasModelEDiff")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);

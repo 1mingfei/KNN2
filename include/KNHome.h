@@ -58,17 +58,22 @@ private:
   vector<KMCEvent> eventList;
   vector<int> vacList;
   unordered_map<int, vector<int>> jumpList;
-  double RCut;
+  unordered_map<int, vector<int>> oldJumpList;
+
+  double RCut, RCut2;
   double temperature;
   double time;
   double prefix;
   double kTot;
+  double E_tot; // total energy change of the system
   long long maxIter;
   long long step;
   int ntally;
   unordered_map<string, double> embedding;
+  unordered_map<string, int> eventListMap;
 
-  Model k2pModel;
+  Model k2pModelB;
+  Model k2pModelD;
 
 public:
   int me, nProcs;
@@ -105,10 +110,12 @@ public:
   void getVacList();
   void KMCSimulation(gbCnf&);
   void buildEmbedding();
-  double calRate(Config&, const double&, gbCnf&, pair<int, int>);
+  vector<double> calRate(Config&, const double&, gbCnf&, pair<int, int>);
   void buildEventList(gbCnf&);
-  KMCEvent selectEvent();
+  void updateEventList(gbCnf&, const pair<int, int>&, const int&);
+  KMCEvent selectEvent(int&);
   void updateTime();
+  void updateEnergy(const int&);
 
   /* test keras2cpp */
   void testK2P();
