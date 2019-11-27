@@ -168,11 +168,6 @@ vector<double> KNHome::calRate(Config& c0, \
   }
 #endif
 
-#ifdef DEBUG
-    cout << "predicted energies of pair " << first << " " \
-         << second << " : ";
-#endif
-
   int nRow = input.size(); // encodings for one jump pair considering symmetry
   int nCol = nRow ? input[0].size() : 0;
   Tensor in{ nRow, nCol };
@@ -186,26 +181,11 @@ vector<double> KNHome::calRate(Config& c0, \
   double deltaE = 0.0;
   double tmpEdiff = 0.0;
   for (int i = 0; i < nRow; ++i) {
-
-#ifdef DEBUG
-    cout << std::setprecision(8) << outB(i, 0) << " ";
-#endif
-#ifdef DEBUGEDIFF
-    cout << std::setprecision(8) << outD(i, 0) << " ";
-#endif
     deltaE += static_cast<double>(outB(i, 0));
     tmpEdiff += static_cast<double>(outD(i, 0));
   }
   deltaE /= static_cast<double>(nRow);
   tmpEdiff /= static_cast<double>(nRow);
-
-#ifdef DEBUG
-  cout << std::setprecision(8) << deltaE << endl;
-#endif
-
-#ifdef DEBUGEDIFF
-  cout << std::setprecision(8) << tmpEdiff << endl;
-#endif
 
   return {exp(-deltaE / KB / T), tmpEdiff};
 }
