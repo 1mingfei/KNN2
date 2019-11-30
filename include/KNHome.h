@@ -15,7 +15,7 @@
 #include <string>
 #include <unordered_map>
 #include <set>
-#include <algorithm> 
+#include <algorithm>
 #include "armadillo"
 #include "gbDef.h"
 // #include "gbCnf.h"
@@ -66,7 +66,7 @@ private:
   double prefix;
   double kTot;
   double E_tot; // total energy change of the system
-  long long maxIter;
+  long long maxIter, iter;
   long long step;
   int ntally;
   unordered_map<string, double> embedding;
@@ -92,7 +92,7 @@ public:
   void parseArgs(int argc, char* argv[]);
   void initParam();
   void readParam();
-  
+
   /* KNSolidSol.cpp */
   void createPreNEB();
   /* KNvasp.cpp */
@@ -119,7 +119,7 @@ public:
 
   /* test keras2cpp */
   void testK2P();
-  
+
 };
 
 #endif

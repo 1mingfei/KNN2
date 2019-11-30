@@ -99,9 +99,11 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
 
     time = dparams["startingTime"];
     step = iparams["startingStep"];
+    iter = 0;
     cout << "#restarting from step " << step << "\n";
 
   } else {
+    iter = 0;
     time = 0.0;
     step = 0;
   }
@@ -357,7 +359,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
   KMCInit(cnfModifier);
 
   // buildEventList(cnfModifier);
-  while (step < maxIter) {
+  while (iter < maxIter) {
     buildEventList(cnfModifier);
     int eventID = 0;
     auto&& event = selectEvent(eventID);
@@ -367,6 +369,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     updateEnergy(eventID);
     // updateEventList(cnfModifier, event.getJumpPair(), eventID);
     ++step;
+    ++iter;
 
     cout << std::setprecision(7) << step << " " << time << " " \
          << E_tot << " " \
