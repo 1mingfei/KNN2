@@ -68,10 +68,11 @@ private:
   double E_tot; // total energy change of the system
   long long maxIter, iter;
   long long step;
-  int ntally;
+  int nTallyConf, nTallyOutput;
   unordered_map<string, double> embedding;
   unordered_map<string, int> eventListMap;
 
+  bool switchEngy;
   Model k2pModelB;
   Model k2pModelD;
 
@@ -80,6 +81,7 @@ public:
 
   unordered_map<string, double> dparams;
   unordered_map<string, int> iparams;
+  unordered_map<string, bool> bparams;
   unordered_map<string, string> sparams;
   unordered_map<string, vector<string>> vsparams;
   unordered_map<string, vector<int>> viparams;

@@ -65,7 +65,9 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("maxIter")) {
       iparams[segs[0]] = stoi(segs[1]);
-    } else if (!segs[0].compare("ntally")) {
+    } else if (!segs[0].compare("nTallyConf")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("nTallyOutput")) {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("randSeed")) {
       iparams[segs[0]] = stoi(segs[1]);
@@ -73,6 +75,8 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("startingTime")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("EDiff")) {
+      bparams[segs[0]] = (segs[1] == "true") ? true : false;
     }
 
   }

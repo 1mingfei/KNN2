@@ -52,7 +52,10 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   RCut = dparams["RCut"];
   RCut2 = 1.65 * RCut;
   maxIter = iparams["maxIter"];
-  ntally = iparams["ntally"];
+  nTallyConf = iparams["nTallyConf"];
+  nTallyOutput = iparams["nTallyOutput"];
+  switchEngy = bparams["EDiff"];
+
   temperature = dparams["temperature"];
   srand(iparams["randSeed"]);
   prefix = dparams["prefix"];
@@ -91,9 +94,10 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   /* reading the model binary file, initialize the model */
   string modelFname = sparams["kerasModelBarrier"];
   k2pModelB = Model::load(modelFname);
-  modelFname = sparams["kerasModelEDiff"];
-  k2pModelD = Model::load(modelFname);
-
+  if (switchEngy) {
+    modelFname = sparams["kerasModelEDiff"];
+    k2pModelD = Model::load(modelFname);
+  }
   /* initialize time */
   if (sparams["method"] == "restart") {
 
@@ -187,20 +191,35 @@ vector<double> KNHome::calRate(Config& c0, \
   for (int i = 0; i < nRow; ++i)
     for (int j = 0; j < nCol; ++j)
       in.data_[i * nCol + j] = input[i][j];
+  if (switchEngy) {
+    Tensor outB = k2pModelB(in);
+    Tensor outD = k2pModelD(in);
 
-  Tensor outB = k2pModelB(in);
-  Tensor outD = k2pModelD(in);
+    double deltaE = 0.0;
+    double tmpEdiff = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+      tmpEdiff += static_cast<double>(outD(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+    tmpEdiff /= static_cast<double>(nRow);
 
-  double deltaE = 0.0;
-  double tmpEdiff = 0.0;
-  for (int i = 0; i < nRow; ++i) {
-    deltaE += static_cast<double>(outB(i, 0));
-    tmpEdiff += static_cast<double>(outD(i, 0));
+    return {exp(-deltaE / KB / T), tmpEdiff};
+  } else {
+    Tensor outB = k2pModelB(in);
+    // Tensor outD = k2pModelD(in);
+
+    double deltaE = 0.0;
+    // double tmpEdiff = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+      // tmpEdiff += static_cast<double>(outD(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+    // tmpEdiff /= static_cast<double>(nRow);
+
+    return {exp(-deltaE / KB / T), 0.0};
   }
-  deltaE /= static_cast<double>(nRow);
-  tmpEdiff /= static_cast<double>(nRow);
-
-  return {exp(-deltaE / KB / T), tmpEdiff};
 }
 
 void KNHome::updateTime() {
@@ -371,12 +390,13 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     ++step;
     ++iter;
 
+    if (step % nTallyOutput == 0)
     cout << std::setprecision(7) << step << " " << time << " " \
          << E_tot << " " \
          << event.getJumpPair().first << " " << event.getJumpPair().second \
          << endl;
 
-    if (step % ntally == 0)
+    if (step % nTallyConf == 0)
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
   }
