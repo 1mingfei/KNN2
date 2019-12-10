@@ -4,7 +4,7 @@
 #define KB 8.6173303e-5
 #define NEI_NUMBER 12
 
-/*  first element in the range [first, last) 
+/*  first element in the range [first, last)
  *  that is not less than (i.e. greater or equal to) value */
 template<class ForwardIt, class T, class Compare>
 inline ForwardIt mylower_bound(ForwardIt first, \
@@ -52,7 +52,10 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   RCut = dparams["RCut"];
   RCut2 = 1.65 * RCut;
   maxIter = iparams["maxIter"];
-  ntally = iparams["ntally"];
+  nTallyConf = iparams["nTallyConf"];
+  nTallyOutput = iparams["nTallyOutput"];
+  switchEngy = bparams["EDiff"];
+
   temperature = dparams["temperature"];
   srand(iparams["randSeed"]);
   prefix = dparams["prefix"];
@@ -77,9 +80,6 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
         tmpVector.push_back(j);
     }
     jumpList[i] = tmpVector;
-
-    /* initialize time */
-    time = 0.0;
   }
 
 #ifdef DEBUG
@@ -94,10 +94,27 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   /* reading the model binary file, initialize the model */
   string modelFname = sparams["kerasModelBarrier"];
   k2pModelB = Model::load(modelFname);
-  modelFname = sparams["kerasModelEDiff"];
-  k2pModelD = Model::load(modelFname);
+  if (switchEngy) {
+    modelFname = sparams["kerasModelEDiff"];
+    k2pModelD = Model::load(modelFname);
+  }
+  /* initialize time */
+  if (sparams["method"] == "restart") {
 
+    time = dparams["startingTime"];
+    step = iparams["startingStep"];
+    iter = 0;
+    cout << "#restarting from step " << step << "\n";
+
+  } else {
+    iter = 0;
+    time = 0.0;
+    step = 0;
+  }
+
+  cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   cout << "#step     time     Ediff     jumpFrom     jumpTo\n";
+
 }
 
 // typedef struct cmp {
@@ -110,7 +127,7 @@ KMCEvent KNHome::selectEvent(int& dist) {
   double randVal = (double) rand() / (RAND_MAX);
   auto it = mylower_bound(eventList.begin(), eventList.end(), randVal, \
                           [] (KMCEvent a, double value) \
-                            {return (a.getcProb() < value);}); 
+                            {return (a.getcProb() < value);});
 
   if(it == eventList.cend()) {
     dist = eventList.size() - 1;
@@ -143,11 +160,11 @@ vector<double> KNHome::calRate(Config& c0, \
   vector<string> codes; // atom location in original atom list
   //RCut2 for 2NN encoding needed
   vector<vector<string>> encodes = cnfModifier.encodeConfig(c0, \
-                      {first, second}, \
-                      RCut2, \
-                      codes, \
-                      {first, second}, \
-                      false);
+                                                            {first, second}, \
+                                                            RCut2, \
+                                                            codes, \
+                                                            {first, second}, \
+                                                            false);
   vector<vector<double>> input(encodes.size(), \
                                vector<double>(encodes[0].size(), 0.0));
 
@@ -168,46 +185,41 @@ vector<double> KNHome::calRate(Config& c0, \
   }
 #endif
 
-#ifdef DEBUG
-    cout << "predicted energies of pair " << first << " " \
-         << second << " : ";
-#endif
-
   int nRow = input.size(); // encodings for one jump pair considering symmetry
   int nCol = nRow ? input[0].size() : 0;
   Tensor in{ nRow, nCol };
   for (int i = 0; i < nRow; ++i)
     for (int j = 0; j < nCol; ++j)
       in.data_[i * nCol + j] = input[i][j];
+  if (switchEngy) {
+    Tensor outB = k2pModelB(in);
+    Tensor outD = k2pModelD(in);
 
-  Tensor outB = k2pModelB(in);
-  Tensor outD = k2pModelD(in);
+    double deltaE = 0.0;
+    double tmpEdiff = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+      tmpEdiff += static_cast<double>(outD(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+    tmpEdiff /= static_cast<double>(nRow);
 
-  double deltaE = 0.0;
-  double tmpEdiff = 0.0;
-  for (int i = 0; i < nRow; ++i) {
+    return {exp(-deltaE / KB / T), tmpEdiff};
+  } else {
+    Tensor outB = k2pModelB(in);
+    // Tensor outD = k2pModelD(in);
 
-#ifdef DEBUG
-    cout << std::setprecision(8) << outB(i, 0) << " ";
-#endif
-#ifdef DEBUGEDIFF
-    cout << std::setprecision(8) << outD(i, 0) << " ";
-#endif
-    deltaE += static_cast<double>(outB(i, 0));
-    tmpEdiff += static_cast<double>(outD(i, 0));
+    double deltaE = 0.0;
+    // double tmpEdiff = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+      // tmpEdiff += static_cast<double>(outD(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+    // tmpEdiff /= static_cast<double>(nRow);
+
+    return {exp(-deltaE / KB / T), 0.0};
   }
-  deltaE /= static_cast<double>(nRow);
-  tmpEdiff /= static_cast<double>(nRow);
-
-#ifdef DEBUG
-  cout << std::setprecision(8) << deltaE << endl;
-#endif
-
-#ifdef DEBUGEDIFF
-  cout << std::setprecision(8) << tmpEdiff << endl;
-#endif
-
-  return {exp(-deltaE / KB / T), tmpEdiff};
 }
 
 void KNHome::updateTime() {
@@ -321,7 +333,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
 #endif
 
   /* new implementation here */
-  /* 
+  /*
       1. remove old keys from hash
       2. calculate where to start and stop, then do it.
       3. update any previous that has iFirst or iSecond that need to be updated.
@@ -335,7 +347,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   //   eventListMap.erase(tmpName);
   // }
 
-  // 
+  //
   // int start = eventID / NEI_NUMBER;
   // for (int i = 0; i < JumpList[iFirst].size(); ++i) {
   //   kTot -= eventList[start + i];
@@ -351,7 +363,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   //   event.setRate(currRate);
   //   kTot += event.getRate();
   //   eventList[start + i] = event;
-  // } 
+  // }
 
   // for (pair<int, vector<int>>&& elem : jumpList) {
   //   if (elem.first == first)
@@ -364,11 +376,9 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
 
 void KNHome::KMCSimulation(gbCnf& cnfModifier) {
   KMCInit(cnfModifier);
-  step = 0;
-  cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
   // buildEventList(cnfModifier);
-  while (step < maxIter) {
+  while (iter < maxIter) {
     buildEventList(cnfModifier);
     int eventID = 0;
     auto&& event = selectEvent(eventID);
@@ -378,13 +388,15 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     updateEnergy(eventID);
     // updateEventList(cnfModifier, event.getJumpPair(), eventID);
     ++step;
+    ++iter;
 
+    if (step % nTallyOutput == 0)
     cout << std::setprecision(7) << step << " " << time << " " \
          << E_tot << " " \
          << event.getJumpPair().first << " " << event.getJumpPair().second \
          << endl;
 
-    if (step % ntally == 0)
+    if (step % nTallyConf == 0)
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
   }

@@ -415,8 +415,17 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   writeVector<string>("debug_encode.txt", tmpCodes);
 #endif
 
-  Config cNew = cnf;
-  cNew.atoms.clear();
+  Config cNew;
+  cNew.length = cnf.length;
+  cNew.cell = cnf.cell;
+  //bvx, tvx, bvy, tvy, bvz, tvz;
+  cNew.bvx = cnf.bvx;  
+  cNew.tvx = cnf.tvx;
+  cNew.bvy = cnf.bvy;
+  cNew.tvy = cnf.tvy;
+  cNew.bvz = cnf.bvz;
+  cNew.tvz = cnf.tvz;
+  // cNew.atoms.clear();
   cNew.natoms = tmpId.size();
   for (unsigned int i = 0 ; i < tmpId.size(); ++i) {
     cNew.atoms.push_back(cnf.atoms[tmpId[i]]);
@@ -456,7 +465,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
     resId.push_back(atm.id);
     codes2Fold.push_back(atm.tp);
   }
-  #ifdef DEBUG
+#ifdef DEBUG
   writeCfgData(cfg2Fold, "debug_encode_2fold.cfg");
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
@@ -476,7 +485,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
     resId.push_back(atm.id);
     codesMirrorY.push_back(atm.tp);
   }
-  #ifdef DEBUG
+#ifdef DEBUG
   writeCfgData(cfgMirrorY, "debug_encode_MirrorY.cfg");
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
@@ -496,7 +505,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
     resId.push_back(atm.id);
     codesMirrorZ.push_back(atm.tp);
   }
-  #ifdef DEBUG
+#ifdef DEBUG
   writeCfgData(cfgMirrorZ, "debug_encode_MirrorZ.cfg");
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
