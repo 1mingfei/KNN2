@@ -10,7 +10,7 @@
 
 #define DOMLEN 4.34
 
-void KNHome::gbCnf::initBox(Config& c) {
+void gbCnf::initBox(Config& c) {
   crossProd33(c.bvy, c.bvz, c.tvx);
   crossProd33(c.bvz, c.bvx, c.tvy);
   crossProd33(c.bvx, c.bvy, c.tvz);
@@ -31,7 +31,7 @@ void KNHome::gbCnf::initBox(Config& c) {
   //   c.scale[i] = static_cast<int>(std::ceil(rcut * iheight[i]));
 }
 
-void KNHome::gbCnf::cnvprl2pst(Config& c) {
+void gbCnf::cnvprl2pst(Config& c) {
   for (KNAtom& atm : c.atoms) {
     for (const int i : {0, 1, 2})
       atm.pst[i] =
@@ -39,7 +39,7 @@ void KNHome::gbCnf::cnvprl2pst(Config& c) {
   }
 }
 
-void KNHome::gbCnf::wrapAtomPos(Config& tmpc) {
+void gbCnf::wrapAtomPos(Config& tmpc) {
 
   vector<double> boxlo(3), boxhi(3), npst(3);
   for (const int& k : {0, 1, 2}) {
@@ -71,7 +71,7 @@ void KNHome::gbCnf::wrapAtomPos(Config& tmpc) {
   }
 }
 /*convert cart pos to frac pos*/
-void KNHome::gbCnf::cnvpst2prl(Config& c) {
+void gbCnf::cnvpst2prl(Config& c) {
   /*
   for (KNAtom& atm : c.atoms) {
     for (const int i : {0, 1, 2})
@@ -98,7 +98,7 @@ void KNHome::gbCnf::cnvpst2prl(Config& c) {
   }
 }
 
-void KNHome::gbCnf::wrapAtomPrl(Config& tmpc) {
+void gbCnf::wrapAtomPrl(Config& tmpc) {
   for (auto&& atm : tmpc.atoms) {
     for (int i = 0; i < 3; ++i) {
       double factor = std::floor(atm.prl[i]);

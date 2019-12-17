@@ -1,5 +1,5 @@
 /*
- * Author: 1mingfei 
+ * Author: 1mingfei
  * Date:   2019-10-23
  * Purpose: encoding based on Bond Count
  * self-explained
@@ -23,17 +23,17 @@ inline void writeHashmap(const string& fname, \
   ofstream ofs(fname, std::ofstream::app);
   ofs << "config " << i << " end " << j << " ";
   if (isOutputKey) {
-    for (const auto& val : v) 
+    for (const auto& val : v)
       ofs << std::setw(4) << val.first << " ";
   } else {
-    for (const auto& val : v) 
+    for (const auto& val : v)
       ofs << std::setw(4) << val.second << " ";
   }
   ofs << endl;
 }
 
 void KNHome::KNBondCount() {
-  gbCnf cnfModifier(*this);
+  gbCnf cnfModifier(sparams);
   vector<string> elems = vsparams["elems"];
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
@@ -48,9 +48,9 @@ void KNHome::KNBondCount() {
   res["Al-Zn"] = 0;
   res["Mg-Mg"] = 0;
   res["Mg-Zn"] = 0;
-  res["Zn-Zn"] = 0;  
+  res["Zn-Zn"] = 0;
   ofstream ofs("bondCount.txt", std::ofstream::app);
-  for (const auto& val : res) 
+  for (const auto& val : res)
     ofs << std::setw(4) << val.first << " ";
   ofs << "\n";
 
@@ -77,7 +77,7 @@ void KNHome::KNBondCount() {
   }
 }
 
-map<string, int> KNHome::gbCnf::countPairs(Config& cnf, \
+map<string, int> gbCnf::countPairs(Config& cnf, \
                                            const vector<string>& elems, \
                                            const vector<int>& pair) {
   map<string, int> res;
@@ -86,7 +86,7 @@ map<string, int> KNHome::gbCnf::countPairs(Config& cnf, \
   res["Al-Zn"] = 0;
   res["Mg-Mg"] = 0;
   res["Mg-Zn"] = 0;
-  res["Zn-Zn"] = 0; 
+  res["Zn-Zn"] = 0;
 
   if (cnf.atoms[pair[0]].tp == "X" && cnf.atoms[pair[1]].tp == "X")
     return res;
@@ -109,7 +109,7 @@ map<string, int> KNHome::gbCnf::countPairs(Config& cnf, \
     cout << ii << endl;
     if (nbAtm.tp != "X") {
       string curr = initAtm.tp + "-" + nbAtm.tp;
-      if (res.find(curr) == res.end()) 
+      if (res.find(curr) == res.end())
         curr = nbAtm.tp + "-" + initAtm.tp;
       res[curr] -= 1;
     }
@@ -121,7 +121,7 @@ map<string, int> KNHome::gbCnf::countPairs(Config& cnf, \
     KNAtom nbAtm = cnf.atoms[ii];
     if (nbAtm.tp != "X") {
       string curr = initAtm.tp + "-" + nbAtm.tp;
-      if (res.find(curr) == res.end()) 
+      if (res.find(curr) == res.end())
         curr = nbAtm.tp + "-" + initAtm.tp;
       res[curr] += 1;
     }

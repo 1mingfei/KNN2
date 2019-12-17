@@ -8,17 +8,15 @@ using arma::mat;
 using arma::vec;
 using std::vector;
 using std::pair;
+using std::map;
 
-class KNHome::gbCnf {
-  KNHome& hm;
+class gbCnf {
+  // KNHome& hm;
   unordered_map<string, string>& sparams;
 
 public:
   double rcut;
-  gbCnf(KNHome& x, double rc = 3.0)
-      : hm(x),
-        sparams(x.sparams), 
-        rcut(rc) {};
+  gbCnf(unordered_map<string, string>&);
 
   /* gbInCnf.cpp */
   Config readLmpData(const string&);
@@ -34,9 +32,9 @@ public:
   void writePOSCAR(Config&, string);
 
   /* gbInCnf.cpp */
-  void cnvVec2Mat(const vector<double>&, Config& c);
+  void cnvVec2Mat(const vector<double>&, Config&);
   void cnvMat2Vec(Config&);
-  vector<double> cnvVecXY2VecAng(const vector<double>& v);
+  vector<double> cnvVecXY2VecAng(const vector<double>&);
 
   /* neighbor.cpp*/
   int getExpdParam(const Config&, const double);
@@ -79,7 +77,7 @@ public:
   vec getCenterShift(Config&);
   void shiftToCenter(Config&, vector<double>&);
   mat getJumpCoor(const Config&, const vector<int>, const Config&);
-                       
+
   /* KNBondCount.cpp */
   map<string, int> countPairs(Config&, const vector<string>&, \
                                        const vector<int>& );

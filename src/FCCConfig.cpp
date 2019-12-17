@@ -1,12 +1,12 @@
 /*
- * Author: 1mingfei 
+ * Author: 1mingfei
  * Date:   2019-05-09
- * Purpose: function to generate FCC structures 
+ * Purpose: function to generate FCC structures
  * self-explained
  */
 
 #include "gbCnf.h"
-Config KNHome::gbCnf::getFCCConv(const double LC, const string elem, 
+Config gbCnf::getFCCConv(const double LC, const string elem,
                                  const vector<int>& factors) {
   Config cnf;
   cnf.length[X] = cnf.bvx[X] = LC * factors[X];

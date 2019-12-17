@@ -10,7 +10,7 @@ inline int myRandInt(int minVal, int maxVal) {
   return minVal + (std::rand() % static_cast<int>(maxVal - minVal + 1));
 }
 
-vector<pair<int, int>> KNHome::gbCnf::getPairToSwap(Config& cnf) {
+vector<pair<int, int>> gbCnf::getPairToSwap(Config& cnf) {
   vector<pair<int, int>> res;
   getNBL(cnf, 3.0);
   for (unsigned int i = 0; i < cnf.vacList.size(); ++i) {
@@ -24,7 +24,7 @@ vector<pair<int, int>> KNHome::gbCnf::getPairToSwap(Config& cnf) {
   return res;
 }
 
-Config KNHome::gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
+Config gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   int idx0 = atomPair.first;
   int idx1 = atomPair.second;
   Config c1 = c0;
@@ -37,7 +37,7 @@ Config KNHome::gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   return c1;
 }
 
-void KNHome::gbCnf::getRandConf(Config& cnf,\
+void gbCnf::getRandConf(Config& cnf,\
                                 const vector<string>& elems,\
                                 const vector<int>& nums) {
   // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
@@ -66,7 +66,7 @@ void KNHome::gbCnf::getRandConf(Config& cnf,\
   }
 }
 
-void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
+void gbCnf::getRandConfUniformDist(Config& cnf,\
                                            vector<string>& elems,\
                                            const vector<int>& nums) {
   // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
@@ -105,8 +105,8 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
     nblType.push_back(index);
     --carryOver;
   }
-  for (int i = 0; i < carryOver; ++i) { 
-    resType.push_back(index); 
+  for (int i = 0; i < carryOver; ++i) {
+    resType.push_back(index);
   }
 
   for (unsigned int i = 0; i < elems.size(); ++i) {
@@ -121,7 +121,7 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
       --carryOver;
     }
     for (int j = 0; j < carryOver; ++ j) {
-      resType.push_back(i); 
+      resType.push_back(i);
     }
   }
   /* make compensation to the lists */
@@ -137,7 +137,7 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
   // std::random_shuffle(resType.begin(), resType.end(), myRandom);
   std::shuffle(std::begin(resType), std::end(resType), rng);
 
-  /* type alignment 
+  /* type alignment
    * not starting from 0 becasue 0 is the default vacancy
    */
   int countNBL = 0;
@@ -163,17 +163,17 @@ void KNHome::gbCnf::getRandConfUniformDist(Config& cnf,\
     if (cnf.atoms[i].tp == "X") {
       cnf.vacList.push_back(i);
     }
-  } 
+  }
 }
- 
+
 
 
 void KNHome::createPreNEB() {
-  gbCnf cnfModifier(*this);
+  gbCnf cnfModifier(sparams);
   vector<int> dupFactors = viparams["factors"];
   double LC = dparams["LC"];
   vector<string> elems = vsparams["elems"];
-  vector<int> nums = viparams["nums"]; 
+  vector<int> nums = viparams["nums"];
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
   string subMode = sparams["method"];
@@ -194,7 +194,7 @@ void KNHome::createPreNEB() {
     for (int j = 0; j < nCycle; ++j) {
       for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
-        
+
         Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
         cnfModifier.getRandConf(c0, elems, nums);
         Config c0copy = c0; //because write POS will sort c0, hence change index
@@ -262,7 +262,7 @@ void KNHome::createPreNEB() {
     for (int i = 1; i < nums.size(); ++i) {
       int offset;
       if (elems[i] == "X") { //make sure starting from 1
-        offset = 1; 
+        offset = 1;
       } else {
         offset = 0;
       }
@@ -390,7 +390,7 @@ void KNHome::createPreNEB() {
         // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
         auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
-        
+
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 

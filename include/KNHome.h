@@ -22,6 +22,7 @@
 #include "KMCEvent.h"
 #include "gbUtl.h"
 #include "model.h"
+#include "FPKMC.h"
 
 using std::cerr;
 using std::cout;
@@ -50,9 +51,10 @@ using arma::mat;
 using keras2cpp::Model;
 using keras2cpp::Tensor;
 
+class gbCnf;
+
 class KNHome {
 private:
-  class gbCnf;
 
   Config c0;
   vector<KMCEvent> eventList;
@@ -121,6 +123,9 @@ public:
 
   /* test keras2cpp */
   void testK2P();
+
+  /* FPKMC */
+  void FPKMCSimulation(gbCnf&);
 
 };
 

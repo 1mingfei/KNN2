@@ -1,18 +1,18 @@
 /*
- * Author: 1mingfei 
+ * Author: 1mingfei
  * Date:   2019-04-17
- * Purpose: 
+ * Purpose:
  */
 
 #include "gbCnf.h"
 
-void KNHome::gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
+void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   //int factor = getExpdParam(cnf, Rcut);
   vector<double> tmpLength;
   tmpLength = cnf.length;
   //tmpLength[Z] *= double(factor);
   //vector<KNAtom> tmpAtoms = expandCellZ(cnf, factor);
-  
+
   vector<KNAtom> tmpAtoms = cnf.atoms;
   for (int i = 0; i < cnf.atoms.size(); ++i) {
     vector<int> res;
@@ -25,7 +25,7 @@ void KNHome::gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   }
 }
 
-int KNHome::gbCnf::getExpdParam(const Config& cnf, const double Rcut = 3.8) {
+int gbCnf::getExpdParam(const Config& cnf, const double Rcut = 3.8) {
   if (cnf.length[Z] > 2.0*Rcut) {
     return 1;
   } else {
@@ -34,7 +34,7 @@ int KNHome::gbCnf::getExpdParam(const Config& cnf, const double Rcut = 3.8) {
 }
 
 /* expand cell in +/- Z direction */
-vector<KNAtom> KNHome::gbCnf::expandCellZ(const Config& cnf, const int factor) {
+vector<KNAtom> gbCnf::expandCellZ(const Config& cnf, const int factor) {
   vector<KNAtom> res;
   int initSize = cnf.atoms.size();
   for (int i = 0; i < initSize; ++i) {
@@ -49,7 +49,7 @@ vector<KNAtom> KNHome::gbCnf::expandCellZ(const Config& cnf, const int factor) {
 }
 
 /*calculate distance between one atom in configuration and one from ref*/
-double KNHome::gbCnf::calDist(const vector<double> length, \
+double gbCnf::calDist(const vector<double> length, \
                               const KNAtom& atm1, \
                               const KNAtom& atm2) {
   double xi = atm1.pst[X];
@@ -63,7 +63,7 @@ double KNHome::gbCnf::calDist(const vector<double> length, \
   if (xj - xi >= 0.5 * length[X]) {
     a = (xi - xj + length[X]);
   } else if (xj - xi <  -0.5 * length[X]) {
-    a = (xi - xj - length[X]); 
+    a = (xi - xj - length[X]);
   } else {
     a = xi - xj;
   }
@@ -73,7 +73,7 @@ double KNHome::gbCnf::calDist(const vector<double> length, \
   if (zj - zi >= 0.5 * length[Z]) {
     c = (zi - zj + length[Z]);
   } else if (zj - zi <  -0.5 * length[Z]) {
-    c = (zi - zj - length[Z]); 
+    c = (zi - zj - length[Z]);
   } else {
     c = zi - zj;
   }
@@ -83,7 +83,7 @@ double KNHome::gbCnf::calDist(const vector<double> length, \
 }
 
 /*calculate distance between one atom in configuration and one from ref*/
-double KNHome::gbCnf::calDistPrl(const vector<double>& length, \
+double gbCnf::calDistPrl(const vector<double>& length, \
                                  const KNAtom& atm1, \
                                  const KNAtom& atm2) {
   double xi = atm1.prl[X];
@@ -97,7 +97,7 @@ double KNHome::gbCnf::calDistPrl(const vector<double>& length, \
   if (xj - xi >= 0.5) {
     a = (xi - xj + 1.0);
   } else if (xj - xi <  -0.5) {
-    a = (xi - xj - 1.0); 
+    a = (xi - xj - 1.0);
   } else {
     a = xi - xj;
   }
@@ -105,7 +105,7 @@ double KNHome::gbCnf::calDistPrl(const vector<double>& length, \
   if (yj - yi >= 0.5) {
     b = (yi - yj + 1.0);
   } else if (yj - yi <  -0.5) {
-    b = (yi - yj - 1.0); 
+    b = (yi - yj - 1.0);
   } else {
     b = yi - yj;
   }
@@ -113,7 +113,7 @@ double KNHome::gbCnf::calDistPrl(const vector<double>& length, \
   if (zj - zi >= 0.5) {
     c = (zi - zj + 1.0);
   } else if (zj - zi <  -0.5) {
-    c = (zi - zj - 1.0); 
+    c = (zi - zj - 1.0);
   } else {
     c = zi - zj;
   }

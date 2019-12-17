@@ -35,8 +35,6 @@ void KNHome::buildEmbedding() {
     embedding[elems[i - 1]] = static_cast<double>(i);
 }
 
-
-
 void KNHome::getVacList() {
   for (int i = 0; i < c0.atoms.size(); ++i) {
     if (c0.atoms[i].tp == "X")
