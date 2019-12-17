@@ -1,16 +1,18 @@
 /*
  * @Author: chaomy
  * @Date:   2018-06-20
- * @Last Modified by:  1mingfei 
+ * @Last Modified by:  1mingfei
  * @Last Modified time: 2019-05-27
  */
 
 #include "gbCnf.h"
-
+gbCnf::gbCnf(unordered_map<string, string>& sparamsIn)
+      : sparams(sparamsIn),
+        rcut(3.0) {};
 /**************************************************
  * convert vector cell to matrix cell
  **************************************************/
-void KNHome::gbCnf::cnvVec2Mat(const vector<double>& v, Config& c) {
+void gbCnf::cnvVec2Mat(const vector<double>& v, Config& c) {
   c.bvx[0] = v[0];
   c.bvy[0] = v[1] * cos(v[5]);
   c.bvy[1] = v[1] * sin(v[5]);
@@ -23,7 +25,7 @@ void KNHome::gbCnf::cnvVec2Mat(const vector<double>& v, Config& c) {
 /**************************************************
  * convert matrix cell to vector cell
  **************************************************/
-void KNHome::gbCnf::cnvMat2Vec(Config& c) {
+void gbCnf::cnvMat2Vec(Config& c) {
   vector<double>& v = c.cell = vector<double>(9, 0);
   v[3] = std::sqrt(innDot33(c.bvx, c.bvx));
   v[4] = std::sqrt(innDot33(c.bvy, c.bvy));
@@ -38,7 +40,7 @@ void KNHome::gbCnf::cnvMat2Vec(Config& c) {
  * lx ly lz xy xz yz
  * 0  1  2  3  4  5
  **************************************************/
-vector<double> KNHome::gbCnf::cnvVecXY2VecAng(const vector<double>& v) {
+vector<double> gbCnf::cnvVecXY2VecAng(const vector<double>& v) {
   // a b c alpha beta gamma
   // 0 1 2 3     4    5
   vector<double> r(6, 0);
@@ -107,7 +109,7 @@ Config KNHome::gbCnf::readLmpData(const string& fname) {
  * read cfg data files
  **************************************************/
 
-Config KNHome::gbCnf::readCfg(const string& fname) {
+Config gbCnf::readCfg(const string& fname) {
   ifstream ifs(fname.empty() ? sparams["datafile"] : fname, std::ifstream::in);
   string buff;
   Config cnf;

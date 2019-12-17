@@ -1,13 +1,13 @@
 /*
  * @Author: chaomy
  * @Date:   2018-07-07 16:58:27
- * @Last Modified by:  1mingfei 
+ * @Last Modified by:  1mingfei
  * @Last Modified time: 2019-5-26
  */
 
 #include "gbCnf.h"
 
-double KNHome::gbCnf::findMass(string x) {
+double gbCnf::findMass(string x) {
   /*this "it" is indeed a iterator*/
   auto it = std::find(element.begin(), element.end(), x);
   int index = std::distance(element.begin(), it);
@@ -17,7 +17,7 @@ double KNHome::gbCnf::findMass(string x) {
  * write lammps data files
  **************************************************/
 
-void KNHome::gbCnf::writeLmpData(Config& c, string fnm = "out.lmp.init") {
+void gbCnf::writeLmpData(Config& c, string fnm = "out.lmp.init") {
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "# lmp data config " << endl;
   ofs << (int)c.natoms << " atoms" << endl;
@@ -37,7 +37,7 @@ void KNHome::gbCnf::writeLmpData(Config& c, string fnm = "out.lmp.init") {
 }
 
 /* write cfg data files */
-void KNHome::gbCnf::writeCfgData(const Config& c, 
+void gbCnf::writeCfgData(const Config& c,
                                  string fnm = "out.cfg") {
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "Number of particles = " << c.natoms << endl;
@@ -66,7 +66,7 @@ void KNHome::gbCnf::writeCfgData(const Config& c,
 }
 
 /* this output vac as X to visualize it */
-void KNHome::gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR", \
+void gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR", \
                                    string comment = "") {
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "# " << comment << "\n";
@@ -78,7 +78,7 @@ void KNHome::gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR", \
   for (int i = 0; i < DIM; ++i) {
     ofs << c.bvy[i] << " ";
   }
-  ofs << "\n"; 
+  ofs << "\n";
   for (int i = 0; i < DIM; ++i) {
     ofs << c.bvz[i] << " ";
   }
@@ -92,24 +92,24 @@ void KNHome::gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR", \
     }
   }
   for (auto i = names.begin(); i != names.end(); ++i) {
-    ofs << i->first << " "; 
+    ofs << i->first << " ";
   }
   ofs << "\n";
   for (auto i = names.begin(); i != names.end(); ++i) {
-    ofs << i->second << " "; 
+    ofs << i->second << " ";
   }
   //std::sort(c.atoms.begin(), c.atoms.end());
   ofs << "\nDirect\n";
   for (unsigned int i = 0 ; i < c.atoms.size(); ++i) {
     for (int j = 0; j < DIM; ++j) {
-      ofs << c.atoms[i].prl[j] << " "; 
+      ofs << c.atoms[i].prl[j] << " ";
     }
     ofs << "\n";
   }
 }
 
 /* this output is for vasp calculation (ignore vac) */
-void KNHome::gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
+void gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "#comment\n1.00000\n";
   for (int i = 0; i < DIM; ++i) {
@@ -119,7 +119,7 @@ void KNHome::gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
   for (int i = 0; i < DIM; ++i) {
     ofs << c.bvy[i] << " ";
   }
-  ofs << "\n"; 
+  ofs << "\n";
   for (int i = 0; i < DIM; ++i) {
     ofs << c.bvz[i] << " ";
   }
@@ -148,7 +148,7 @@ void KNHome::gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
   for (unsigned int i = 0 ; i < c.atoms.size(); ++i) {
     if (c.atoms[i].tp != "X") {
       for (int j = 0; j < DIM; ++j) {
-        ofs << c.atoms[i].prl[j] << " "; 
+        ofs << c.atoms[i].prl[j] << " ";
       }
       ofs << "\n";
     }

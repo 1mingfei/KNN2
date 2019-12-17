@@ -1,5 +1,5 @@
 /*
- * Author: 1mingfei 
+ * Author: 1mingfei
  * Date:   2019-05-25
  * Purpose: encoding neighbor atoms of the jumping pairs
  * self-explained
@@ -13,7 +13,7 @@ using arma::vec;
 
 
 /*
- * Sort points lexicographically 
+ * Sort points lexicographically
  * this will only work for the on-lattice cases
  * because it has no buffer range when comparing
  */
@@ -21,20 +21,20 @@ inline void sortAtomLexi(vector<KNAtom>& atmList) {
   sort(
     atmList.begin(), atmList.end(),
     [](const KNAtom& a, const KNAtom& b) -> bool
-      // { return (a.pst[X] < b.pst[X]) || 
+      // { return (a.pst[X] < b.pst[X]) ||
       //          (a.pst[X] == b.pst[X] && a.pst[Y] < b.pst[Y]) ||
-      //          (a.pst[X] == b.pst[X] && a.pst[Y] == b.pst[Y] && 
+      //          (a.pst[X] == b.pst[X] && a.pst[Y] == b.pst[Y] &&
       //           a.pst[Z] < b.pst[Z]); }
-      { return (a.prl[X] < b.prl[X]) || 
+      { return (a.prl[X] < b.prl[X]) ||
                (a.prl[X] == b.prl[X] && a.prl[Y] < b.prl[Y]) ||
-               (a.prl[X] == b.prl[X] && a.prl[Y] == b.prl[Y] && 
+               (a.prl[X] == b.prl[X] && a.prl[Y] == b.prl[Y] &&
                 a.prl[Z] < b.prl[Z]); }
     );
 }
 
 /*
  * Sort input vectors by their first two element
- * e.g. 
+ * e.g.
  * before sorting:       after sorting:
  * 1 2 4 9               0 2 8 9
  * 2 9 7 3         ==>   0 3 3 4
@@ -80,7 +80,7 @@ inline mat calculateRotateMatrix(const vec& A, const vec& B) {
   vec v = cross(A, B);
   double c = dot(A, B);
   mat vx(3, 3);
-  vx << 0.0 << -v[2] << v[1] << arma::endr 
+  vx << 0.0 << -v[2] << v[1] << arma::endr
      << v[2] << 0.0 << -v[0] << arma::endr
      << -v[1] << v[0] << 0.0 << arma::endr;
 
@@ -88,7 +88,7 @@ inline mat calculateRotateMatrix(const vec& A, const vec& B) {
 
   // mat R(3, 3);
   // bool isEq = true;
-  // for (int i : {0, 1, 2}) 
+  // for (int i : {0, 1, 2})
   //   if (abs(A[i] - B[i]) > 1e-8)
   //     isEq = false;
 
@@ -181,7 +181,7 @@ inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
   return res;
 }
 
-mat KNHome::gbCnf::getJumpCoor(const Config& cnf, \
+mat gbCnf::getJumpCoor(const Config& cnf, \
                                const vector<int> pair, \
                                const Config& ref) {
 
@@ -217,7 +217,7 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, \
     v2tmp << getDistPrlDirect(nbAtm1.prl[0], atm.prl[0]) \
           << getDistPrlDirect(nbAtm1.prl[1], atm.prl[1]) \
           << getDistPrlDirect(nbAtm1.prl[2], atm.prl[2]);
-    
+
 
 
     double dotProd = dot(v1a, v2tmp);
@@ -250,7 +250,7 @@ mat KNHome::gbCnf::getJumpCoor(const Config& cnf, \
   return arma::normalise(M);
 }
 
-Config KNHome::gbCnf::rotateConfig(Config& cfgOld, \
+Config gbCnf::rotateConfig(Config& cfgOld, \
                                    const vector<double>& v2) {
   Config cfgNew = cfgOld;
   mat R2fold(3, 3);
@@ -268,7 +268,7 @@ Config KNHome::gbCnf::rotateConfig(Config& cfgOld, \
   return cfgNew;
 }
 
-void KNHome::gbCnf::shiftToCenter(Config& c, vector<double>& PC) {
+void gbCnf::shiftToCenter(Config& c, vector<double>& PC) {
 
   vector<double> diff({0.5 - PC[0], \
                        0.5 - PC[1], \
@@ -279,7 +279,7 @@ void KNHome::gbCnf::shiftToCenter(Config& c, vector<double>& PC) {
   PC = {0.5, 0.5, 0.5};
 }
 
-vec KNHome::gbCnf::getCenterShift(Config& c) {
+vec gbCnf::getCenterShift(Config& c) {
   //unwrap atoms
   vector<double> ave(3, 0.0);
   wrapAtomPrl(c);
@@ -301,7 +301,7 @@ vec KNHome::gbCnf::getCenterShift(Config& c) {
 }
 
 void KNHome::KNEncode() {
-  gbCnf cnfModifier(*this);
+  gbCnf cnfModifier(sparams);
   vector<string> elems = vsparams["elems"];
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
@@ -323,12 +323,12 @@ void KNHome::KNEncode() {
       Config cfg = cnfModifier.readCfg(fname);
       vector<int> pair = {pairs[i][2], pairs[i][3]};
       //contain info abt which structure
-      vector<int> infoPair = {pairs[i][0], pairs[i][1]}; 
+      vector<int> infoPair = {pairs[i][0], pairs[i][1]};
       vector<string> codes;
-      
+
       vector<vector<string>> encodes = cnfModifier.encodeConfig(cfg, \
                                                                 pair, \
-                                                                RCut, \ 
+                                                                RCut, \
                                                                 codes, \
                                                                 infoPair, \
                                                                 true);
@@ -366,7 +366,7 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
   return res;
 }
 
-vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
+vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
                                                    const vector<int>& pair, \
                                                    const double RCut, \
                                                    vector<string>& codes, \
@@ -377,7 +377,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
     getNBL(cnf, RCut);
 
   vector<vector<string>> res;
-  /* reverse wrap back so the lexi order is always not affected by Periodic 
+  /* reverse wrap back so the lexi order is always not affected by Periodic
    * boundary conditions */
   vector<KNAtom> atmList;
   vector<int> tmpId;
@@ -403,7 +403,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
         }
       }
     }
-  }  
+  }
   vector<string> tmpCodes;
   for (const auto& atm : atmList) {
     tmpId.push_back(atm.id);
@@ -419,7 +419,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   cNew.length = cnf.length;
   cNew.cell = cnf.cell;
   //bvx, tvx, bvy, tvy, bvz, tvz;
-  cNew.bvx = cnf.bvx;  
+  cNew.bvx = cnf.bvx;
   cNew.tvx = cnf.tvx;
   cNew.bvy = cnf.bvy;
   cNew.tvy = cnf.tvy;
@@ -438,7 +438,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   Config cfgRotated = rotateJumpPair(cNew, pair, cnf);
   vector<int> resId;
   //first, add the elem type of the previous one
-  codes.push_back(cnf.atoms[pair[1]].tp); 
+  codes.push_back(cnf.atoms[pair[1]].tp);
   sortAtomLexi(cfgRotated.atoms);
   for (const auto& atm : cfgRotated.atoms) {
     resId.push_back(atm.id);
@@ -459,7 +459,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   Config cfg2Fold = rotateConfig(cfgRotated, v2);
 
   vector<string> codes2Fold;
-  codes2Fold.push_back(cnf.atoms[pair[1]].tp); 
+  codes2Fold.push_back(cnf.atoms[pair[1]].tp);
   sortAtomLexi(cfg2Fold.atoms);
   for (const auto& atm : cfg2Fold.atoms) {
     resId.push_back(atm.id);
@@ -479,7 +479,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   Config cfgMirrorY = rotateConfig(cfgRotated, v2);
 
   vector<string> codesMirrorY;
-  codesMirrorY.push_back(cnf.atoms[pair[1]].tp); 
+  codesMirrorY.push_back(cnf.atoms[pair[1]].tp);
   sortAtomLexi(cfgMirrorY.atoms);
   for (const auto& atm : cfgMirrorY.atoms) {
     resId.push_back(atm.id);
@@ -499,7 +499,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   Config cfgMirrorZ = rotateConfig(cfgRotated, v2);
 
   vector<string> codesMirrorZ;
-  codesMirrorZ.push_back(cnf.atoms[pair[1]].tp); 
+  codesMirrorZ.push_back(cnf.atoms[pair[1]].tp);
   sortAtomLexi(cfgMirrorZ.atoms);
   for (const auto& atm : cfgMirrorZ.atoms) {
     resId.push_back(atm.id);
@@ -517,7 +517,7 @@ vector<vector<string>> KNHome::gbCnf::encodeConfig(Config& cnf,
   return res;
 }
 
-Config KNHome::gbCnf::rotateJumpPair(Config& cnf, \
+Config gbCnf::rotateJumpPair(Config& cnf, \
                                      const vector<int> pair, \
                                      const Config& ref) {
   int id1 = pair[0], id2 = pair[1];
@@ -548,8 +548,8 @@ Config KNHome::gbCnf::rotateJumpPair(Config& cnf, \
 
   // the distance of center of atoms to the center of the cell
   // vec centerShift = getCenterShift(res);
-  shiftToCenter(res, PC);  
-  
+  shiftToCenter(res, PC);
+
   wrapAtomPrl(res);
 
   for (auto&& atm : res.atoms) {
@@ -560,7 +560,7 @@ Config KNHome::gbCnf::rotateJumpPair(Config& cnf, \
   PC = rotateMatrix(R, PC);
 
   wrapAtomPrl(res);
-  shiftToCenter(res, PC); 
+  shiftToCenter(res, PC);
 
   wrapAtomPrl(res);
   // cnvprl2pst(res);
