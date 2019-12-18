@@ -10,6 +10,9 @@ using std::vector;
 using std::pair;
 using std::map;
 
+using keras2cpp::Model;
+using keras2cpp::Tensor;
+
 class gbCnf {
   // KNHome& hm;
   unordered_map<string, string>& sparams;
@@ -81,6 +84,16 @@ public:
   /* KNBondCount.cpp */
   map<string, int> countPairs(Config&, const vector<string>&, \
                                        const vector<int>& );
+
+  /* KMCSimulation.cpp */
+  vector<double> calRate(Config&, \
+                         const double&, \
+                         const double&, \
+                         const bool&, \
+                         unordered_map<string, double>&, \
+                         Model&, \
+                         Model&, \
+                         const pair<int, int>&);
 
 };
 
