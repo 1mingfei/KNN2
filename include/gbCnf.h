@@ -86,14 +86,14 @@ public:
                                        const vector<int>& );
 
   /* KMCSimulation.cpp */
-  vector<double> calRate(Config&, \
-                         const double&, \
-                         const double&, \
-                         const bool&, \
-                         unordered_map<string, double>&, \
-                         Model&, \
-                         Model&, \
-                         const pair<int, int>&);
+  vector<double> calBarrierAndEdiff(Config&, \
+                                   const double&, \
+                                   const double&, \
+                                   const bool&, \
+                                   unordered_map<string, double>&, \
+                                   Model&, \
+                                   Model&, \
+                                   const pair<int, int>&);
 
 };
 

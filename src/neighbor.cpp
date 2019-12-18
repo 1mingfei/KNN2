@@ -5,6 +5,7 @@
  */
 
 #include "gbCnf.h"
+#define FNN_DIST 3.0
 
 void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   //int factor = getExpdParam(cnf, Rcut);
@@ -16,10 +17,14 @@ void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   vector<KNAtom> tmpAtoms = cnf.atoms;
   for (int i = 0; i < cnf.atoms.size(); ++i) {
     vector<int> res;
+    int k = 0;
     for (int j = 0; j < tmpAtoms.size(); ++j) {
       double dist = calDistPrl(tmpLength, tmpAtoms[i], tmpAtoms[j]);
-      if ((dist <= Rcut) && (j % cnf.atoms.size() - i != 0))
+      if ((dist <= Rcut) && (j % cnf.atoms.size() - i != 0)) {
         res.push_back(j);
+        if (dist <= FNN_DIST)
+          cnf.atoms[i].FNNL[k++] = j;
+      }
     }
     cnf.atoms[i].NBL = std::move(res);
   }
