@@ -44,6 +44,10 @@ KNHome::KNHome(int argc, char* argv[]) {
     // Config c1 = cnfModifier.readCfg("in.cfg");
     // cnfModifier.writePOSCARVis(c1, "POSCAR", "");
     // cnfModifier.writeCfgData(c1, "test_out.cfg");
+    /* test FPKMC */
+    FPKMCSimulation(cnfModifier);
+
+
 
   }
 

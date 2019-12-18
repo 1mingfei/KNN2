@@ -143,83 +143,6 @@ KMCEvent KNHome::selectEvent(int& dist) {
   return *it;
 }
 
-
-vector<double> KNHome::calRate(Config& c0, \
-                               const double& T, \
-                               gbCnf& cnfModifier, \
-                               pair<int, int> jumpPair) {
-
-  int first = jumpPair.first;
-  int second = jumpPair.second;
-
-  if (c0.atoms[first].tp == c0.atoms[second].tp)
-    return {0.0, 0.0};
-
-  vector<string> codes; // atom location in original atom list
-  //RCut2 for 2NN encoding needed
-  vector<vector<string>> encodes = cnfModifier.encodeConfig(c0, \
-                                                            {first, second}, \
-                                                            RCut2, \
-                                                            codes, \
-                                                            {first, second}, \
-                                                            false);
-  vector<vector<double>> input(encodes.size(), \
-                               vector<double>(encodes[0].size(), 0.0));
-
-  for (int i = 0; i < encodes.size(); ++i)
-    for (int j = 0; j < encodes[i].size(); ++j)
-      input[i][j] = embedding[encodes[i][j]];
-
-#ifdef DEBUG
-  for (int i = 0; i < encodes.size(); ++i) {
-    for (int j = 0; j < encodes[i].size(); ++j)
-      cout << encodes[i][j] << " ";
-    cout << endl;
-  }
-  for (int i = 0; i < input.size(); ++i) {
-    for (int j = 0; j < input[i].size(); ++j)
-      cout << input[i][j] << " ";
-    cout << endl;
-  }
-#endif
-
-  int nRow = input.size(); // encodings for one jump pair considering symmetry
-  int nCol = nRow ? input[0].size() : 0;
-  Tensor in{ nRow, nCol };
-  for (int i = 0; i < nRow; ++i)
-    for (int j = 0; j < nCol; ++j)
-      in.data_[i * nCol + j] = input[i][j];
-  if (switchEngy) {
-    Tensor outB = k2pModelB(in);
-    Tensor outD = k2pModelD(in);
-
-    double deltaE = 0.0;
-    double tmpEdiff = 0.0;
-    for (int i = 0; i < nRow; ++i) {
-      deltaE += static_cast<double>(outB(i, 0));
-      tmpEdiff += static_cast<double>(outD(i, 0));
-    }
-    deltaE /= static_cast<double>(nRow);
-    tmpEdiff /= static_cast<double>(nRow);
-
-    return {exp(-deltaE / KB / T), tmpEdiff};
-  } else {
-    Tensor outB = k2pModelB(in);
-    // Tensor outD = k2pModelD(in);
-
-    double deltaE = 0.0;
-    // double tmpEdiff = 0.0;
-    for (int i = 0; i < nRow; ++i) {
-      deltaE += static_cast<double>(outB(i, 0));
-      // tmpEdiff += static_cast<double>(outD(i, 0));
-    }
-    deltaE /= static_cast<double>(nRow);
-    // tmpEdiff /= static_cast<double>(nRow);
-
-    return {exp(-deltaE / KB / T), 0.0};
-  }
-}
-
 void KNHome::updateTime() {
   /* update time elapsed */
   double tau = log(rand() / static_cast<double>(RAND_MAX)) \
@@ -248,13 +171,24 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
       eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currRate = calRate(c0, \
+      vector<double> currRate = cnfModifier.calRate(c0, \
                                 temperature, \
-                                cnfModifier, \
+                                RCut2, \
+                                switchEngy, \
+                                embedding, \
+                                k2pModelB, \
+                                k2pModelD, \
                                 make_pair(iFirst, iSecond));
 
-      event.setRate(currRate[0]);
-      event.setEnergyChange(currRate[1]);
+      if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
+        event.setRate(0.0);
+        event.setEnergyChange(0.0);
+
+      }
+      else {
+        event.setRate(exp(-currRate[0] / KB / temperature));
+        event.setEnergyChange(currRate[1]);
+      }
 
       kTot += event.getRate();
       eventList.push_back(event);
@@ -299,14 +233,24 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
       string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
       eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currRate = calRate(c0, \
-                                temperature, \
-                                cnfModifier, \
-                                make_pair(iFirst, iSecond));
+      vector<double> currRate = cnfModifier.calRate(c0, \
+                                                temperature, \
+                                                RCut2, \
+                                                switchEngy, \
+                                                embedding, \
+                                                k2pModelB, \
+                                                k2pModelD, \
+                                                make_pair(iFirst, iSecond));
 
-      event.setRate(currRate[0]);
-      event.setEnergyChange(currRate[1]);
+      if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
+        event.setRate(0.0);
+        event.setEnergyChange(0.0);
 
+      }
+      else {
+        event.setRate(exp(-currRate[0] / KB / temperature));
+        event.setEnergyChange(currRate[1]);
+      }
       kTot += event.getRate();
       eventList.push_back(event);
     }
@@ -354,11 +298,15 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   //   string tmpHash = to_string(iFirst) + "_" + to_string(JumpList[iFirst][i]);
   //   eventListMap[tmpHash] = start + i;
 
-  //   double currRate = calRate(c0, \
-  //                             temperature, \
-  //                             cnfModifier, \
-  //                             make_pair(iFirst, JumpList[iFirst][i]));
-  //   event.setRate(currRate);
+  //   double currRate = cnfModifier.calRate(c0, \
+  //                           temperature, \
+  //                           RCut2, \
+  //                           switchEngy, \
+  //                           embedding, \
+  //                           k2pModelB, \
+  //                           k2pModelD, \
+  //                           make_pair(iFirst, JumpList[iFirst][i]));
+  //   event.setRate(exp(-currRate[0] / KB / temperature));
   //   kTot += event.getRate();
   //   eventList[start + i] = event;
   // }
@@ -397,5 +345,80 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     if (step % nTallyConf == 0)
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
+  }
+}
+
+vector<double> gbCnf::calRate(Config& c0, \
+                              const double& T, \
+                              const double& RCut2, \
+                              const bool& switchEngy, \
+                              unordered_map<string, double>& embedding, \
+                              Model& k2pModelB, \
+                              Model& k2pModelD, \
+                              const pair<int, int>& jumpPair) {
+
+  int first = jumpPair.first;
+  int second = jumpPair.second;
+
+  // if (c0.atoms[first].tp == c0.atoms[second].tp)
+  //   return {0.0, 0.0};
+
+  vector<string> codes; // atom location in original atom list
+  //RCut2 for 2NN encoding needed
+  vector<vector<string>> encodes = encodeConfig(c0, \
+                                                {first, second}, \
+                                                RCut2, \
+                                                codes, \
+                                                {first, second}, \
+                                                false);
+  vector<vector<double>> input(encodes.size(), \
+                               vector<double>(encodes[0].size(), 0.0));
+
+  for (int i = 0; i < encodes.size(); ++i)
+    for (int j = 0; j < encodes[i].size(); ++j)
+      input[i][j] = embedding[encodes[i][j]];
+
+#ifdef DEBUGNN
+  for (int i = 0; i < encodes.size(); ++i) {
+    for (int j = 0; j < encodes[i].size(); ++j)
+      cout << encodes[i][j] << " ";
+    cout << endl;
+  }
+  for (int i = 0; i < input.size(); ++i) {
+    for (int j = 0; j < input[i].size(); ++j)
+      cout << input[i][j] << " ";
+    cout << endl;
+  }
+#endif
+
+  int nRow = input.size(); // encodings for one jump pair considering symmetry
+  int nCol = nRow ? input[0].size() : 0;
+  Tensor in{ nRow, nCol };
+  for (int i = 0; i < nRow; ++i)
+    for (int j = 0; j < nCol; ++j)
+      in.data_[i * nCol + j] = input[i][j];
+  if (switchEngy) {
+    Tensor outB = k2pModelB(in);
+    Tensor outD = k2pModelD(in);
+
+    double deltaE = 0.0;
+    double tmpEdiff = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+      tmpEdiff += static_cast<double>(outD(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+    tmpEdiff /= static_cast<double>(nRow);
+
+    return {deltaE, tmpEdiff};
+  } else {
+    Tensor outB = k2pModelB(in);
+
+    double deltaE = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+    return {deltaE, 0.0};
   }
 }

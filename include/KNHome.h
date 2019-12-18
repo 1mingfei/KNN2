@@ -75,11 +75,12 @@ private:
   unordered_map<string, int> eventListMap;
 
   bool switchEngy;
-  Model k2pModelB;
-  Model k2pModelD;
 
 public:
   int me, nProcs;
+
+  Model k2pModelB;
+  Model k2pModelD;
 
   unordered_map<string, double> dparams;
   unordered_map<string, int> iparams;
