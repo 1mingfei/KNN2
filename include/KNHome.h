@@ -15,6 +15,7 @@
 #include <string>
 #include <unordered_map>
 #include <set>
+#include <array>
 #include <algorithm>
 #include "armadillo"
 #include "gbDef.h"
@@ -59,8 +60,8 @@ private:
   Config c0;
   vector<KMCEvent> eventList;
   vector<int> vacList;
-  unordered_map<int, vector<int>> jumpList;
-  unordered_map<int, vector<int>> oldJumpList;
+  // unordered_map<int, vector<int>> jumpList;
+  // unordered_map<int, vector<int>> oldJumpList;
 
   double RCut, RCut2;
   double temperature;

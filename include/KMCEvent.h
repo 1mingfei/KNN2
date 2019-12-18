@@ -24,8 +24,6 @@
 using std::pair;
 using std::unordered_map;
 using std::unordered_set;
-using std::find;
-using std::remove;
 
 class KNHome;
 
@@ -52,8 +50,7 @@ public:
   void calProb(const double&);
   void setcProb(const double&);
   void setEnergyChange(const double&);
-  void exeEvent(Config&, unordered_map<int, vector<int>>&, const double&);
-// friend class KNHome;
+  void exeEvent(Config&, const double&);
 
 };
 #endif

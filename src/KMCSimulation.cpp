@@ -66,25 +66,26 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   cnfModifier.wrapAtomPrl(c0);
   cnfModifier.getNBL(c0, RCut2);
 
-  for (auto&& i : vacList) {
-    vector<int> tmpVector;
-    for (const auto& j : c0.atoms[i].NBL) {
-      // if (c0.atoms[j].tp == "X")
-      //   continue;
-      double dist = cnfModifier.calDistPrl(c0.length, \
-                                           c0.atoms[i], \
-                                           c0.atoms[j]);
-      if (dist <= RCut)
-        tmpVector.push_back(j);
-    }
-    jumpList[i] = tmpVector;
-  }
+  // for (auto&& i : vacList) {
+  //   vector<int> tmpVector;
+  //   for (const auto& j : c0.atoms[i].NBL) {
+  //     // if (c0.atoms[j].tp == "X")
+  //     //   continue;
+  //     double dist = cnfModifier.calDistPrl(c0.length, \
+  //                                          c0.atoms[i], \
+  //                                          c0.atoms[j]);
+  //     if (dist <= RCut)
+  //       tmpVector.push_back(j);
+  //   }
+  //   jumpList[i] = tmpVector;
+  // }
 
 #ifdef DEBUG
   for (int i = 0; i < vacList.size(); ++i) {
-    cout << vacList[i] << " size: " << jumpList[vacList[i]].size() << endl;
-    for (int j = 0; j < jumpList[vacList[i]].size(); ++j)
-      cout << jumpList[vacList[i]][j] << " ";
+    cout << vacList[i] << " size: " << c0.atoms[vacList[i]].FNNL.size() \
+         << endl;
+    for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j)
+      cout << c0.atoms[vacList[i]].FNNL[j] << " ";
     cout << endl;
   }
 #endif
@@ -158,20 +159,20 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   eventList.clear();
   kTot = 0.0;
   for (int i = 0; i < vacList.size(); ++i) {
-    for (int j = 0; j < jumpList[vacList[i]].size(); ++j) {
+    for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
       /* skip Vac jump to Vac in event list */
 
       int iFirst = vacList[i];
-      int iSecond = jumpList[vacList[i]][j];
+      int iSecond = c0.atoms[vacList[i]].FNNL[j];
 
       // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
       //   continue;
 
       KMCEvent event(make_pair(iFirst, iSecond));
-      string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
-      eventListMap[tmpHash] = i * jumpList[0].size() + j;
+      // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
+      // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currRate = cnfModifier.calRate(c0, \
+      vector<double> currRate = cnfModifier.calBarrierAndEdiff(c0, \
                                 temperature, \
                                 RCut2, \
                                 switchEngy, \
@@ -220,20 +221,20 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   eventList.clear();
   kTot = 0.0;
   for (int i = 0; i < vacList.size(); ++i) {
-    for (int j = 0; j < jumpList[vacList[i]].size(); ++j) {
+    for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
       /* skip Vac jump to Vac in event list */
 
       int iFirst = vacList[i];
-      int iSecond = jumpList[vacList[i]][j];
+      int iSecond = c0.atoms[vacList[i]].FNNL[j];
 
       // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
       //   continue;
 
       KMCEvent event(make_pair(iFirst, iSecond));
-      string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
-      eventListMap[tmpHash] = i * jumpList[0].size() + j;
+      // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
+      // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currRate = cnfModifier.calRate(c0, \
+      vector<double> currRate = cnfModifier.calBarrierAndEdiff(c0, \
                                                 temperature, \
                                                 RCut2, \
                                                 switchEngy, \
@@ -298,7 +299,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   //   string tmpHash = to_string(iFirst) + "_" + to_string(JumpList[iFirst][i]);
   //   eventListMap[tmpHash] = start + i;
 
-  //   double currRate = cnfModifier.calRate(c0, \
+  //   double currRate = cnfModifier.calBarrierAndEdiff(c0, \
   //                           temperature, \
   //                           RCut2, \
   //                           switchEngy, \
@@ -328,8 +329,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     buildEventList(cnfModifier);
     int eventID = 0;
     auto&& event = selectEvent(eventID);
-    oldJumpList = jumpList;
-    event.exeEvent(c0, jumpList, RCut); // event updated
+    event.exeEvent(c0, RCut); // event updated
     updateTime();
     updateEnergy(eventID);
     // updateEventList(cnfModifier, event.getJumpPair(), eventID);
@@ -348,7 +348,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
   }
 }
 
-vector<double> gbCnf::calRate(Config& c0, \
+vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
                               const double& T, \
                               const double& RCut2, \
                               const bool& switchEngy, \
