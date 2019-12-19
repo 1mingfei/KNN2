@@ -69,6 +69,7 @@ private:
   double prefix;
   double kTot;
   double E_tot; // total energy change of the system
+  double ECutoff;
   long long maxIter, iter;
   long long step;
   int nTallyConf, nTallyOutput;

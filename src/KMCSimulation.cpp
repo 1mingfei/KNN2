@@ -53,6 +53,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   nTallyConf = iparams["nTallyConf"];
   nTallyOutput = iparams["nTallyOutput"];
   switchEngy = bparams["EDiff"];
+  ECutoff = dparams["ECutoff"];
 
   temperature = dparams["temperature"];
   srand(iparams["randSeed"]);
