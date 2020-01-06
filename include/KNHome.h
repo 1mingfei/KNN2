@@ -23,7 +23,8 @@
 #include "KMCEvent.h"
 #include "gbUtl.h"
 #include "model.h"
-#include "FPKMC.h"
+#include "LSKMC.h"
+#include "KNUtility.h"
 
 using std::cerr;
 using std::cout;
@@ -127,8 +128,8 @@ public:
   /* test keras2cpp */
   void testK2P();
 
-  /* FPKMC */
-  void FPKMCSimulation(gbCnf&);
+  /* LSKMC */
+  void LSKMCSimulation(gbCnf&);
 
 };
 

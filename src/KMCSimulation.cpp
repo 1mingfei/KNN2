@@ -2,6 +2,7 @@
 #include "KNHome.h"
 
 #define KB 8.6173303e-5
+#define KB_INV 11604.5221105
 #define NEI_NUMBER 12
 
 /*  first element in the range [first, last)
@@ -173,7 +174,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
       // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currRate = cnfModifier.calBarrierAndEdiff(c0, \
+      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                 temperature, \
                                 RCut2, \
                                 switchEngy, \
@@ -185,11 +186,12 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
         event.setRate(0.0);
         event.setEnergyChange(0.0);
-
+        event.setBarrier(0.0);
       }
       else {
-        event.setRate(exp(-currRate[0] / KB / temperature));
-        event.setEnergyChange(currRate[1]);
+        event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
+        event.setEnergyChange(currBarrier[1]);
+        event.setBarrier(currBarrier[0]);
       }
 
       kTot += event.getRate();
@@ -235,7 +237,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
       // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
       // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currRate = cnfModifier.calBarrierAndEdiff(c0, \
+      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                                 temperature, \
                                                 RCut2, \
                                                 switchEngy, \
@@ -247,11 +249,12 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
       if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
         event.setRate(0.0);
         event.setEnergyChange(0.0);
-
+        event.setBarrier(0.0);
       }
       else {
-        event.setRate(exp(-currRate[0] / KB / temperature));
-        event.setEnergyChange(currRate[1]);
+        event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
+        event.setEnergyChange(currBarrier[1]);
+        event.setBarrier(currBarrier[0]);
       }
       kTot += event.getRate();
       eventList.push_back(event);
@@ -300,7 +303,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   //   string tmpHash = to_string(iFirst) + "_" + to_string(JumpList[iFirst][i]);
   //   eventListMap[tmpHash] = start + i;
 
-  //   double currRate = cnfModifier.calBarrierAndEdiff(c0, \
+  //   double currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
   //                           temperature, \
   //                           RCut2, \
   //                           switchEngy, \
@@ -308,7 +311,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   //                           k2pModelB, \
   //                           k2pModelD, \
   //                           make_pair(iFirst, JumpList[iFirst][i]));
-  //   event.setRate(exp(-currRate[0] / KB / temperature));
+  //   event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
   //   kTot += event.getRate();
   //   eventList[start + i] = event;
   // }
