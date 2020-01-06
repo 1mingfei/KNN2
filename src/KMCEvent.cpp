@@ -9,6 +9,10 @@ KMCEvent::KMCEvent() {
 
 KMCEvent::~KMCEvent() {}
 
+double KMCEvent::getBarrier() const {
+  return barrier;
+}
+
 double KMCEvent::getRate() const {
   return rate;
 }
@@ -45,6 +49,9 @@ void KMCEvent::setEnergyChange(const double& inEchange) {
   energyChange = inEchange;
 }
 
+void KMCEvent::setBarrier(const double& inBarrier) {
+  barrier = inBarrier;
+}
 
 void KMCEvent::exeEvent(Config& cnf, \
                         const double& RCut) {

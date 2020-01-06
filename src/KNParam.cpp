@@ -77,6 +77,8 @@ void KNHome::readParam() {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("EDiff")) {
       bparams[segs[0]] = (segs[1] == "true") ? true : false;
+    } else if (!segs[0].compare("ECutoff")) {
+      dparams[segs[0]] = stod(segs[1]);
     }
 
   }

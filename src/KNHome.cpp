@@ -7,7 +7,7 @@
 
 #include "gbCnf.h"
 #include "KNHome.h"
-#include "FPKMC.h"
+#include "LSKMC.h"
 
 KNHome::KNHome(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
@@ -35,8 +35,8 @@ KNHome::KNHome(int argc, char* argv[]) {
     KNBondCount();
   } else if (sparams["mode"] == "kmc") {
     KMCSimulation(cnfModifier);
-  } else if (sparams["mode"] == "fpkmc") {
-    FPKMCSimulation(cnfModifier);
+  } else if (sparams["mode"] == "lskmc") {
+    LSKMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "test") {
     // testK2P();
     /* test encoding */
@@ -44,9 +44,11 @@ KNHome::KNHome(int argc, char* argv[]) {
     // Config c1 = cnfModifier.readCfg("in.cfg");
     // cnfModifier.writePOSCARVis(c1, "POSCAR", "");
     // cnfModifier.writeCfgData(c1, "test_out.cfg");
-    /* test FPKMC */
-    FPKMCSimulation(cnfModifier);
+    /* test LSKMC */
+    // LSKMCSimulation(cnfModifier);
 
+    /* test mat transfer */
+    LS::LSKMC::test_vvd2mat();
 
 
   }
