@@ -9,6 +9,7 @@
 #define EPSILON 1e-15
 
 namespace LS {
+
 LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              Config& c0In, \
              unordered_map<string, double>& embeddingIn, \
@@ -86,22 +87,6 @@ void LSKMC::helperDFS(const int& i, \
 
     getOrPutEvent(i, j);
     string tmpHash = to_string(i) + "_" + to_string(j);
-
-    // vector<double> currBarr = cnfModifier.calBarrierAndEdiff(c0, \
-    //                                       temperature, \
-    //                                       RCut2, \
-    //                                       false, \
-    //                                       embedding, \
-    //                                       k2pModelB, \
-    //                                       k2pModelD, \
-    //                                       make_pair(i, j));
-
-    // string tmpHash = to_string(i) + "_" + to_string(j);
-    // KMCEvent event(make_pair(i, j));
-    // event.setBarrier(currBarr[0]);
-    // event.setRate(exp(-currBarr[0] * KB_INV / temperature));
-    // event.setEnergyChange(currBarr[1]);
-    // eventMap[tmpHash] = event;
     double currBarr = eventMap[tmpHash].getBarrier();
     barriers.push_back(currBarr);
     if (currBarr < ECutoff) {
@@ -118,10 +103,10 @@ void LSKMC::searchStatesDFS() {
   for (int i = 0; i < vacList.size(); ++i) {
     unordered_set<int> visited;
     helperDFS(vacList[i], vacList[i], visited);
-    cout << "vac # " << vacList[i] << " : " << trapList[vacList[i]].size() \
-         << endl;
-    cout << "vac # " << vacList[i] << " : " << absorbList[vacList[i]].size() \
-         << endl;
+    cout << "vac # " << vacList[i] << " trap size : " \
+         << trapList[vacList[i]].size() << endl;
+    cout << "vac # " << vacList[i] << " absortb size : " \
+         << absorbList[vacList[i]].size() << endl;
   }
   return;
 }
@@ -181,18 +166,19 @@ void LSKMC::barrierStats() {
 
 void LSKMC::calVVD_M(const int& vac) {
 
-  int size = trapList.size() + absorbList.size();
+  int size = trapList[vac].size() + absorbList[vac].size();
   VVD_M.resize(size);
   for (int i = 0; i < size; ++i)
     VVD_M[i].resize(size, 0.0);
-
-  // calculate Tau vector
-  getVD_Tau(size);
 
   // build maps forward and backward
   mapAtomID2MatID.clear();
   mapMatID2AtomID.clear();
   int id = 0;
+
+#ifdef DEBUG_TRAP
+  cout << "matrix size : " << size << endl;
+#endif
 
   // absorption states MUST come ahead of transient states
   for (const auto& i : absorbList[vac]) {
@@ -209,6 +195,8 @@ void LSKMC::calVVD_M(const int& vac) {
     ++id;
   }
 
+  // calculate Tau vector
+  getVD_Tau(size);
 
   // take care of i != j
   // i, j: matrix row and col
@@ -221,12 +209,21 @@ void LSKMC::calVVD_M(const int& vac) {
       int id_i = mapMatID2AtomID[i], id_j = mapMatID2AtomID[j];
       if (find(c0.atoms[id_i].FNNL.begin(), c0.atoms[id_i].FNNL.end(), id_j) \
           != c0.atoms[id_i].FNNL.end()) {
+
+#ifdef DEBUG_TRAP
+        cout << id_i << " " << id_j << " " << i << " " << j << endl;
+#endif
+
         getOrPutEvent(id_i, id_j);
         string tmpHash = to_string(id_i) + "_" + to_string(id_j);
-        VVD_M[id_i][id_j] = eventMap[tmpHash].getRate() * VD_Tau[i]; //
+        VVD_M[i][j] = eventMap[tmpHash].getRate() * VD_Tau[i]; // correct
       }
     }
   }
+#ifdef DEBUG_TRAP
+  mat Arm = vvd2mat(VVD_M);
+  Arm.print();
+#endif
 }
 
 void LSKMC::getVD_Tau(const int& size) {
@@ -235,10 +232,11 @@ void LSKMC::getVD_Tau(const int& size) {
   // id_i, id_j: atom id
 
   VD_Tau.clear();
+  VD_Tau.resize(size, 0.0);
   for (int i = 0; i < size; ++i) {
     double res = 0.0;
-    for (const int& j : c0.atoms[i].FNNL) {
-      int id_i = mapMatID2AtomID[i], id_j = mapMatID2AtomID[j];
+    int id_i = mapMatID2AtomID[i];
+    for (const int& id_j : c0.atoms[id_i].FNNL) {
       getOrPutEvent(id_i, id_j);
       string tmpHash = to_string(id_i) + "_" + to_string(id_j);
       res += eventMap[tmpHash].getRate();
@@ -246,7 +244,7 @@ void LSKMC::getVD_Tau(const int& size) {
 
     if (res < EPSILON)
       res += EPSILON;
-    VD_Tau.push_back(1.0 / res);
+    VD_Tau[i] = 1.0 / res;
   }
 }
 
@@ -302,6 +300,7 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
     lskmc.outputAbsorbCfg(i, "debug_absorb_" + to_string(i) + ".cfg");
     lskmc.outputTrapCfg(i, "debug_trap_" + to_string(i) + ".cfg");
     lskmc.barrierStats();
+    lskmc.calVVD_M(i);
   }
 #endif
 

@@ -79,9 +79,6 @@ private:
   Model& k2pModelB;
   Model& k2pModelD;
 
-  // calculate 2D std vector for M
-  void calVVD_M(const int&);
-
   // calculate time of taking each state
   void getVD_Tau(const int&);
 
@@ -119,6 +116,8 @@ public:
   void barrierStats();
 
 
+  // calculate 2D std vector for M
+  void calVVD_M(const int&); //private
 };
 
 } // end namespace LS
