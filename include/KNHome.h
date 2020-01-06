@@ -21,6 +21,7 @@
 #include "gbDef.h"
 // #include "gbCnf.h"
 #include "KMCEvent.h"
+#include "LSEvent.h"
 #include "gbUtl.h"
 #include "model.h"
 #include "LSKMC.h"

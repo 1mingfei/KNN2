@@ -1,5 +1,5 @@
-#ifndef _KN_UTILITY_H_
-#define _KN_UTILITY_H_
+#ifndef _LS_EVENT_H_
+#define _LS_EVENT_H_
 
 #include <math.h>
 #include <mpi.h>
@@ -10,31 +10,30 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <iterator>
 #include <random>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
 #include <algorithm>
-// #include <bits/stdc++.h>
-#include "armadillo"
-#include "gbDef.h"
-#include "gbCnf.h"
-#include "KNHome.h"
 
+// #include "KNHome.h"
+#include "gbDef.h"
+#include "KMCEvent.h"
+
+
+using std::pair;
 using std::unordered_map;
 using std::unordered_set;
-using std::vector;
-using std::ofstream;
-using arma::mat;
-using arma::vec;
 
-typedef vector<double> vd;
-typedef vector<vector<double>> vvd;
+namespace LS {
 
-mat vvd2mat(vvd&);
-vec vd2vec(vd&);
-vd mat2vector(mat&);
+class LSEvent : public KMCEvent {
+public:
+  void exeEvent(Config&, const double&);
+};
+
+
+} // end namespace LS
 
 #endif
