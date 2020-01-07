@@ -2,8 +2,12 @@
 
 namespace LS {
 
+LSEvent::LSEvent(){
+}
+
 LSEvent::LSEvent(const pair<int, int>& inPair)
-: KMCEvent(inPair) {}
+: KMCEvent(inPair) {
+}
 
 void LSEvent::exeEvent(Config& cnf, \
                         const double& RCut) {

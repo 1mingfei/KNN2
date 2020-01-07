@@ -28,8 +28,11 @@ using std::unordered_set;
 
 namespace LS {
 
+// this class used to extend kmc event to local superbasin event, do not know
+// what exact details need to be updated now.
 class LSEvent : public KMCEvent {
 public:
+  LSEvent();
   LSEvent(const pair<int, int>&);
   void exeEvent(Config&, const double&);
 };

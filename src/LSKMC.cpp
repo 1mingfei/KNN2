@@ -309,7 +309,7 @@ void LSKMC::getOrPutEvent(const int& i, const int& j) {
                                           k2pModelB, \
                                           k2pModelD, \
                                           make_pair(i, j));
-    KMCEvent event(make_pair(i, j));
+    LSEvent event(make_pair(i, j));
     event.setBarrier(currBarr[0]);
     event.setRate(prefix * exp(-currBarr[0] * KB_INV / temperature));
     event.setEnergyChange(currBarr[1]);

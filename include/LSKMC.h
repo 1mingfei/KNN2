@@ -59,7 +59,7 @@ private:
   unordered_map<int, int> mapMatID2AtomID;
 
   // event map: i_j --> event_i_j
-  unordered_map<string, KMCEvent> eventMap;
+  unordered_map<string, LSEvent> eventMap;
 
   double& RCut;
   double& RCut2;
