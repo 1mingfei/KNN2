@@ -35,6 +35,6 @@ typedef vector<vector<double>> vvd;
 
 mat vvd2mat(vvd&);
 vec vd2vec(vd&);
-vd mat2vector(mat&);
+vd mat2vd(mat&);
 
 #endif

@@ -130,7 +130,7 @@ KMCEvent KNHome::selectEvent(int& dist) {
                           [] (KMCEvent a, double value) \
                             {return (a.getcProb() < value);});
 
-  if(it == eventList.cend()) {
+  if (it == eventList.cend()) {
     dist = eventList.size() - 1;
     return eventList.back();
   }

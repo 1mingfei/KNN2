@@ -351,8 +351,25 @@ void LSKMC::calExitTimePi(const int& vac) {
 #endif
 }
 
-void LSKMC::selectAndExecute() {
+void LSKMC::selectAndExecute(const int& vac) {
+  double randVal = (double) rand() / (RAND_MAX);
+  vd prob = mat2vd(Arm_Pi);
 
+  auto it = lower_bound(prob.begin(), prob.end(), randVal);
+
+  int dist = 0;
+  if (it == prob.cend()) {
+    dist = prob.size() - 1;
+  }
+
+  dist = distance(prob.begin(), it);
+  int iFirst = vac;
+  // starting from absorbing state, no offset needed
+  int iSecond = mapMatID2AtomID[dist];
+  LSEvent lsevent(make_pair(iFirst, iSecond));
+  lsevent.exeEvent(c0, RCut);
+
+  return;
 }
 
 } // end namespace LS
@@ -386,6 +403,8 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
     lskmc.outputTrapCfg(i, "debug_trap_" + to_string(i) + ".cfg");
     lskmc.barrierStats();
     lskmc.calExitTimePi(i);
+    lskmc.selectAndExecute(i);
+    cnfModifier.writeCfgData(c0, "debug_out_" + to_string(i) + ".cfg");
   }
 #endif
 

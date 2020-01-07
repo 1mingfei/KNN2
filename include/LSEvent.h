@@ -30,6 +30,7 @@ namespace LS {
 
 class LSEvent : public KMCEvent {
 public:
+  LSEvent(const pair<int, int>&);
   void exeEvent(Config&, const double&);
 };
 
