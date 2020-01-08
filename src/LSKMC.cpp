@@ -47,19 +47,24 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     nTallyConf(nTallyConfIn), \
     nTallyOutput(nTallyOutput)
 {
+
   eventMap.clear();
-  // watch out, this function need to be updated if multiple vacacies is in use
+  // watch out
+  // this function need to be updated if multiple vacacies is in use
   searchStatesDFS();
+
 }
 
 void LSKMC::testCnfModification() {
+
   cnfModifier.writeCfgData(c0, "testOut.1.cfg");
   c0.atoms[0].tp = "X";
   cnfModifier.writeCfgData(c0, "testOut.2.cfg");
-  return;
+
 }
 
 void LSKMC::test_vvd2mat() {
+
   vvd vIn = { {0.1234, 0.234}, \
               {0.0223, 0.388}, \
               {234.0, 2134} };
@@ -72,6 +77,7 @@ void LSKMC::test_vvd2mat() {
   cout << endl << endl;
   mat Arm = vvd2mat(vIn);
   Arm.print();
+
 }
 
 void LSKMC::helperDFS(const int& i, \
@@ -97,10 +103,12 @@ void LSKMC::helperDFS(const int& i, \
       absorbList[vac].insert(j);
     }
   }
+
   return;
 }
 
 void LSKMC::searchStatesDFS() {
+
   for (int i = 0; i < vacList.size(); ++i) {
     unordered_set<int> visited;
     helperDFS(vacList[i], vacList[i], visited);
@@ -109,7 +117,7 @@ void LSKMC::searchStatesDFS() {
     cout << "vac # " << vacList[i] << " absortb size : " \
          << absorbList[vacList[i]].size() << endl;
   }
-  return;
+
 }
 
 void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
@@ -129,7 +137,7 @@ void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
     cNew.atoms.push_back(c0.atoms[i]);
   }
   cnfModifier.writeCfgData(cNew, fname);
-  return;
+
 }
 
 void LSKMC::outputAbsorbCfg(const int& vac, const string& fname) {
@@ -149,7 +157,7 @@ void LSKMC::outputAbsorbCfg(const int& vac, const string& fname) {
     cNew.atoms.push_back(c0.atoms[i]);
   }
   cnfModifier.writeCfgData(cNew, fname);
-  return;
+
 }
 
 void LSKMC::barrierStats() {
@@ -351,7 +359,15 @@ void LSKMC::calExitTimePi(const int& vac) {
 #endif
 }
 
+void LSKMC::updateTime() {
+
+  time += exitTime;
+
+}
+
 void LSKMC::selectAndExecute(const int& vac) {
+
+  calExitTimePi(vac);
   double randVal = (double) rand() / (RAND_MAX);
   vd prob = mat2vd(Arm_Pi);
 
@@ -368,14 +384,15 @@ void LSKMC::selectAndExecute(const int& vac) {
   int iSecond = mapMatID2AtomID[dist];
   LSEvent lsevent(make_pair(iFirst, iSecond));
   lsevent.exeEvent(c0, RCut);
+  updateTime();
 
-  return;
 }
 
 } // end namespace LS
 
 
-void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
+void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
+
   KMCInit(cnfModifier);
   buildEventList(cnfModifier);
   LS::LSKMC lskmc(cnfModifier, \
@@ -402,10 +419,72 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
     lskmc.outputAbsorbCfg(i, "debug_absorb_" + to_string(i) + ".cfg");
     lskmc.outputTrapCfg(i, "debug_trap_" + to_string(i) + ".cfg");
     lskmc.barrierStats();
-    lskmc.calExitTimePi(i);
     lskmc.selectAndExecute(i);
     cnfModifier.writeCfgData(c0, "debug_out_" + to_string(i) + ".cfg");
   }
 #endif
+
+}
+
+bool KNHome::isTrapped(const double& oneStepTime) {
+  long long trapStepCriteria = iparams["trapStepCriteria"];
+  double oneTrapTimeCriteria = dparams["oneTrapTimeCriteria"];
+  if (oneStepTime < oneTrapTimeCriteria)
+    ++trapStep;
+  if (trapStep < trapStepCriteria)
+    return false;
+  else {
+    trapStep = 0;
+    return true;
+  }
+}
+
+void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
+  KMCInit(cnfModifier);
+
+  while (iter < maxIter) {
+    buildEventList(cnfModifier);
+    int eventID = 0;
+    auto&& event = selectEvent(eventID);
+    event.exeEvent(c0, RCut); // event updated
+    double oneStepTime = updateTime();
+    updateEnergy(eventID);
+    ++step;
+    ++iter;
+
+    if (isTrapped(oneStepTime)) {
+      LS::LSKMC lskmc(cnfModifier, \
+                c0, \
+                embedding, \
+                vacList, \
+                k2pModelB, \
+                k2pModelD, \
+                RCut, \
+                RCut2, \
+                temperature, \
+                time, \
+                prefix, \
+                E_tot, \
+                ECutoff, \
+                maxIter, \
+                iter, \
+                step, \
+                nTallyConf, \
+                nTallyOutput);
+      for (const auto& i : vacList) {
+        lskmc.selectAndExecute(i);
+      }
+    }
+
+    if (step % nTallyOutput == 0)
+    cout << std::setprecision(7) << step << " " << time << " " \
+         << E_tot << " " \
+         << event.getJumpPair().first << " " << event.getJumpPair().second \
+         << endl;
+
+    if (step % nTallyConf == 0)
+      cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+
+  }
 
 }

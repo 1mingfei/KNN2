@@ -96,7 +96,7 @@ private:
   void calVVD_M(const int&);
   void calVVD_R(const int&);
   void calVVD_T(const int&);
-
+  void updateTime();
 
 public:
   LSKMC(gbCnf&, \

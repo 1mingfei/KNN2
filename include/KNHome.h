@@ -73,12 +73,15 @@ private:
   double E_tot; // total energy change of the system
   double ECutoff;
   long long maxIter, iter;
-  long long step;
+  long long step, trapStep;
   int nTallyConf, nTallyOutput;
   unordered_map<string, double> embedding;
   unordered_map<string, int> eventListMap;
 
   bool switchEngy;
+
+  bool isTrapped(const double&);
+  double updateTime();
 
 public:
   int me, nProcs;
@@ -123,13 +126,13 @@ public:
   void buildEventList(gbCnf&);
   void updateEventList(gbCnf&, const pair<int, int>&, const int&);
   KMCEvent selectEvent(int&);
-  void updateTime();
   void updateEnergy(const int&);
 
   /* test keras2cpp */
   void testK2P();
 
   /* LSKMC */
+  void LSKMCOneRun(gbCnf&);
   void LSKMCSimulation(gbCnf&);
 
 };
