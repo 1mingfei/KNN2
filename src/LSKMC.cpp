@@ -112,12 +112,14 @@ void LSKMC::searchStatesDFS() {
   for (int i = 0; i < vacList.size(); ++i) {
     unordered_set<int> visited;
     helperDFS(vacList[i], vacList[i], visited);
+#ifdef DEBUG_TRAP
     cout << "vac # " << vacList[i] << " trap size : " \
          << trapList[vacList[i]].size() << endl;
     cout << "vac # " << vacList[i] << " absortb size : " \
          << absorbList[vacList[i]].size() << endl;
-  }
+#endif
 
+  }
 }
 
 void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
@@ -385,6 +387,8 @@ void LSKMC::selectAndExecute(const int& vac) {
   LSEvent lsevent(make_pair(iFirst, iSecond));
   lsevent.exeEvent(c0, RCut);
   updateTime();
+  cout << "# LSKMC " << step << " " << time << " ave exit time : " \
+       << exitTime << endl;
 
 }
 
