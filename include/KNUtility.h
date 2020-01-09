@@ -28,9 +28,13 @@ using std::unordered_set;
 using std::vector;
 using std::ofstream;
 using arma::mat;
+using arma::vec;
 
+typedef vector<double> vd;
 typedef vector<vector<double>> vvd;
 
-mat vvd2mat(vector<vector<double>>& vIn);
+mat vvd2mat(vvd&);
+vec vd2vec(vd&);
+vd mat2vd(mat&);
 
 #endif

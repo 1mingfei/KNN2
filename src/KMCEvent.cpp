@@ -1,5 +1,4 @@
 #include "KMCEvent.h"
-// #include "gbCnf.h"
 
 KMCEvent::KMCEvent(const pair<int, int>& inPair)
 : jumpPair(inPair) {}

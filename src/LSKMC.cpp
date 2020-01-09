@@ -9,6 +9,7 @@
 #define EPSILON 1e-15
 
 namespace LS {
+
 LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              Config& c0In, \
              unordered_map<string, double>& embeddingIn, \
@@ -46,18 +47,24 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     nTallyConf(nTallyConfIn), \
     nTallyOutput(nTallyOutput)
 {
-  // initialize eventMap
+
   eventMap.clear();
+  // watch out
+  // this function need to be updated if multiple vacacies is in use
+  searchStatesDFS();
+
 }
 
 void LSKMC::testCnfModification() {
+
   cnfModifier.writeCfgData(c0, "testOut.1.cfg");
   c0.atoms[0].tp = "X";
   cnfModifier.writeCfgData(c0, "testOut.2.cfg");
-  return;
+
 }
 
 void LSKMC::test_vvd2mat() {
+
   vvd vIn = { {0.1234, 0.234}, \
               {0.0223, 0.388}, \
               {234.0, 2134} };
@@ -70,6 +77,7 @@ void LSKMC::test_vvd2mat() {
   cout << endl << endl;
   mat Arm = vvd2mat(vIn);
   Arm.print();
+
 }
 
 void LSKMC::helperDFS(const int& i, \
@@ -86,22 +94,6 @@ void LSKMC::helperDFS(const int& i, \
 
     getOrPutEvent(i, j);
     string tmpHash = to_string(i) + "_" + to_string(j);
-
-    // vector<double> currBarr = cnfModifier.calBarrierAndEdiff(c0, \
-    //                                       temperature, \
-    //                                       RCut2, \
-    //                                       false, \
-    //                                       embedding, \
-    //                                       k2pModelB, \
-    //                                       k2pModelD, \
-    //                                       make_pair(i, j));
-
-    // string tmpHash = to_string(i) + "_" + to_string(j);
-    // KMCEvent event(make_pair(i, j));
-    // event.setBarrier(currBarr[0]);
-    // event.setRate(exp(-currBarr[0] * KB_INV / temperature));
-    // event.setEnergyChange(currBarr[1]);
-    // eventMap[tmpHash] = event;
     double currBarr = eventMap[tmpHash].getBarrier();
     barriers.push_back(currBarr);
     if (currBarr < ECutoff) {
@@ -111,19 +103,24 @@ void LSKMC::helperDFS(const int& i, \
       absorbList[vac].insert(j);
     }
   }
+
   return;
 }
 
 void LSKMC::searchStatesDFS() {
+
   for (int i = 0; i < vacList.size(); ++i) {
     unordered_set<int> visited;
     helperDFS(vacList[i], vacList[i], visited);
-    cout << "vac # " << vacList[i] << " : " << trapList[vacList[i]].size() \
-         << endl;
-    cout << "vac # " << vacList[i] << " : " << absorbList[vacList[i]].size() \
-         << endl;
+
+#ifdef DEBUG_TRAP
+    cout << "vac # " << vacList[i] << " trap size : " \
+         << trapList[vacList[i]].size() << endl;
+    cout << "vac # " << vacList[i] << " absortb size : " \
+         << absorbList[vacList[i]].size() << endl;
+#endif
+
   }
-  return;
 }
 
 void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
@@ -143,7 +140,7 @@ void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
     cNew.atoms.push_back(c0.atoms[i]);
   }
   cnfModifier.writeCfgData(cNew, fname);
-  return;
+
 }
 
 void LSKMC::outputAbsorbCfg(const int& vac, const string& fname) {
@@ -163,7 +160,7 @@ void LSKMC::outputAbsorbCfg(const int& vac, const string& fname) {
     cNew.atoms.push_back(c0.atoms[i]);
   }
   cnfModifier.writeCfgData(cNew, fname);
-  return;
+
 }
 
 void LSKMC::barrierStats() {
@@ -181,18 +178,19 @@ void LSKMC::barrierStats() {
 
 void LSKMC::calVVD_M(const int& vac) {
 
-  int size = trapList.size() + absorbList.size();
+  int size = trapList[vac].size() + absorbList[vac].size();
   VVD_M.resize(size);
   for (int i = 0; i < size; ++i)
     VVD_M[i].resize(size, 0.0);
-
-  // calculate Tau vector
-  getVD_Tau(size);
 
   // build maps forward and backward
   mapAtomID2MatID.clear();
   mapMatID2AtomID.clear();
   int id = 0;
+
+#ifdef DEBUG_TRAP
+  cout << "matrix size : " << size << endl;
+#endif
 
   // absorption states MUST come ahead of transient states
   for (const auto& i : absorbList[vac]) {
@@ -209,36 +207,51 @@ void LSKMC::calVVD_M(const int& vac) {
     ++id;
   }
 
+  // calculate Tau vector
+  getVD_Tau(vac, size);
 
   // take care of i != j
   // i, j: matrix row and col
   // id_i, id_j: atom id
-  for (int i = 0; i < size; ++i) {
+  for (int i = absorbList[vac].size(); i < size; ++i) {
+    int id_i = mapMatID2AtomID[i];
     for (int j = 0; j < size; ++j) {
       if (i == j)
         continue;
 
-      int id_i = mapMatID2AtomID[i], id_j = mapMatID2AtomID[j];
+      int id_j = mapMatID2AtomID[j];
       if (find(c0.atoms[id_i].FNNL.begin(), c0.atoms[id_i].FNNL.end(), id_j) \
           != c0.atoms[id_i].FNNL.end()) {
         getOrPutEvent(id_i, id_j);
         string tmpHash = to_string(id_i) + "_" + to_string(id_j);
-        VVD_M[id_i][id_j] = eventMap[tmpHash].getRate() * VD_Tau[i]; //
+        VVD_M[i][j] = eventMap[tmpHash].getRate() \
+                      * VD_Tau[i - absorbList[vac].size()]; // correct
       }
     }
   }
+
+  Arm_M = vvd2mat(VVD_M);
+
+#ifdef DEBUG_TRAP
+  cout << "M : " << VVD_M.size() << "x" << VVD_M[0].size() << endl;
+  // Arm_M.print();
+  cout.width(4);
+  cout << Arm_M << endl;
+#endif
+
 }
 
-void LSKMC::getVD_Tau(const int& size) {
+void LSKMC::getVD_Tau(const int& vac, const int& size) {
 
   // i, j: matrix row and col
   // id_i, id_j: atom id
 
   VD_Tau.clear();
-  for (int i = 0; i < size; ++i) {
+  VD_Tau.resize(trapList[vac].size(), 0.0);
+  for (int i = absorbList[vac].size(); i < size; ++i) {
     double res = 0.0;
-    for (const int& j : c0.atoms[i].FNNL) {
-      int id_i = mapMatID2AtomID[i], id_j = mapMatID2AtomID[j];
+    int id_i = mapMatID2AtomID[i];
+    for (const int& id_j : c0.atoms[id_i].FNNL) {
       getOrPutEvent(id_i, id_j);
       string tmpHash = to_string(id_i) + "_" + to_string(id_j);
       res += eventMap[tmpHash].getRate();
@@ -246,8 +259,54 @@ void LSKMC::getVD_Tau(const int& size) {
 
     if (res < EPSILON)
       res += EPSILON;
-    VD_Tau.push_back(1.0 / res);
+    VD_Tau[i - absorbList[vac].size()] = 1.0 / res;
   }
+  Arm_Tau = vd2vec(VD_Tau);
+
+#ifdef DEBUG_TRAP
+  cout << "Tau : " << VD_Tau.size() << endl;
+  cout.width(4);
+  cout << Arm_Tau << endl;
+#endif
+
+}
+
+void LSKMC::calVVD_R(const int& vac) {
+  VVD_R.resize(trapList[vac].size());
+  for (int i = absorbList[vac].size(); i < VVD_M.size(); ++i) {
+    vector<double> tmp(absorbList[vac].size(), 0.0);
+    for (int j = 0; j < absorbList[vac].size(); ++j) {
+      tmp[j] = VVD_M[i][j];
+    }
+    VVD_R[i - absorbList[vac].size()] = tmp;
+  }
+  Arm_R = vvd2mat(VVD_R);
+
+#ifdef DEBUG_TRAP
+  cout << "R : " << VVD_R.size() << "x" << VVD_R[0].size() << endl;
+  cout.width(4);
+  cout << Arm_R << endl;
+#endif
+
+}
+
+void LSKMC::calVVD_T(const int& vac) {
+  VVD_T.resize(trapList[vac].size());
+  for (int i = absorbList[vac].size(); i < VVD_M.size(); ++i) {
+    vector<double> tmp(trapList[vac].size(), 0.0);
+    for (int j = absorbList[vac].size(); j < VVD_M.size(); ++j) {
+      tmp[j - absorbList[vac].size()] = VVD_M[i][j];
+    }
+    VVD_T[i - absorbList[vac].size()] = tmp;
+  }
+  Arm_T = vvd2mat(VVD_T);
+
+#ifdef DEBUG_TRAP
+  cout << "T : " << VVD_T.size() << "x" << VVD_T[0].size() << endl;
+  cout.width(4);
+  cout << Arm_T << endl;
+#endif
+
 }
 
 void LSKMC::getOrPutEvent(const int& i, const int& j) {
@@ -261,18 +320,99 @@ void LSKMC::getOrPutEvent(const int& i, const int& j) {
                                           k2pModelB, \
                                           k2pModelD, \
                                           make_pair(i, j));
-    KMCEvent event(make_pair(i, j));
+    LSEvent event(make_pair(i, j));
     event.setBarrier(currBarr[0]);
-    event.setRate(exp(-currBarr[0] * KB_INV / temperature));
+    event.setRate(prefix * exp(-currBarr[0] * KB_INV / temperature));
     event.setEnergyChange(currBarr[1]);
     eventMap[tmpHash] = event;
   }
 }
 
+void LSKMC::calExitTimePi(const int& vac) {
+
+  calVVD_M(vac);
+  calVVD_R(vac);
+  calVVD_T(vac);
+
+  vd VD_P0(VVD_T.size(), 0.0);
+  VD_P0[mapAtomID2MatID[vac]] = 1.0;
+  vec Arma_P0 = vd2vec(VD_P0);
+
+#ifdef DEBUG_TRAP
+  cout << "Arma_P0 : " << endl << Arma_P0 << endl;
+#endif
+
+  mat sharedMatrix = Arma_P0.t() * (arma::eye(arma::size(Arm_T)) - Arm_T).i();
+  exitTime = arma::as_scalar(sharedMatrix * Arm_Tau);
+
+#ifdef DEBUG_TRAP
+  cout << "exit time : " << exitTime << endl;
+#endif
+
+  Arm_Pi = sharedMatrix * Arm_R;
+  double sum = accu(Arm_Pi);
+  Arm_Pi /= sum;
+
+#ifdef DEBUG_TRAP
+  cout << "Pi : " << endl;
+  cout << Arm_Pi << endl;
+  cout << Arm_Pi.n_rows << "x" << Arm_Pi.n_cols << endl;
+  sum = accu(Arm_Pi);
+  cout << "total (should be 1.0) :" << sum << endl;
+#endif
+}
+
+void LSKMC::updateTime() {
+
+  time += exitTime;
+
+}
+
+void LSKMC::selectAndExecute(const int& vac) {
+
+  calExitTimePi(vac);
+  double randVal = (double) rand() / (RAND_MAX);
+  vd prob = mat2vd(Arm_Pi);
+  vd probAccu(prob.size(), 0.0);
+  for (int i = 0; i < prob.size(); ++i) {
+    if (i == 0)
+      probAccu[i] = prob[i];
+    else {
+      probAccu[i] = probAccu[i - 1] + prob[i];
+    }
+  }
+
+  auto it = lower_bound(probAccu.begin(), probAccu.end(), randVal);
+
+  int dist = 0;
+  if (it == probAccu.cend()) {
+    dist = probAccu.size() - 1;
+  }
+
+  dist = distance(probAccu.begin(), it);
+  int iFirst = vac;
+  // starting from absorbing state, no offset needed
+  int iSecond = mapMatID2AtomID[dist];
+  LSEvent lsevent(make_pair(iFirst, iSecond));
+  lsevent.exeEvent(c0, RCut);
+  updateTime();
+  cout << "# LSKMC " << step << " " << time << " ave exit time : " \
+       << exitTime << endl;
+
+#ifdef DEBUG_SELECT_TRAP
+  for (int i = 0; i < probAccu.size(); ++i)
+    cout << i << " " << probAccu[i] << endl;
+  cout << "random number : " << randVal << endl;
+  cout << dist << endl;
+#endif
+
+}
+
 } // end namespace LS
 
 
-void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
+void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
+
   KMCInit(cnfModifier);
   buildEventList(cnfModifier);
   LS::LSKMC lskmc(cnfModifier, \
@@ -294,15 +434,77 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                   nTallyConf, \
                   nTallyOutput);
 
-  lskmc.searchStatesDFS();
-
 #ifdef DEBUG_TRAP
   for (const auto& i : vacList) {
-    cout << "outputing : " << i << endl;
     lskmc.outputAbsorbCfg(i, "debug_absorb_" + to_string(i) + ".cfg");
     lskmc.outputTrapCfg(i, "debug_trap_" + to_string(i) + ".cfg");
     lskmc.barrierStats();
+    lskmc.selectAndExecute(i);
+    cnfModifier.writeCfgData(c0, "debug_out_" + to_string(i) + ".cfg");
   }
 #endif
+
+}
+
+bool KNHome::isTrapped(const double& oneStepTime) {
+  long long trapStepCriteria = iparams["trapStepCriteria"];
+  double oneTrapTimeCriteria = dparams["oneTrapTimeCriteria"];
+  if (oneStepTime < oneTrapTimeCriteria)
+    ++trapStep;
+  if (trapStep < trapStepCriteria)
+    return false;
+  else {
+    trapStep = 0;
+    return true;
+  }
+}
+
+void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
+  KMCInit(cnfModifier);
+
+  while (iter < maxIter) {
+    buildEventList(cnfModifier);
+    int eventID = 0;
+    auto&& event = selectEvent(eventID);
+    event.exeEvent(c0, RCut); // event updated
+    double oneStepTime = updateTime();
+    updateEnergy(eventID);
+    ++step;
+    ++iter;
+
+    if (isTrapped(oneStepTime)) {
+      LS::LSKMC lskmc(cnfModifier, \
+                c0, \
+                embedding, \
+                vacList, \
+                k2pModelB, \
+                k2pModelD, \
+                RCut, \
+                RCut2, \
+                temperature, \
+                time, \
+                prefix, \
+                E_tot, \
+                ECutoff, \
+                maxIter, \
+                iter, \
+                step, \
+                nTallyConf, \
+                nTallyOutput);
+      for (const auto& i : vacList) {
+        lskmc.selectAndExecute(i);
+      }
+    }
+
+    if (step % nTallyOutput == 0)
+    cout << std::setprecision(7) << step << " " << time << " " \
+         << E_tot << " " \
+         << event.getJumpPair().first << " " << event.getJumpPair().second \
+         << endl;
+
+    if (step % nTallyConf == 0)
+      cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+
+  }
 
 }

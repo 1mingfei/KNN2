@@ -28,7 +28,7 @@ using std::unordered_set;
 class KNHome;
 
 class KMCEvent {
-private:
+protected:
   double barrier;
   double rate;
   double energyChange;
@@ -39,7 +39,7 @@ private:
 public:
   KMCEvent();
   KMCEvent(const pair<int, int>&);
-  ~KMCEvent();
+  virtual ~KMCEvent();
 
   double getBarrier() const;
   double getRate() const;
@@ -55,7 +55,7 @@ public:
   void calProb(const double&);
   void setcProb(const double&);
   void setEnergyChange(const double&);
-  void exeEvent(Config&, const double&);
+  virtual void exeEvent(Config&, const double&);
 
 };
 #endif

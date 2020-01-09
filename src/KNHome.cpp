@@ -35,6 +35,8 @@ KNHome::KNHome(int argc, char* argv[]) {
     KNBondCount();
   } else if (sparams["mode"] == "kmc") {
     KMCSimulation(cnfModifier);
+  } else if (sparams["mode"] == "lskmc_test") {
+    LSKMCOneRun(cnfModifier);
   } else if (sparams["mode"] == "lskmc") {
     LSKMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "test") {
@@ -49,11 +51,7 @@ KNHome::KNHome(int argc, char* argv[]) {
 
     /* test mat transfer */
     LS::LSKMC::test_vvd2mat();
-
-
   }
-
-
 }
 
 KNHome::~KNHome() {}

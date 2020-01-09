@@ -56,6 +56,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   switchEngy = bparams["EDiff"];
   ECutoff = dparams["ECutoff"];
 
+  trapStep = 0;
   temperature = dparams["temperature"];
   srand(iparams["randSeed"]);
   prefix = dparams["prefix"];
@@ -130,7 +131,7 @@ KMCEvent KNHome::selectEvent(int& dist) {
                           [] (KMCEvent a, double value) \
                             {return (a.getcProb() < value);});
 
-  if(it == eventList.cend()) {
+  if (it == eventList.cend()) {
     dist = eventList.size() - 1;
     return eventList.back();
   }
@@ -146,11 +147,12 @@ KMCEvent KNHome::selectEvent(int& dist) {
   return *it;
 }
 
-void KNHome::updateTime() {
+double KNHome::updateTime() {
   /* update time elapsed */
   double tau = log(rand() / static_cast<double>(RAND_MAX)) \
                / (prefix * kTot);
   time -= tau;
+  return -tau;
 }
 
 void KNHome::updateEnergy(const int& eventID) {
@@ -334,7 +336,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     int eventID = 0;
     auto&& event = selectEvent(eventID);
     event.exeEvent(c0, RCut); // event updated
-    updateTime();
+    double oneStepTime = updateTime();
     updateEnergy(eventID);
     // updateEventList(cnfModifier, event.getJumpPair(), eventID);
     ++step;

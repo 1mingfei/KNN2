@@ -79,6 +79,10 @@ void KNHome::readParam() {
       bparams[segs[0]] = (segs[1] == "true") ? true : false;
     } else if (!segs[0].compare("ECutoff")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("trapStepCriteria")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("oneTrapTimeCriteria")) {
+      dparams[segs[0]] = stod(segs[1]);
     }
 
   }

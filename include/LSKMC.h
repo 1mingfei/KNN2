@@ -36,6 +36,8 @@ class gbCnf;
 // FPKMC first passage KMC algorithm to speed up
 namespace LS {
 
+using arma::vec;
+using arma::mat;
 typedef vector<double> vd;
 typedef vector<vector<double>> vvd;
 
@@ -57,7 +59,7 @@ private:
   unordered_map<int, int> mapMatID2AtomID;
 
   // event map: i_j --> event_i_j
-  unordered_map<string, KMCEvent> eventMap;
+  unordered_map<string, LSEvent> eventMap;
 
   double& RCut;
   double& RCut2;
@@ -66,6 +68,7 @@ private:
   double& prefix;
   double& E_tot; // total energy change of the system
   double& ECutoff;
+  double exitTime;
 
   long long& maxIter;
   long long& iter;
@@ -73,21 +76,27 @@ private:
   int& nTallyConf;
   int& nTallyOutput;
 
-  vvd VVD_M;
+  vvd VVD_M, VVD_R, VVD_T;
   vd VD_Tau;
+
+  mat Arm_M, Arm_R, Arm_T, Arm_Pi;
+  vec Arm_Tau;
 
   Model& k2pModelB;
   Model& k2pModelD;
 
-  // calculate 2D std vector for M
-  void calVVD_M(const int&);
-
   // calculate time of taking each state
-  void getVD_Tau(const int&);
+  void getVD_Tau(const int&, const int&);
 
   // helper functions
   // get barrier from hashmap "eventMap" or calculate and put to hashmap
   void getOrPutEvent(const int&, const int&);
+
+  // calculate 2D std vector for M, R, T
+  void calVVD_M(const int&);
+  void calVVD_R(const int&);
+  void calVVD_T(const int&);
+  void updateTime();
 
 public:
   LSKMC(gbCnf&, \
@@ -111,6 +120,7 @@ public:
 
   void testCnfModification();
   static void test_vvd2mat();
+  // watch out, this function need to be updated if multiple vacacies is in use
   void searchStatesDFS();
   void helperDFS(const int&, const int&, unordered_set<int>&);
   // output surrouding trap states for one vacancy
@@ -118,6 +128,8 @@ public:
   void outputAbsorbCfg(const int&, const string&);
   void barrierStats();
 
+  void calExitTimePi(const int&);
+  void selectAndExecute(const int&);
 
 };
 
