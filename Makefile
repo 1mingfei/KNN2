@@ -14,7 +14,7 @@ OMPI_CC       =  mpicxx
 OMPI_CLINKER  =  mpicxx
 MPI_LIB       =  ${MPI_HOME}
 OPTFLAGS	  =  -Wall -O3 -g
-CPPFLAGS	  =  -std=c++17 #-DDEBUG_TRAP
+CPPFLAGS	  =  -std=c++17 #-DDEBUG_SELECT_TRAP
 
 #include and lib while compile
 CINCLUDE 	=  -I${INC_DIR} -I${K2C_INC_DIR}

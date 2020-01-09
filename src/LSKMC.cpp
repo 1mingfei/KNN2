@@ -112,6 +112,7 @@ void LSKMC::searchStatesDFS() {
   for (int i = 0; i < vacList.size(); ++i) {
     unordered_set<int> visited;
     helperDFS(vacList[i], vacList[i], visited);
+
 #ifdef DEBUG_TRAP
     cout << "vac # " << vacList[i] << " trap size : " \
          << trapList[vacList[i]].size() << endl;
@@ -372,15 +373,23 @@ void LSKMC::selectAndExecute(const int& vac) {
   calExitTimePi(vac);
   double randVal = (double) rand() / (RAND_MAX);
   vd prob = mat2vd(Arm_Pi);
-
-  auto it = lower_bound(prob.begin(), prob.end(), randVal);
-
-  int dist = 0;
-  if (it == prob.cend()) {
-    dist = prob.size() - 1;
+  vd probAccu(prob.size(), 0.0);
+  for (int i = 0; i < prob.size(); ++i) {
+    if (i == 0)
+      probAccu[i] = prob[i];
+    else {
+      probAccu[i] = probAccu[i - 1] + prob[i];
+    }
   }
 
-  dist = distance(prob.begin(), it);
+  auto it = lower_bound(probAccu.begin(), probAccu.end(), randVal);
+
+  int dist = 0;
+  if (it == probAccu.cend()) {
+    dist = probAccu.size() - 1;
+  }
+
+  dist = distance(probAccu.begin(), it);
   int iFirst = vac;
   // starting from absorbing state, no offset needed
   int iSecond = mapMatID2AtomID[dist];
@@ -389,6 +398,13 @@ void LSKMC::selectAndExecute(const int& vac) {
   updateTime();
   cout << "# LSKMC " << step << " " << time << " ave exit time : " \
        << exitTime << endl;
+
+#ifdef DEBUG_SELECT_TRAP
+  for (int i = 0; i < probAccu.size(); ++i)
+    cout << i << " " << probAccu[i] << endl;
+  cout << "random number : " << randVal << endl;
+  cout << dist << endl;
+#endif
 
 }
 
