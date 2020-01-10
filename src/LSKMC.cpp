@@ -364,7 +364,9 @@ void LSKMC::calExitTimePi(const int& vac) {
 
 void LSKMC::updateTime() {
 
-  time += exitTime;
+  if (exitTime > 0.0) {
+    time += exitTime;
+  }
 
 }
 
