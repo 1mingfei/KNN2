@@ -342,7 +342,8 @@ void LSKMC::calExitTimePi(const int& vac) {
   cout << "Arma_P0 : " << endl << Arma_P0 << endl;
 #endif
 
-  mat sharedMatrix = Arma_P0.t() * (arma::eye(arma::size(Arm_T)) - Arm_T).i();
+  mat sharedMatrix = Arma_P0.t() \
+                     * arma::pinv(arma::eye(arma::size(Arm_T)) - Arm_T);
   exitTime = arma::as_scalar(sharedMatrix * Arm_Tau);
 
 #ifdef DEBUG_TRAP
@@ -455,8 +456,10 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
     lskmc.outputAbsorbCfg(i, "debug_absorb_" + to_string(i) + ".cfg");
     lskmc.outputTrapCfg(i, "debug_trap_" + to_string(i) + ".cfg");
     lskmc.barrierStats();
-    lskmc.selectAndExecute(i);
-    cnfModifier.writeCfgData(c0, "debug_out_" + to_string(i) + ".cfg");
+    if (validTrap()) {
+      lskmc.selectAndExecute(i);
+      cnfModifier.writeCfgData(c0, "debug_out_" + to_string(i) + ".cfg");
+    }
   }
 #endif
 
