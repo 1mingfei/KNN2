@@ -371,57 +371,57 @@ void LSKMC::updateTime() {
 
 }
 
-bool LSKMC::validTrap() {
-  for (const auto& i : vacList) {
-    if (trapList[i].size() == 0)
-      return false;
-    if (absorbList[i].size() == 0)
-      return false;
-  }
+bool LSKMC::validTrap(const int& vac) {
+  if (trapList[vac].size() == 0)
+    return false;
+  if (absorbList[vac].size() == 0)
+    return false;
+  calExitTimePi(vac);
+  if (exitTime > 1.0e5)
+    return false;
   return true;
 }
 
 void LSKMC::selectAndExecute(const int& vac) {
 
-  if (validTrap()) {
+  if (!validTrap(vac))
+    return;
 
-    calExitTimePi(vac);
-    double randVal = (double) rand() / (RAND_MAX);
-    vd prob = mat2vd(Arm_Pi);
-    vd probAccu(prob.size(), 0.0);
-    for (int i = 0; i < prob.size(); ++i) {
-      if (i == 0)
-        probAccu[i] = prob[i];
-      else {
-        probAccu[i] = probAccu[i - 1] + prob[i];
-      }
+  double randVal = (double) rand() / (RAND_MAX);
+  vd prob = mat2vd(Arm_Pi);
+  vd probAccu(prob.size(), 0.0);
+  for (int i = 0; i < prob.size(); ++i) {
+    if (i == 0)
+      probAccu[i] = prob[i];
+    else {
+      probAccu[i] = probAccu[i - 1] + prob[i];
     }
+  }
 
-    auto it = lower_bound(probAccu.begin(), probAccu.end(), randVal);
+  auto it = lower_bound(probAccu.begin(), probAccu.end(), randVal);
 
-    int dist = 0;
-    if (it == probAccu.cend()) {
-      dist = probAccu.size() - 1;
-    }
+  int dist = 0;
+  if (it == probAccu.cend()) {
+    dist = probAccu.size() - 1;
+  }
 
-    dist = distance(probAccu.begin(), it);
-    int iFirst = vac;
-    // starting from absorbing state, no offset needed
-    int iSecond = mapMatID2AtomID[dist];
-    LSEvent lsevent(make_pair(iFirst, iSecond));
-    lsevent.exeEvent(c0, RCut);
-    updateTime();
-    cout << "# LSKMC " << step << " " << time << " ave exit time : " \
-         << exitTime << endl;
+  dist = distance(probAccu.begin(), it);
+  int iFirst = vac;
+  // starting from absorbing state, no offset needed
+  int iSecond = mapMatID2AtomID[dist];
+  LSEvent lsevent(make_pair(iFirst, iSecond));
+  lsevent.exeEvent(c0, RCut);
+  updateTime();
+  cout << "# LSKMC " << step << " " << time << " ave exit time : " \
+       << exitTime << endl;
 
 #ifdef DEBUG_SELECT_TRAP
-    for (int i = 0; i < probAccu.size(); ++i)
-      cout << i << " " << probAccu[i] << endl;
-    cout << "random number : " << randVal << endl;
-    cout << dist << endl;
+  for (int i = 0; i < probAccu.size(); ++i)
+    cout << i << " " << probAccu[i] << endl;
+  cout << "random number : " << randVal << endl;
+  cout << dist << endl;
 #endif
 
-  }
 
 }
 

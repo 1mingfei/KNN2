@@ -99,7 +99,7 @@ private:
   void updateTime();
 
   // only conduct when trap states are valid
-  bool validTrap();
+  bool validTrap(const int& vac);
 
 public:
   LSKMC(gbCnf&, \
