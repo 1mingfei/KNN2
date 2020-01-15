@@ -4,38 +4,38 @@
 const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
 //const string PBE="/home/mingfei/Work/pot_old/potpaw_PBE/elements/";
 
-inline void prepINCAR(const string path) {
+inline void prepINCAR(const string& path) {
   string fnm = path + "/INCAR";
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "NWRITE = 2\n";
-  ofs << "                 \n";    
+  ofs << "                 \n";
   ofs << "PREC   = Accurate\n";
-  ofs << "ISYM   = 2       \n";    
-  ofs << "NELM   = 240     \n";    
-  ofs << "NELMIN = 4       \n";    
-  ofs << "                 \n";    
-  ofs << "NSW    = 10000   \n";    
-  ofs << "IBRION = 2       \n";    
-  ofs << "POTIM  = 0.5     \n";    
-  ofs << "ISIF   = 2       \n";    
-  ofs << "                 \n";    
-  ofs << "ISMEAR = 1       \n";    
-  ofs << "SIGMA  = 0.4     \n";    
-  ofs << "                 \n";    
-  ofs << "IALGO  = 48      \n";    
-  ofs << "LREAL  = AUTO    \n";    
-  ofs << "ENCUT  = 450.00  \n";    
-  ofs << "ENAUG  = 600.00  \n";    
-  ofs << "EDIFF  = 1e-7    \n";    
-  ofs << "ISPIN  = 1       \n";    
-  ofs << "                 \n";    
-  ofs << "LWAVE  = .FALSE. \n";    
-  ofs << "LCHARG = .TRUE.  \n";    
-  ofs << "                 \n";    
-  ofs << "NPAR   = 4       \n";    
+  ofs << "ISYM   = 2       \n";
+  ofs << "NELM   = 240     \n";
+  ofs << "NELMIN = 4       \n";
+  ofs << "                 \n";
+  ofs << "NSW    = 10000   \n";
+  ofs << "IBRION = 2       \n";
+  ofs << "POTIM  = 0.5     \n";
+  ofs << "ISIF   = 2       \n";
+  ofs << "                 \n";
+  ofs << "ISMEAR = 1       \n";
+  ofs << "SIGMA  = 0.4     \n";
+  ofs << "                 \n";
+  ofs << "IALGO  = 48      \n";
+  ofs << "LREAL  = AUTO    \n";
+  ofs << "ENCUT  = 450.00  \n";
+  ofs << "ENAUG  = 600.00  \n";
+  ofs << "EDIFF  = 1e-7    \n";
+  ofs << "ISPIN  = 1       \n";
+  ofs << "                 \n";
+  ofs << "LWAVE  = .FALSE. \n";
+  ofs << "LCHARG = .TRUE.  \n";
+  ofs << "                 \n";
+  ofs << "NPAR   = 4       \n";
 }
 
-inline void prepKPOINTS(const string path, const vector<int>& dupFac) {
+inline void prepKPOINTS(const string& path, const vector<int>& dupFac) {
   string fnm = path + "/KPOINTS";
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "Automatic mesh\n";
@@ -44,9 +44,9 @@ inline void prepKPOINTS(const string path, const vector<int>& dupFac) {
   ofs << KP/dupFac[X] << "   " << KP/dupFac[Y] << "   " << KP/dupFac[Z] << "\n";
   //ofs << "1    1    1   \n";
   ofs << "0.   0.   0.  \n";
-}  
+}
 
-inline void prepSUBMIT(const string path) {
+inline void prepSUBMIT(const string& path) {
   string fnm = path + "/submit.sh";
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "/data/submit/unix/submit vasp ver=5.3.5 ncpu=48 spool_files=yes \
@@ -54,7 +54,7 @@ inline void prepSUBMIT(const string path) {
     jid=Al_job output_dir=`pwd`";
 }
 
-inline void prepSUBMITCORI(const string path) {
+inline void prepSUBMITCORI(const string& path) {
   string fnm = path + "/submit.cori";
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "#!/bin/bash\n";
@@ -75,9 +75,9 @@ inline void prepSUBMITCORI(const string path) {
   ofs << "module load vasp/5.4.4-knl\n";
   ofs << "srun -n 64 -c 4 --cpu_bind=cores vasp_std\n";
   ofs << "rm CHG* WAVE*\n";
-}  
+}
 
-inline void prepSUBMITGL(const string path) {
+inline void prepSUBMITGL(const string& path) {
   string fnm = path + "/submit.gl";
   ofstream ofs(fnm, std::ofstream::out);
 
@@ -97,7 +97,7 @@ inline void prepSUBMITGL(const string path) {
   ofs << "rm CHG* WAVE*\n";
 }
 
-inline void prepSUBMITSTAMPEDE2(const string path) {
+inline void prepSUBMITSTAMPEDE2(const string& path) {
   string fnm = path + "/submit.stampede2";
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "#!/bin/bash\n";
@@ -117,11 +117,18 @@ inline void prepSUBMITSTAMPEDE2(const string path) {
   ofs << "rm CHG* WAVE*\n";
 }
 
-inline void prepPOTCAR(const string path, const set<string> species) {
+inline void prepPOTCAR(const string& path, const map<string, int>& species) {
   string mkPOT = "cat ";
-  for (const auto& ele : species) {
-    mkPOT += (PBE + ele + "/POTCAR ");
+
+  for (auto i = species.begin(); i != species.end(); ++i) {
+    if (i->first != "X")
+      mkPOT += (PBE + i->first + "/POTCAR ");
   }
+
+  // for (const auto& ele : species) {
+  //   mkPOT += (PBE + ele + "/POTCAR ");
+  // }
+
   mkPOT += (" > " + path + "/POTCAR");
   const char *cmkPOT = mkPOT.c_str();
 
@@ -131,9 +138,9 @@ inline void prepPOTCAR(const string path, const set<string> species) {
   }
 }
 
-void KNHome::prepVASPFiles(const string path, \
+void KNHome::prepVASPFiles(const string& path, \
                            const vector<int>& dupFac, \
-                           const set<string>& species) {
+                           const map<string, int>& species) {
   prepINCAR(path);
   prepKPOINTS(path, dupFac);
   prepPOTCAR(path, species);

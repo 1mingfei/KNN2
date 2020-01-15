@@ -32,7 +32,7 @@ public:
   //void writeLmpDataDebug(Config&, string);
   void writeCfgData(const Config& c, string);
   void writePOSCARVis(Config&, string, string);
-  void writePOSCAR(Config&, string);
+  map<string, int> writePOSCAR(Config&, string);
 
   /* gbInCnf.cpp */
   void cnvVec2Mat(const vector<double>&, Config&);

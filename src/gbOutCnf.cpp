@@ -109,7 +109,7 @@ void gbCnf::writePOSCARVis(Config& c, string fnm = "POSCAR", \
 }
 
 /* this output is for vasp calculation (ignore vac) */
-void gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
+map<string, int> gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "#comment\n1.00000\n";
   for (int i = 0; i < DIM; ++i) {
@@ -143,7 +143,7 @@ void gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
       ofs << i->second << " ";
     }
   }
-  //std::sort(c.atoms.begin(), c.atoms.end());
+  // std::sort(c.atoms.begin(), c.atoms.end());
   ofs << "\nDirect\n";
   for (unsigned int i = 0 ; i < c.atoms.size(); ++i) {
     if (c.atoms[i].tp != "X") {
@@ -153,4 +153,5 @@ void gbCnf::writePOSCAR(Config& c, string fnm = "POSCAR") {
       ofs << "\n";
     }
   }
+  return names;
 }
