@@ -98,6 +98,9 @@ private:
   void calVVD_T(const int&);
   void updateTime();
 
+  // only conduct when trap states are valid
+  bool validTrap(const int& vac);
+
 public:
   LSKMC(gbCnf&, \
         Config&, \
