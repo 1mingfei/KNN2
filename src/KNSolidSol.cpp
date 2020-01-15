@@ -29,11 +29,14 @@ Config gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   int idx1 = atomPair.second;
   Config c1 = c0;
 
-  string tmpType = c1.atoms[idx0].tp;
-  c1.atoms[idx0].tp = c1.atoms[idx1].tp;
-  c1.atoms[idx1].tp = tmpType;
+  // string tmpType = c1.atoms[idx0].tp;
+  // c1.atoms[idx0].tp = c1.atoms[idx1].tp;
+  // c1.atoms[idx1].tp = tmpType;
 
-  std::sort(c1.atoms.begin(), c1.atoms.end());
+  // std::sort(c1.atoms.begin(), c1.atoms.end());
+
+  swap(c1.atoms[idx0].prl, c1.atoms[idx1].prl);
+  swap(c1.atoms[idx0].pst, c1.atoms[idx1].pst);
   return c1;
 }
 
@@ -178,11 +181,11 @@ void KNHome::createPreNEB() {
   int NBars = iparams["NBarriers"];
   string subMode = sparams["method"];
 
-  std::set<string> species;
-  for (const auto& elem : elems) {
-    if (elem == "X") continue;
-    species.insert(elem);
-  }
+  // std::set<string> species;
+  // for (const auto& elem : elems) {
+  //   if (elem == "X") continue;
+  //   species.insert(elem);
+  // }
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
@@ -210,8 +213,9 @@ void KNHome::createPreNEB() {
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
                                      "/s/start.cfg");
-        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, species);
+        map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
+                              "config" + to_string(i) + "/s/POSCAR");
+        prepVASPFiles(baseDir, dupFactors, elemName);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
 #ifdef DEBUG
@@ -242,10 +246,11 @@ void KNHome::createPreNEB() {
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
           string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
-          cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
+          map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
+                                                      name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first\
                << " "<< pairs[k].second << "\n";
-          prepVASPFiles(name1, dupFactors, species);
+          prepVASPFiles(name1, dupFactors, elemName);
         }
       }
     }
@@ -313,8 +318,9 @@ void KNHome::createPreNEB() {
         }
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/s/start.cfg");
-        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, species);
+        map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
+                                        "config" + to_string(i) + "/s/POSCAR");
+        prepVASPFiles(baseDir, dupFactors, elemName);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
 #ifdef DEBUG
@@ -345,10 +351,11 @@ void KNHome::createPreNEB() {
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
           string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
-          cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
+          map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
+                                                            name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
                << " "<< pairs[k].second << "\n";
-          prepVASPFiles(name1, dupFactors, species);
+          prepVASPFiles(name1, dupFactors, elemName);
         }
       }
     }
@@ -374,8 +381,9 @@ void KNHome::createPreNEB() {
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
                                      "/s/start.cfg");
-        cnfModifier.writePOSCAR(c0, "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, species);
+        map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
+                                        "config" + to_string(i) + "/s/POSCAR");
+        prepVASPFiles(baseDir, dupFactors, elemName);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
 #ifdef DEBUG
@@ -406,10 +414,11 @@ void KNHome::createPreNEB() {
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
           string name1 = "config" + to_string(i) + "/f_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
-          cnfModifier.writePOSCAR(c1, name1 + "POSCAR");
+          map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
+                                                            name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
                << " "<< pairs[k].second << "\n";
-          prepVASPFiles(name1, dupFactors, species);
+          prepVASPFiles(name1, dupFactors, elemName);
         }
       }
     }

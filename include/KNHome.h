@@ -108,8 +108,8 @@ public:
   /* KNSolidSol.cpp */
   void createPreNEB();
   /* KNvasp.cpp */
-  void prepVASPFiles(const string, const vector<int>&,
-                     const set<string>&);
+  void prepVASPFiles(const string&, const vector<int>&,
+                     const map<string, int>&);
   /* KNEncode.cpp */
   void KNEncode();
   vector<vector<int>> readPairs(const string&);
