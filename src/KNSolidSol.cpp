@@ -29,12 +29,6 @@ Config gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
   int idx1 = atomPair.second;
   Config c1 = c0;
 
-  // string tmpType = c1.atoms[idx0].tp;
-  // c1.atoms[idx0].tp = c1.atoms[idx1].tp;
-  // c1.atoms[idx1].tp = tmpType;
-
-  // std::sort(c1.atoms.begin(), c1.atoms.end());
-
   swap(c1.atoms[idx0].prl, c1.atoms[idx1].prl);
   swap(c1.atoms[idx0].pst, c1.atoms[idx1].pst);
   return c1;
@@ -135,14 +129,10 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
     resType.push_back(0);
   }
   auto rng = std::default_random_engine {};
-  // std::random_shuffle(nblType.begin(), nblType.end(), myRandom);
   std::shuffle(std::begin(nblType), std::end(nblType), rng);
-  // std::random_shuffle(resType.begin(), resType.end(), myRandom);
   std::shuffle(std::begin(resType), std::end(resType), rng);
 
-  /* type alignment
-   * not starting from 0 becasue 0 is the default vacancy
-   */
+  // type alignment (not starting from 0 becasue 0 is the default vacancy)
   int countNBL = 0;
   int countRes = 0;
   for (int i = 1; i < cnf.natoms; ++i) {
@@ -169,8 +159,6 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
   }
 }
 
-
-
 void KNHome::createPreNEB() {
   gbCnf cnfModifier(sparams);
   vector<int> dupFactors = viparams["factors"];
@@ -179,13 +167,8 @@ void KNHome::createPreNEB() {
   vector<int> nums = viparams["nums"];
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
-  string subMode = sparams["method"];
-
-  // std::set<string> species;
-  // for (const auto& elem : elems) {
-  //   if (elem == "X") continue;
-  //   species.insert(elem);
-  // }
+  const string& subMode = sparams["method"];
+  const string& POT = sparams["POT"];
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
@@ -200,7 +183,7 @@ void KNHome::createPreNEB() {
 
         Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
         cnfModifier.getRandConf(c0, elems, nums);
-        Config c0copy = c0; //because write POS will sort c0, hence change index
+        Config c0copy = c0;
 
         string baseDir = "config" + to_string(i) + "/s";
         string mkBaseDir = "mkdir -p " + baseDir;
@@ -215,7 +198,7 @@ void KNHome::createPreNEB() {
                                      "/s/start.cfg");
         map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
                               "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, elemName);
+        prepVASPFiles(baseDir, dupFactors, elemName, POT);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
 #ifdef DEBUG
@@ -227,7 +210,6 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
         auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
 
@@ -250,7 +232,7 @@ void KNHome::createPreNEB() {
                                                       name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first\
                << " "<< pairs[k].second << "\n";
-          prepVASPFiles(name1, dupFactors, elemName);
+          prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
     }
@@ -261,22 +243,6 @@ void KNHome::createPreNEB() {
      * and NBars is still how many possible pairs for each configuration
      */
     /* in uniform subMode, input nums is the upper limits of each element */
-    /*
-    vector<vector<int>> numsVec;
-    vector<int> tmpNums;
-    for (int i = 1; i < nums.size(); ++i) {
-      int offset;
-      if (elems[i] == "X") { //make sure starting from 1
-        offset = 1;
-      } else {
-        offset = 0;
-      }
-      for (int j = myRandInt(offset, 1); j <= nums[i]; j += myRandInt(1, 3)) {
-
-      }
-    }
-    NConfigs = numsVec.size();
-    */
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;
     int nCycle = remainder ? (quotient + 1) : quotient;
@@ -284,7 +250,6 @@ void KNHome::createPreNEB() {
       for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
         Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
-        //cnfModifier.getRandConfUniformDist(c0, elems, numsVec[i]);
         /* get rand ints */
         vector<int> numsVec;
         for (int k = 0; k < nums.size(); ++k) {
@@ -302,7 +267,6 @@ void KNHome::createPreNEB() {
           others += val;
         }
         auto it = numsVec.insert(numsVec.begin(), (c0.natoms - others));
-        // assert(std::accumulate(numsVec.begin(), numsVec.end(), 0) == c0.natoms);
 
         /* get rand ints end */
         cnfModifier.getRandConfUniformDist(c0, elems, numsVec);
@@ -320,7 +284,7 @@ void KNHome::createPreNEB() {
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/s/start.cfg");
         map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
                                         "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, elemName);
+        prepVASPFiles(baseDir, dupFactors, elemName, POT);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
 #ifdef DEBUG
@@ -332,7 +296,6 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
         auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
 
@@ -355,7 +318,7 @@ void KNHome::createPreNEB() {
                                                             name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
                << " "<< pairs[k].second << "\n";
-          prepVASPFiles(name1, dupFactors, elemName);
+          prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
     }
@@ -383,7 +346,7 @@ void KNHome::createPreNEB() {
                                      "/s/start.cfg");
         map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
                                         "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, elemName);
+        prepVASPFiles(baseDir, dupFactors, elemName, POT);
         vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
 
 #ifdef DEBUG
@@ -395,7 +358,6 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        // std::random_shuffle(pairs.begin(), pairs.end(), myRandom);
         auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
 
@@ -418,7 +380,7 @@ void KNHome::createPreNEB() {
                                                             name1 + "POSCAR");
           cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
                << " "<< pairs[k].second << "\n";
-          prepVASPFiles(name1, dupFactors, elemName);
+          prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
     }
