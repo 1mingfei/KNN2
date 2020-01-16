@@ -33,6 +33,8 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("kerasModelEDiff")) {
       sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("POT")) {
+      sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("LC")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("RCut")) {

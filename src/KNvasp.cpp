@@ -1,7 +1,7 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #define KP 9
-const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
+// const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
 //const string PBE="/home/mingfei/Work/pot_old/potpaw_PBE/elements/";
 
 inline void prepINCAR(const string& path) {
@@ -117,17 +117,14 @@ inline void prepSUBMITSTAMPEDE2(const string& path) {
   ofs << "rm CHG* WAVE*\n";
 }
 
-inline void prepPOTCAR(const string& path, const map<string, int>& species) {
+inline void prepPOTCAR(const string& path, const map<string, int>& species, \
+                       const string& POT) {
   string mkPOT = "cat ";
 
   for (auto i = species.begin(); i != species.end(); ++i) {
     if (i->first != "X")
-      mkPOT += (PBE + i->first + "/POTCAR ");
+      mkPOT += (POT + i->first + "/POTCAR ");
   }
-
-  // for (const auto& ele : species) {
-  //   mkPOT += (PBE + ele + "/POTCAR ");
-  // }
 
   mkPOT += (" > " + path + "/POTCAR");
   const char *cmkPOT = mkPOT.c_str();
@@ -140,10 +137,11 @@ inline void prepPOTCAR(const string& path, const map<string, int>& species) {
 
 void KNHome::prepVASPFiles(const string& path, \
                            const vector<int>& dupFac, \
-                           const map<string, int>& species) {
+                           const map<string, int>& species, \
+                           const string& POT) {
   prepINCAR(path);
   prepKPOINTS(path, dupFac);
-  prepPOTCAR(path, species);
+  prepPOTCAR(path, species, POT);
   prepSUBMIT(path);
   prepSUBMITCORI(path);
   prepSUBMITGL(path);
