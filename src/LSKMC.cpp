@@ -27,7 +27,8 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              long long& iterIn, \
              long long& stepIn, \
              int& nTallyConfIn, \
-             int& nTallyOutput)
+             int& nTallyOutput,
+             double& LS_output_cfg_CriteriaIn)
   : cnfModifier(cnfModifierIn), \
     c0(c0In), \
     embedding(embeddingIn), \
@@ -45,7 +46,8 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     iter(iterIn), \
     step(stepIn), \
     nTallyConf(nTallyConfIn), \
-    nTallyOutput(nTallyOutput)
+    nTallyOutput(nTallyOutput), \
+    LS_output_cfg_Criteria(LS_output_cfg_CriteriaIn)
 {
 
   eventMap.clear();
@@ -410,7 +412,15 @@ void LSKMC::selectAndExecute(const int& vac) {
   // starting from absorbing state, no offset needed
   int iSecond = mapMatID2AtomID[dist];
   LSEvent lsevent(make_pair(iFirst, iSecond));
+
+  if (exitTime > 4.0)
+    cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + "_0.cfg");
+
   lsevent.exeEvent(c0, RCut);
+
+  if (exitTime > 4.0)
+    cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + "_1.cfg");
+
   updateTime();
   cout << "# LSKMC " << step << " " << time << " ave exit time : " \
        << exitTime << endl;
@@ -431,6 +441,7 @@ void LSKMC::selectAndExecute(const int& vac) {
 void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
 
   KMCInit(cnfModifier);
+  double LS_output_cfg_Criteria = dparams["LS_output_cfg_Criteria"];
   buildEventList(cnfModifier);
   LS::LSKMC lskmc(cnfModifier, \
                   c0, \
@@ -449,7 +460,8 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   iter, \
                   step, \
                   nTallyConf, \
-                  nTallyOutput);
+                  nTallyOutput, \
+                  LS_output_cfg_Criteria);
 
 #ifdef DEBUG_TRAP
   for (const auto& i : vacList) {
@@ -480,6 +492,7 @@ bool KNHome::isTrapped(const double& oneStepTime) {
 
 void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
   KMCInit(cnfModifier);
+  double LS_output_cfg_Criteria = dparams["LS_output_cfg_Criteria"];
 
   while (iter < maxIter) {
     buildEventList(cnfModifier);
@@ -509,7 +522,8 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                 iter, \
                 step, \
                 nTallyConf, \
-                nTallyOutput);
+                nTallyOutput, \
+                LS_output_cfg_Criteria);
       for (const auto& i : vacList) {
         lskmc.selectAndExecute(i);
       }

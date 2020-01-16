@@ -69,6 +69,7 @@ private:
   double& E_tot; // total energy change of the system
   double& ECutoff;
   double exitTime;
+  double& LS_output_cfg_Criteria;
 
   long long& maxIter;
   long long& iter;
@@ -119,7 +120,8 @@ public:
         long long&, \
         long long&, \
         int&, \
-        int&);
+        int&, \
+        double&);
 
   void testCnfModification();
   static void test_vvd2mat();
