@@ -1,0 +1,11 @@
+============example1================
+mode generate
+method specific
+LC 4.046
+factors 4 4 4
+elems Al Sn X Zn
+nums  205 10 1 40
+NConfigs 5
+NBarriers 5
+POT /Users/mingfei/work/pot_old/potpaw_PBE/elements/
+====================================
