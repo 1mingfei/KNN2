@@ -24,6 +24,7 @@ public:
   /* gbInCnf.cpp */
   Config readLmpData(const string&);
   Config readCfg(const string&);
+  Config readPOSCAR(const string&);
 
   /* output
    * gbOutCnf.cpp */
@@ -52,6 +53,7 @@ public:
   void wrapAtomPrl(Config&);
   void cnvprl2pst(Config&);
   void cnvpst2prl(Config&);
+  void perturb(Config&);
 
   /* FCCConfig.cpp */
   Config getFCCConv(const double, const string, const vector<int>&);
