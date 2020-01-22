@@ -20,10 +20,27 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["Rcut"] = 3.0; //kmc
   iparams["randSeed"] = 1234567; //kmc
 
+  gbCnf cnfModifier(sparams);
+
+  if (!strcmp(argv[1], "POSCAR")) {
+
+    Config cfg = std::move(cnfModifier.readPOSCAR("POSCAR"));
+
+    string mkBaseDir = "mv POSCAR POSCAR.ori";
+    const char *cmkBaseDir = mkBaseDir.c_str();
+    const int mv_err = std::system(cmkBaseDir);
+    if (-1 == mv_err) {
+      cout << "Error moving original POSCAR\n";
+      exit(1);
+    }
+
+    cnfModifier.perturb(cfg);
+    map<string, int> elemName = cnfModifier.writePOSCAR(cfg, "POSCAR");
+    exit(0);
+  }
+
   parseArgs(argc, argv);
   initParam();
-
-  gbCnf cnfModifier(sparams);
 
   if ((sparams["mode"]) == "generate") {
     // srand(time(NULL) + me);

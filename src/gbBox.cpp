@@ -9,6 +9,8 @@
 #include "KNHome.h"
 
 #define DOMLEN 4.34
+#define D_SIGMA 0.15
+#define D_CUTOFF 0.4
 
 void gbCnf::initBox(Config& c) {
   crossProd33(c.bvy, c.bvz, c.tvx);
@@ -105,4 +107,21 @@ void gbCnf::wrapAtomPrl(Config& tmpc) {
       atm.prl[i] -= factor;
     }
   }
+}
+
+void gbCnf::perturb(Config& cnf) {
+
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution(0.0, D_SIGMA);
+
+  for (auto&& atm : cnf.atoms) {
+    for (const int i : {0, 1, 2}) {
+      double displacement = distribution(generator);
+      while (displacement > D_CUTOFF) {
+        displacement = distribution(generator);
+      }
+      atm.pst[i] += displacement;
+    }
+  }
+  cnvpst2prl(cnf);
 }
