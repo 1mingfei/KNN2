@@ -85,6 +85,8 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("oneTrapTimeCriteria")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("LS_output_cfg_Criteria")) {
+      dparams[segs[0]] = stod(segs[1]);
     }
 
   }
