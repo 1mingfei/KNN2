@@ -24,13 +24,16 @@ public:
   /* gbInCnf.cpp */
   Config readLmpData(const string&);
   Config readCfg(const string&);
+  Config readPOSCAR(const string&);
 
   /* output
    * gbOutCnf.cpp */
   double findMass(string);
   void writeLmpData(Config&, string);
   //void writeLmpDataDebug(Config&, string);
-  void writeCfgData(const Config& c, string);
+  void writeCfgData(const Config&, string);
+  void writeCfgAux(const Config&, const vector<int>&, string);
+
   void writePOSCARVis(Config&, string, string);
   map<string, int> writePOSCAR(Config&, string);
 
@@ -52,6 +55,7 @@ public:
   void wrapAtomPrl(Config&);
   void cnvprl2pst(Config&);
   void cnvpst2prl(Config&);
+  void perturb(Config&);
 
   /* FCCConfig.cpp */
   Config getFCCConv(const double, const string, const vector<int>&);

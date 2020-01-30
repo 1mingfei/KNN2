@@ -2,10 +2,42 @@
  * @Author: chaomy
  * @Date:   2018-06-20
  * @Last Modified by:  1mingfei
- * @Last Modified time: 2019-05-27
+ * @Last Modified time: 2020-01-22
  */
 
 #include "gbCnf.h"
+inline vector<string> splitStr2Str(const string& stringIn) {
+  // Used to split string around spaces.
+  stringstream ss(stringIn);
+  vector<string> wordVector;
+  // Traverse through all words
+  do {
+      // Read a word
+      string word;
+      ss >> word;
+      wordVector.push_back(word);
+
+  // While there is more to read
+  } while (ss);
+  return wordVector;
+}
+
+inline vector<int> splitStr2Int(const string& stringIn) {
+  // Used to split string around spaces.
+  stringstream ss(stringIn);
+  vector<int> wordVector;
+  // Traverse through all words
+  do {
+      // Read a word
+      string word;
+      ss >> word;
+      wordVector.push_back(stoi(word));
+
+  // While there is more to read
+  } while (ss);
+  return wordVector;
+}
+
 gbCnf::gbCnf(unordered_map<string, string>& sparamsIn)
       : sparams(sparamsIn),
         rcut(3.0) {};
@@ -164,3 +196,66 @@ Config gbCnf::readCfg(const string& fname) {
   return cnf;
 }
 
+Config gbCnf::readPOSCAR(const string& fname) {
+  ifstream ifs(fname, std::ifstream::in);
+  string buff;
+  Config cnf;
+  getline(ifs, buff); // comment line
+  getline(ifs, buff); // scale factor, I skip this since I will always use 1
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "%lf %lf %lf", &cnf.bvx[X], &cnf.bvx[Y], &cnf.bvx[Z]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "%lf %lf %lf", &cnf.bvy[X], &cnf.bvy[Y], &cnf.bvy[Z]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "%lf %lf %lf", &cnf.bvz[X], &cnf.bvz[Y], &cnf.bvz[Z]);
+  getline(ifs, buff);
+
+  string elem_names_string;
+
+  vector<string> elem_names;
+  split(buff, " ", elem_names);
+
+  getline(ifs, buff);
+
+  vector<string> elem_counts_str;
+  split(buff, " ", elem_counts_str);
+  vector<int> elem_counts;
+  for (int i = 0; i < elem_counts_str.size(); ++i) {
+    elem_counts.push_back(stoi(elem_counts_str[i]));
+  }
+
+  int sum = accumulate(elem_counts.begin(), elem_counts.end(), 0);
+
+  cnf.natoms = sum;
+
+
+  getline(ifs, buff);
+  if (buff[0] == 'D' || buff[0] == 'd') {
+    int count = 0;
+    for (int i = 0; i < elem_counts.size(); ++i) {
+      for (int j = 0; j < elem_counts[i]; ++j) {
+        KNAtom a;
+        getline(ifs, buff);
+        sscanf(buff.c_str(), "%lf %lf %lf", &a.prl[0], &a.prl[1], &a.prl[2]);
+        a.id = count++;
+        a.tp = elem_names[i];
+        cnf.atoms.push_back(a);
+      }
+    }
+    cnvprl2pst(cnf);
+  } else {
+    int count = 0;
+    for (int i = 0; i < elem_counts.size(); ++i) {
+      for (int j = 0; j < elem_counts[i]; ++j) {
+        KNAtom a;
+        getline(ifs, buff);
+        sscanf(buff.c_str(), "%lf %lf %lf", &a.pst[0], &a.pst[1], &a.pst[2]);
+        a.id = count++;
+        a.tp = elem_names[i];
+        cnf.atoms.push_back(a);
+      }
+    }
+    cnvpst2prl(cnf);
+  }
+  return cnf;
+}
