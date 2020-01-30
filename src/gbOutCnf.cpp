@@ -38,7 +38,7 @@ void gbCnf::writeLmpData(Config& c, string fnm = "out.lmp.init") {
 
 /* write cfg data files */
 void gbCnf::writeCfgData(const Config& c,
-                                 string fnm = "out.cfg") {
+                         string fnm = "out.cfg") {
   ofstream ofs(fnm, std::ofstream::out);
   ofs << "Number of particles = " << c.natoms << endl;
   ofs << "A = 1.0 Angstrom (basic length-scale)" << endl;
@@ -62,6 +62,38 @@ void gbCnf::writeCfgData(const Config& c,
     }
     ofs << mass << "\n" << a.tp << "\n";
     ofs << a.prl[X] << " " << a.prl[Y] << " " << a.prl[Z] << "\n";
+  }
+}
+
+/* write cfg data files */
+void gbCnf::writeCfgAux(const Config& c, \
+                        const vector<int>& aux, \
+                        string fnm = "out.cfg") {
+  ofstream ofs(fnm, std::ofstream::out);
+  ofs << "Number of particles = " << c.natoms << endl;
+  ofs << "A = 1.0 Angstrom (basic length-scale)" << endl;
+  ofs << "H0(1,1) = " << c.bvx[X] << " A" << endl;
+  ofs << "H0(1,2) = " << c.bvx[Y] << " A" << endl;
+  ofs << "H0(1,3) = " << c.bvx[Z] << " A" << endl;
+  ofs << "H0(2,1) = " << c.bvy[X] << " A" << endl;
+  ofs << "H0(2,2) = " << c.bvy[Y] << " A" << endl;
+  ofs << "H0(2,3) = " << c.bvy[Z] << " A" << endl;
+  ofs << "H0(3,1) = " << c.bvz[X] << " A" << endl;
+  ofs << "H0(3,2) = " << c.bvz[Y] << " A" << endl;
+  ofs << "H0(3,3) = " << c.bvz[Z] << " A" << endl;
+  ofs << ".NO_VELOCITY." << endl;
+  ofs << "entry_count = " << (3 + 1) << endl;
+  ofs << "auxiliary[0] = cluster_ID" << endl;
+  double mass = findMass(c.atoms[0].tp);
+  string prevType = c.atoms[0].tp;
+  for (int i = 0; i < c.atoms.size(); ++i) {
+    auto&& a = c.atoms[i];
+    if (a.tp != prevType) {
+      mass = findMass(a.tp);
+    }
+    ofs << mass << "\n" << a.tp << "\n";
+    ofs << a.prl[X] << " " << a.prl[Y] << " " << a.prl[Z] \
+        << " " << aux[i] << "\n";
   }
 }
 

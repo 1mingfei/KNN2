@@ -31,7 +31,9 @@ public:
   double findMass(string);
   void writeLmpData(Config&, string);
   //void writeLmpDataDebug(Config&, string);
-  void writeCfgData(const Config& c, string);
+  void writeCfgData(const Config&, string);
+  void writeCfgAux(const Config&, const vector<int>&, string);
+
   void writePOSCARVis(Config&, string, string);
   map<string, int> writePOSCAR(Config&, string);
 
