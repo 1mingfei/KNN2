@@ -9,6 +9,7 @@ using arma::vec;
 using std::vector;
 using std::pair;
 using std::map;
+using std::unordered_multimap;
 
 using keras2cpp::Model;
 using keras2cpp::Tensor;
@@ -120,9 +121,7 @@ public:
                      unordered_multimap<int, int>&,
                      map<int, int>&);
   // This function returns X largest clusters with FNBs
-  map<int, int> findClusters(Config&, const int&, const string&);
-
-
+  map<int, int> findAtm2Clts(Config&, const int&, const string&);
 };
 
 #include "Elem.inl"

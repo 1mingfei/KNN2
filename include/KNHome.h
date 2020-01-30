@@ -140,6 +140,8 @@ public:
   void LSKMCOneRun(gbCnf&);
   void LSKMCSimulation(gbCnf&);
 
+  /* findClusters */
+  void findClts(gbCnf&);
 };
 
 #endif

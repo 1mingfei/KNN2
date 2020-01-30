@@ -135,7 +135,7 @@ void gbCnf::helperAddFNNs(const Config &cnfReference,
   }
 }
 
-map<int, int> gbCnf::findClusters(Config &inCnf,
+map<int, int> gbCnf::findAtm2Clts(Config &inCnf,
                                   const int &numClustersKept,
                                   const string &solventAtomType) {
   getNBL(inCnf, 3.5);
@@ -146,4 +146,30 @@ map<int, int> gbCnf::findClusters(Config &inCnf,
   getLargestClts(numClustersFound, numClustersKept, clt2Atm, atm2Clt);
   helperAddFNNs(inCnf, clt2Atm, atm2Clt);
   return atm2Clt;
+}
+
+void KNHome::findClts(gbCnf &inGbCnf) {
+  Config inCnf = inGbCnf.readCfg(sparams["initconfig"]);
+  map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
+                                               iparams["numClustersKept"],
+                                               sparams["solventAtomType"]);
+  Config outCnf;
+  outCnf.cell = inCnf.cell;
+  outCnf.length = inCnf.length;
+  outCnf.bvx = inCnf.bvx;
+  outCnf.tvx = inCnf.tvx;
+  outCnf.bvy = inCnf.bvy;
+  outCnf.tvy = inCnf.tvy;
+  outCnf.bvz = inCnf.bvz;
+  outCnf.tvz = inCnf.tvz;
+  outCnf.vacList = inCnf.vacList;
+  outCnf.natoms = atm2Clt.size();
+
+  vector<int> tmp;
+  for (const auto &iter : atm2Clt) {
+    outCnf.atoms.push_back(inCnf.atoms[iter.first]);
+    tmp.push_back(iter.second);
+  }
+  inGbCnf.writeCfgAux(outCnf, tmp, "cluster_with_id.cfg");
+
 }
