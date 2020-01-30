@@ -28,7 +28,7 @@ inline double square11(double x) { return x * x; };
 inline double square33(const vector<double> &v) {
   return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 }
-inline double innDot33(const vector<double> &a, const vector<double> b) {
+inline double innDot33(const vector<double> &a, const vector<double>& b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 inline double relerr(double a, double b) { return fabs(a - b) / b; }
