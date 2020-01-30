@@ -95,6 +95,30 @@ public:
                                    Model&, \
                                    const pair<int, int>&);
 
+  /* findClusters.cpp */
+
+  // This function give a set which contains all the solute atoms ID
+  unordered_set<int> findSoluteAtoms(const Config&, const string&);
+
+  // This is a helper function which is to find X clusters after
+  // removing a certain element and returns X.
+  int helperBFS(const Config&,
+                const unordered_set<int>&,
+                unordered_multimap<int, int>&,
+                map<int, int>&);
+
+  void getLargestClts(const int&,
+                      const int&,
+                      unordered_multimap<int, int> &clt2Atm,
+                      map<int, int> &atm2Clt);
+
+  void helperAddFNNs(const Config&,
+                     unordered_multimap<int, int>&,
+                     map<int, int>&);
+  // This function returns X largest clusters with FNBs
+  map<int, int> findClusters(Config&, const int&, const string&);
+
+
 };
 
 #include "Elem.inl"
