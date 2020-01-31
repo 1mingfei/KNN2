@@ -1,0 +1,6 @@
+============example1================
+mode clusterCount
+initconfig 377000000.cfg
+solventAtomType Al
+numClustersKept 5
+====================================
