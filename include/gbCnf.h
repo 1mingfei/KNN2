@@ -9,6 +9,7 @@ using arma::vec;
 using std::vector;
 using std::pair;
 using std::map;
+using std::unordered_multimap;
 
 using keras2cpp::Model;
 using keras2cpp::Tensor;
@@ -31,7 +32,9 @@ public:
   double findMass(string);
   void writeLmpData(Config&, string);
   //void writeLmpDataDebug(Config&, string);
-  void writeCfgData(const Config& c, string);
+  void writeCfgData(const Config&, string);
+  void writeCfgAux(const Config&, const vector<int>&, string);
+
   void writePOSCARVis(Config&, string, string);
   map<string, int> writePOSCAR(Config&, string);
 
@@ -97,6 +100,28 @@ public:
                                    Model&, \
                                    const pair<int, int>&);
 
+  /* findClusters.cpp */
+
+  // This function give a set which contains all the solute atoms ID
+  unordered_set<int> findSoluteAtoms(const Config&, const string&);
+
+  // This is a helper function which is to find X clusters after
+  // removing a certain element and returns X.
+  int helperBFS(const Config&,
+                const unordered_set<int>&,
+                unordered_multimap<int, int>&,
+                map<int, int>&);
+
+  void getLargestClts(const int&,
+                      const int&,
+                      unordered_multimap<int, int> &clt2Atm,
+                      map<int, int> &atm2Clt);
+
+  void helperAddFNNs(const Config&,
+                     unordered_multimap<int, int>&,
+                     map<int, int>&);
+  // This function returns X largest clusters with FNBs
+  map<int, int> findAtm2Clts(Config&, const int&, const string&);
 };
 
 #include "Elem.inl"

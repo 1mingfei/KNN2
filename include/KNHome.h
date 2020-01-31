@@ -16,6 +16,8 @@
 #include <unordered_map>
 #include <set>
 #include <array>
+#include <vector>
+#include <queue>
 #include <algorithm>
 #include "armadillo"
 #include "gbDef.h"
@@ -32,6 +34,9 @@ using std::cout;
 using std::endl;
 using std::ifstream;
 using std::map;
+using std::multimap;
+using std::unordered_multimap;
+using std::queue;
 using std::move;
 using std::ofstream;
 using std::setprecision;
@@ -135,6 +140,8 @@ public:
   void LSKMCOneRun(gbCnf&);
   void LSKMCSimulation(gbCnf&);
 
+  /* findClusters */
+  void findClts(gbCnf&);
 };
 
 #endif

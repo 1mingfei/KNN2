@@ -87,6 +87,10 @@ void KNHome::readParam() {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("LS_output_cfg_Criteria")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("numClustersKept")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("solventAtomType")) {
+      sparams[segs[0]] = segs[1];
     }
 
   }
