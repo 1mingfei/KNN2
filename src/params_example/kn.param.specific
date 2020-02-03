@@ -7,5 +7,6 @@ elems Al Sn X Zn
 nums  205 10 1 40
 NConfigs 5
 NBarriers 5
+randSeed 1234
 POT /Users/mingfei/work/pot_old/potpaw_PBE/elements/
 ====================================

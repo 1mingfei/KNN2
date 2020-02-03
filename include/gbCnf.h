@@ -3,7 +3,9 @@
 
 #include "armadillo"
 #include "KNHome.h"
+#include "FCCEmbededCluster.h"
 #include <math.h>
+
 using arma::mat;
 using arma::vec;
 using std::vector;
@@ -65,17 +67,24 @@ public:
    * elems stores name of elements
    * nums stores their corresponding numbers
    */
-  void getRandConf(Config& cnf, const vector<string>& elems,\
+  void getRandConf(Config& cnf, \
+                   const vector<string>& elems, \
                    const vector<int>& nums);
 
-  void getRandConfUniformDist(Config& cnf, vector<string>& elems,\
+  void getRandConfUniformDist(Config& cnf, \
+                              vector<string>& elems, \
                               const vector<int>& nums);
+
   vector<pair<int, int>> getPairToSwap(Config&);
+
   Config swapPair(const Config&, pair<int, int>);
 
   /* KNEncodeCart.cpp */
-  vector<vector<string>> encodeConfig(Config&, const vector<int>&, const double,\
-                                      vector<string>&, const vector<int>&,\
+  vector<vector<string>> encodeConfig(Config&, \
+                                      const vector<int>&, \
+                                      const double, \
+                                      vector<string>&, \
+                                      const vector<int>&, \
                                       const bool);
 
   vector<pair<int, int>> readPairs(string);
@@ -122,6 +131,12 @@ public:
                      map<int, int>&);
   // This function returns X largest clusters with FNBs
   map<int, int> findAtm2Clts(Config&, const int&, const string&);
+
+  /* KNOrdered.cpp */
+  Config embedCluster(const Config&, \
+                      const pair<string, string>&, \
+                      const FCCEmbededCluster::occupInfo_256&, \
+                      const int&);
 };
 
 #include "Elem.inl"

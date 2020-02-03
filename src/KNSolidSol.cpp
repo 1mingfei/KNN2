@@ -173,7 +173,11 @@ void KNHome::createPreNEB() {
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
     std::cout << "generating inital and final structures\n";
-  if (subMode == "random") {
+  if (subMode == "ordered_cluster") {
+
+    createOrdered(cnfModifier, dupFactors, LC, POT);
+
+  } else if (subMode == "random") {
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;
     int nCycle = remainder ? (quotient + 1) : quotient;
@@ -230,8 +234,9 @@ void KNHome::createPreNEB() {
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                       name1 + "POSCAR");
-          cout << "config " << i << " end " << k << " pair: " << pairs[k].first\
-               << " "<< pairs[k].second << "\n";
+          cout << "config " << i << " end " << k \
+               << " pair: " << pairs[k].first \
+               << " " << pairs[k].second << "\n";
           prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
@@ -316,8 +321,8 @@ void KNHome::createPreNEB() {
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                             name1 + "POSCAR");
-          cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
-               << " "<< pairs[k].second << "\n";
+          cout << "config " << i << " end " << k << " pair: " \
+               << pairs[k].first << " "<< pairs[k].second << "\n";
           prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
@@ -378,8 +383,8 @@ void KNHome::createPreNEB() {
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                             name1 + "POSCAR");
-          cout << "config " << i << " end " << k << " pair: " << pairs[k].first \
-               << " "<< pairs[k].second << "\n";
+          cout << "config " << i << " end " << k << " pair: " \
+               << pairs[k].first << " "<< pairs[k].second << "\n";
           prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }

@@ -28,6 +28,7 @@
 #include "model.h"
 #include "LSKMC.h"
 #include "KNUtility.h"
+#include "FCCEmbededCluster.h"
 
 using std::cerr;
 using std::cout;
@@ -112,9 +113,25 @@ public:
 
   /* KNSolidSol.cpp */
   void createPreNEB();
+
+  /* KNOrdered.cpp */
+  void createOrdered(gbCnf&, \
+                     const vector<int>&, \
+                     const double&, \
+                     const string&);
+
+  void createOrderedSingle(const int&, \
+                           gbCnf&, \
+                           const vector<int>&, \
+                           const double&, \
+                           const string&, \
+                           const FCCEmbededCluster::occupInfo_256&);
+
   /* KNvasp.cpp */
-  void prepVASPFiles(const string&, const vector<int>&, \
-                     const map<string, int>&, const string&);
+  void prepVASPFiles(const string&, \
+                     const vector<int>&, \
+                     const map<string, int>&, \
+                     const string&);
   /* KNEncode.cpp */
   void KNEncode();
   vector<vector<int>> readPairs(const string&);
