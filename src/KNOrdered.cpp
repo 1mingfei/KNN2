@@ -3,7 +3,8 @@
 #include "FCCEmbededCluster.h"
 
 
-void KNHome::createOrderedSingle(const int& i, \
+int KNHome::createOrderedSingle(const int& i, \
+                         int index, \
                          gbCnf& cnfModifier, \
                          const vector<int>& dupFactors, \
                          const double& LC, \
@@ -11,9 +12,6 @@ void KNHome::createOrderedSingle(const int& i, \
                          const FCCEmbededCluster::occupInfo_256& o256) {
 
   Config c0 = cnfModifier.getFCCConv(LC, "Al", dupFactors);
-
-  // cnfModifier.writeCfgData(c0, to_string(i) + ".cfg");
-
   vector<pair<string, string>> elemPairs = {
                                             {"Al", "Mg"}, \
                                             {"Al", "Zn"}, \
@@ -21,11 +19,11 @@ void KNHome::createOrderedSingle(const int& i, \
                                            };
 
   const vector<pair<int, int>>& jumpPairsRef = o256.jumpPairs[i];
-  int index = 0, subIndex = 0;  // config and end index, respectively
+  int subIndex = 0;
   for (const auto& elemPair : elemPairs) {
 
     Config c1 = cnfModifier.embedCluster(c0, elemPair, o256, i);
-    cnfModifier.writeCfgData(c1, "L10_" + to_string(index) + ".cfg");
+    cnfModifier.writeCfgData(c1, to_string(index) + ".cfg");
     Config cS = c0;
 
     for (int j = 0; j < jumpPairsRef.size(); ++j) {
@@ -33,7 +31,7 @@ void KNHome::createOrderedSingle(const int& i, \
       string tmpType;
       if ( (j == 0) || \
            ((j > 0) && (jumpPairsRef[j].first != jumpPairsRef[j-1].first)) ) {
-        // cout << j << " " << jumpPairsRef[j].first << endl;
+
         string baseDir = "config" + to_string(index) + "/s";
         string mkBaseDir = "mkdir -p " + baseDir;
         const char *cmkBaseDir = mkBaseDir.c_str();
@@ -52,6 +50,8 @@ void KNHome::createOrderedSingle(const int& i, \
                                      "/s/start.cfg");
 
         std::sort(cS.atoms.begin(), cS.atoms.end());
+        cnfModifier.cnvprl2pst(cS);
+        cnfModifier.perturb(cS);
         map<string, int> elemName = cnfModifier.writePOSCAR(cS, \
                               "config" + to_string(index) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, elemName, POT);
@@ -79,12 +79,17 @@ void KNHome::createOrderedSingle(const int& i, \
       cnfModifier.writeCfgData(cF, name1 + "end.cfg");
 
       std::sort(cF.atoms.begin(), cF.atoms.end());
-
+      cnfModifier.cnvprl2pst(cF);
+      cnfModifier.perturb(cF);
       map<string, int> elemName = cnfModifier.writePOSCAR(cF, \
                                                   name1 + "POSCAR");
-      cout << "config " << index << " end " << subIndex \
-           << " pair: " << jumpPairsRef[j].first \
-           << " " << jumpPairsRef[j].second << "\n";
+
+      ofstream ofs("log.txt", std::ofstream::app);
+
+      ofs << "config " << index << " end " << subIndex \
+          << " pair: " << jumpPairsRef[j].first \
+          << " " << jumpPairsRef[j].second << "\n";
+      ofs.close();
 
       prepVASPFiles(name1, dupFactors, elemName, POT);
 
@@ -95,6 +100,7 @@ void KNHome::createOrderedSingle(const int& i, \
       }
     }
   }
+  return index;
 }
 
 void KNHome::createOrdered(gbCnf& cnfModifier, \
@@ -113,7 +119,10 @@ void KNHome::createOrdered(gbCnf& cnfModifier, \
   //     createOrderedSingle(i, cnfModifier, dupFactors, LC, POT);
   //   }
   // }
-  createOrderedSingle(0, cnfModifier, dupFactors, LC, POT, o256);
+  int index = 0;
+  for (int i = 0; i < o256.mapping.size(); ++i)
+    index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
+                                LC, POT, o256);
 
 }
 

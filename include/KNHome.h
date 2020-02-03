@@ -120,7 +120,8 @@ public:
                      const double&, \
                      const string&);
 
-  void createOrderedSingle(const int&, \
+  int createOrderedSingle(const int&, \
+                           int, \
                            gbCnf&, \
                            const vector<int>&, \
                            const double&, \
