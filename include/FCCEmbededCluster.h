@@ -10,7 +10,7 @@ struct occupInfo_256 {
   vector<vector<pair<int, int>>> jumpPairs;
 
   occupInfo_256() {
-    mapping = vector<vector<int>> (4, vector<int> (256, 0) );
+    mapping = vector<vector<int>> (6, vector<int> (256, 0) );
     // possibleJumpPairs = vector<vector<pair<int, int>>> (7, \
     //                            vector<pair<int, int>>);
 
@@ -113,7 +113,39 @@ struct occupInfo_256 {
       {75, 70}
       }) );
 
-
+    // Z1
+    for (int i : {0,1,4,5,16,17,20,21})
+      mapping[4][i] = 1;
+    for (int i : {3,19,2,18,7,23,6,22,67,83,66,82,71,87,70,86,64,68,65,69,80,84,81,85})
+      mapping[4][i] = 2;
+    jumpPairs.emplace_back(vector<pair<int, int>> ({ {82, 83},
+                                                     {82, 80},
+                                                     {82, 148},
+                                                     {83, 160},
+                                                     {83, 81},
+                                                     {83, 144},
+                                                     {18, 23},
+                                                     {18, 84},
+                                                     {18, 19} }) );
+    // L12*
+    for (int i : {0,16,64,80,7,11,23,27,12,28,76,92})
+      mapping[5][i] = 1;
+    for (int i : {3,19,67,83,17,1,2,18,65,81,66,82,4,20,68,84,87,71,5,21,6,
+                  22,69,70,85,86,8,24,72,88,75,91,9,10,25,26,73,74,89,90,15,
+                  31,79,95,94,93,78,77,30,29,14,13})
+      mapping[5][i] = 2;
+    jumpPairs.emplace_back(vector<pair<int, int>> ({ {82, 83},
+                                                     {82, 80},
+                                                     {82, 65},
+                                                     {82,84},
+                                                     {82, 148},
+                                                     {83, 160},
+                                                     {83, 81},
+                                                     {83,80},
+                                                     {79,137},
+                                                     {79,76},
+                                                     {79,141},
+                                                     {79,74} }) );
   };
   ~occupInfo_256() {};
 };
