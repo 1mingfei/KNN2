@@ -89,6 +89,7 @@ int KNHome::createOrderedSingle(const int& i, \
       ofs << "config " << index << " end " << subIndex \
           << " pair: " << jumpPairsRef[j].first \
           << " " << jumpPairsRef[j].second << "\n";
+
       ofs.close();
 
       prepVASPFiles(name1, dupFactors, elemName, POT);

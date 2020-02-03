@@ -234,9 +234,15 @@ void KNHome::createPreNEB() {
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                       name1 + "POSCAR");
-          cout << "config " << i << " end " << k \
-               << " pair: " << pairs[k].first \
-               << " " << pairs[k].second << "\n";
+
+          ofstream ofs("log.txt", std::ofstream::app);
+
+          ofs << "config " << i << " end " << k \
+              << " pair: " << pairs[k].first \
+              << " " << pairs[k].second << "\n";
+
+          ofs.close();
+
           prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
@@ -321,8 +327,15 @@ void KNHome::createPreNEB() {
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                             name1 + "POSCAR");
-          cout << "config " << i << " end " << k << " pair: " \
-               << pairs[k].first << " "<< pairs[k].second << "\n";
+
+          ofstream ofs("log.txt", std::ofstream::app);
+
+          ofs << "config " << i << " end " << k \
+              << " pair: " << pairs[k].first \
+              << " " << pairs[k].second << "\n";
+
+          ofs.close();
+
           prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
@@ -383,8 +396,15 @@ void KNHome::createPreNEB() {
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                             name1 + "POSCAR");
-          cout << "config " << i << " end " << k << " pair: " \
-               << pairs[k].first << " "<< pairs[k].second << "\n";
+
+          ofstream ofs("log.txt", std::ofstream::app);
+
+          ofs << "config " << i << " end " << k \
+              << " pair: " << pairs[k].first \
+              << " " << pairs[k].second << "\n";
+
+          ofs.close();
+
           prepVASPFiles(name1, dupFactors, elemName, POT);
         }
       }
