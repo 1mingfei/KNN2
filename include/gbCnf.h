@@ -67,13 +67,15 @@ public:
    * elems stores name of elements
    * nums stores their corresponding numbers
    */
-  void getRandConf(Config& cnf, \
-                   const vector<string>& elems, \
-                   const vector<int>& nums);
+  void getRandConf(Config&, \
+                   std::default_random_engine&, \
+                   const vector<string>&, \
+                   const vector<int>&);
 
-  void getRandConfUniformDist(Config& cnf, \
-                              vector<string>& elems, \
-                              const vector<int>& nums);
+  void getRandConfUniformDist(Config&, \
+                              std::default_random_engine&, \
+                              vector<string>&, \
+                              const vector<int>&);
 
   vector<pair<int, int>> getPairToSwap(Config&);
 
@@ -89,7 +91,7 @@ public:
 
   vector<pair<int, int>> readPairs(string);
   Config rotateJumpPair(Config&, const vector<int>, const Config&);
-  Config rotateConfig(Config& cfgOld, const vector<double>& v2);
+  Config rotateConfig(Config&, const vector<double>&);
 
   vec getCenterShift(Config&);
   void shiftToCenter(Config&, vector<double>&);
@@ -116,18 +118,18 @@ public:
 
   // This is a helper function which is to find X clusters after
   // removing a certain element and returns X.
-  int helperBFS(const Config&,
-                const unordered_set<int>&,
-                unordered_multimap<int, int>&,
+  int helperBFS(const Config&, \
+                const unordered_set<int>&, \
+                unordered_multimap<int, int>&, \
                 map<int, int>&);
 
-  void getLargestClts(const int&,
-                      const int&,
-                      unordered_multimap<int, int> &clt2Atm,
-                      map<int, int> &atm2Clt);
+  void getLargestClts(const int&, \
+                      const int&, \
+                      unordered_multimap<int, int>&, \
+                      map<int, int>&);
 
-  void helperAddFNNs(const Config&,
-                     unordered_multimap<int, int>&,
+  void helperAddFNNs(const Config&, \
+                     unordered_multimap<int, int>&, \
                      map<int, int>&);
   // This function returns X largest clusters with FNBs
   map<int, int> findAtm2Clts(Config&, const int&, const string&);

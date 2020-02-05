@@ -133,6 +133,7 @@ public:
                      const vector<int>&, \
                      const map<string, int>&, \
                      const string&);
+
   /* KNEncode.cpp */
   void KNEncode();
   vector<vector<int>> readPairs(const string&);
@@ -145,9 +146,16 @@ public:
   void getVacList();
   void KMCSimulation(gbCnf&);
   void buildEmbedding();
-  vector<double> calRate(Config&, const double&, gbCnf&, pair<int, int>);
+  vector<double> calRate(Config&, \
+                         const double&, \
+                         gbCnf&, \
+                         pair<int, int>);
+
   void buildEventList(gbCnf&);
-  void updateEventList(gbCnf&, const pair<int, int>&, const int&);
+  void updateEventList(gbCnf&, \
+                       const pair<int, int>&, \
+                       const int&);
+
   KMCEvent selectEvent(int&);
   void updateEnergy(const int&);
 

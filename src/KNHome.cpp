@@ -43,7 +43,6 @@ KNHome::KNHome(int argc, char* argv[]) {
   initParam();
 
   if ((sparams["mode"]) == "generate") {
-    // srand(time(NULL) + me);
     srand(iparams["randSeed"] + me);
     createPreNEB();
   } else if (sparams["mode"] == "encode") {

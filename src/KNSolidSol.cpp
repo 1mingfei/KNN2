@@ -3,9 +3,6 @@
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 // random generator function:
-inline int myRandom (int i) {
-  return std::rand() % i;
-}
 inline int myRandInt(int minVal, int maxVal) {
   return minVal + (std::rand() % static_cast<int>(maxVal - minVal + 1));
 }
@@ -35,8 +32,9 @@ Config gbCnf::swapPair(const Config& c0, pair<int, int> atomPair) {
 }
 
 void gbCnf::getRandConf(Config& cnf,\
-                                const vector<string>& elems,\
-                                const vector<int>& nums) {
+                        std::default_random_engine& rng, \
+                        const vector<string>& elems,\
+                        const vector<int>& nums) {
   // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
   vector<int> TPArr(nums[0], 0);
   for (unsigned int i = 1; i < nums.size(); ++i) {
@@ -44,8 +42,7 @@ void gbCnf::getRandConf(Config& cnf,\
       TPArr.push_back(i);
     }
   }
-  auto rng = std::default_random_engine {};
-  // std::random_shuffle(TPArr.begin(), TPArr.end(), myRandom);
+
   std::shuffle(std::begin(TPArr), std::end(TPArr), rng);
 
   for (unsigned int i = 0; i < TPArr.size(); ++i) {
@@ -64,8 +61,9 @@ void gbCnf::getRandConf(Config& cnf,\
 }
 
 void gbCnf::getRandConfUniformDist(Config& cnf,\
-                                           vector<string>& elems,\
-                                           const vector<int>& nums) {
+                                   std::default_random_engine& rng, \
+                                   vector<string>& elems,\
+                                   const vector<int>& nums) {
   // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
   /* initialize atom type array */
   vector<int> TPArr(cnf.natoms, 0);
@@ -128,7 +126,6 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
   for (unsigned int i = resType.size(); i < (cnf.natoms - NBLSize - 1); ++i) {
     resType.push_back(0);
   }
-  auto rng = std::default_random_engine {};
   std::shuffle(std::begin(nblType), std::end(nblType), rng);
   std::shuffle(std::begin(resType), std::end(resType), rng);
 
@@ -169,6 +166,7 @@ void KNHome::createPreNEB() {
   int NBars = iparams["NBarriers"];
   const string& subMode = sparams["method"];
   const string& POT = sparams["POT"];
+  std::default_random_engine rng(std::random_device{}() + me);
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
@@ -186,7 +184,7 @@ void KNHome::createPreNEB() {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
 
         Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
-        cnfModifier.getRandConf(c0, elems, nums);
+        cnfModifier.getRandConf(c0, rng, elems, nums);
         Config c0copy = c0;
 
         string baseDir = "config" + to_string(i) + "/s";
@@ -200,6 +198,13 @@ void KNHome::createPreNEB() {
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
                                      "/s/start.cfg");
+
+        // add small perturbation to break perfect fcc symmetry
+        // this method is about to increase the chance
+        // to find lower ground states for VASP software
+        cnfModifier.cnvprl2pst(c0);
+        cnfModifier.perturb(c0);
+
         map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
                               "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, elemName, POT);
@@ -214,7 +219,7 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        auto rng = std::default_random_engine {};
+        // auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
 
         int end = MIN(NBars, pairs.size());
@@ -232,6 +237,13 @@ void KNHome::createPreNEB() {
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
           string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
+
+          // add small perturbation to break perfect fcc symmetry
+          // this method is about to increase the chance
+          // to find lower ground states for VASP software
+          cnfModifier.cnvprl2pst(c1);
+          cnfModifier.perturb(c1);
+
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                       name1 + "POSCAR");
 
@@ -280,7 +292,7 @@ void KNHome::createPreNEB() {
         auto it = numsVec.insert(numsVec.begin(), (c0.natoms - others));
 
         /* get rand ints end */
-        cnfModifier.getRandConfUniformDist(c0, elems, numsVec);
+        cnfModifier.getRandConfUniformDist(c0, rng, elems, numsVec);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
         string baseDir = "config" + to_string(i) + "/s";
@@ -293,6 +305,13 @@ void KNHome::createPreNEB() {
         }
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/s/start.cfg");
+
+        // add small perturbation to break perfect fcc symmetry
+        // this method is about to increase the chance
+        // to find lower ground states for VASP software
+        cnfModifier.cnvprl2pst(c0);
+        cnfModifier.perturb(c0);
+
         map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
                                         "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, elemName, POT);
@@ -307,7 +326,7 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        auto rng = std::default_random_engine {};
+        // auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
 
         int end = MIN(NBars, pairs.size());
@@ -325,6 +344,13 @@ void KNHome::createPreNEB() {
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
           string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
+
+          // add small perturbation to break perfect fcc symmetry
+          // this method is about to increase the chance
+          // to find lower ground states for VASP software
+          cnfModifier.cnvprl2pst(c1);
+          cnfModifier.perturb(c1);
+
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                             name1 + "POSCAR");
 
@@ -348,7 +374,7 @@ void KNHome::createPreNEB() {
       for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
         if ((i % nProcs != me) || (i >= NConfigs)) continue;
         Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
-        cnfModifier.getRandConfUniformDist(c0, elems, nums);
+        cnfModifier.getRandConfUniformDist(c0, rng, elems, nums);
         Config c0copy = c0; //because write POS will sort c0, hence change index
 
         string baseDir = "config" + to_string(i) + "/s";
@@ -362,6 +388,13 @@ void KNHome::createPreNEB() {
 
         cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
                                      "/s/start.cfg");
+
+        // add small perturbation to break perfect fcc symmetry
+        // this method is about to increase the chance
+        // to find lower ground states for VASP software
+        cnfModifier.cnvprl2pst(c0);
+        cnfModifier.perturb(c0);
+
         map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
                                         "config" + to_string(i) + "/s/POSCAR");
         prepVASPFiles(baseDir, dupFactors, elemName, POT);
@@ -376,13 +409,13 @@ void KNHome::createPreNEB() {
         }
 #endif
 
-        auto rng = std::default_random_engine {};
+        // auto rng = std::default_random_engine {};
         std::shuffle(std::begin(pairs), std::end(pairs), rng);
 
         int end = MIN(NBars, pairs.size());
         for (unsigned int k = 0; k < end; ++k) {
 
-          string subDir = "config" + to_string(i) + "/f_" + to_string(k);
+          string subDir = "config" + to_string(i) + "/e_" + to_string(k);
           const char *csubDir = subDir.c_str();
           const int dir_err = mkdir(csubDir, \
                                     S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -392,8 +425,15 @@ void KNHome::createPreNEB() {
           }
 
           Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/f_" + to_string(k) + "/";
+          string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
           cnfModifier.writeCfgData(c1, name1 + "end.cfg");
+
+          // add small perturbation to break perfect fcc symmetry
+          // this method is about to increase the chance
+          // to find lower ground states for VASP software
+          cnfModifier.cnvprl2pst(c1);
+          cnfModifier.perturb(c1);
+
           map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
                                                             name1 + "POSCAR");
 

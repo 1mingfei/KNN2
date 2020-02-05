@@ -100,7 +100,7 @@ private:
   void updateTime();
 
   // only conduct when trap states are valid
-  bool validTrap(const int& vac);
+  bool validTrap(const int&);
 
 public:
   LSKMC(gbCnf&, \
@@ -127,7 +127,11 @@ public:
   static void test_vvd2mat();
   // watch out, this function need to be updated if multiple vacacies is in use
   void searchStatesDFS();
-  void helperDFS(const int&, const int&, unordered_set<int>&);
+
+  void helperDFS(const int&, \
+                 const int&, \
+                 unordered_set<int>&);
+
   // output surrouding trap states for one vacancy
   void outputTrapCfg(const int&, const string&);
   void outputAbsorbCfg(const int&, const string&);
