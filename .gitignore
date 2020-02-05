@@ -1,4 +1,7 @@
 examples/
 bin/*
 obj/*
+lib/*
 prod/
+build
+.idea
