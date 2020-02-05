@@ -32,7 +32,7 @@ public:
 
   ~KNAtom(){};
 
-  bool operator<(const KNAtom &b) const { return tp < b.tp; }
+  bool operator<(const KNAtom& b) const { return tp < b.tp; }
 };
 
 #endif

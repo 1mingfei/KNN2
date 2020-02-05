@@ -1,8 +1,6 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #define KP 9
-// const string PBE="/Users/mingfei/work/pot_old/potpaw_PBE/elements/";
-//const string PBE="/home/mingfei/Work/pot_old/potpaw_PBE/elements/";
 
 inline void prepINCAR(const string& path) {
   string fnm = path + "/INCAR";
@@ -41,8 +39,9 @@ inline void prepKPOINTS(const string& path, const vector<int>& dupFac) {
   ofs << "Automatic mesh\n";
   ofs << "0             \n";
   ofs << "Monkhorst-Pack\n";
-  ofs << KP/dupFac[X] << "   " << KP/dupFac[Y] << "   " << KP/dupFac[Z] << "\n";
-  //ofs << "1    1    1   \n";
+  ofs << KP/dupFac[X] \
+      << "   " << KP/dupFac[Y] \
+      << "   " << KP/dupFac[Z] << "\n";
   ofs << "0.   0.   0.  \n";
 }
 
