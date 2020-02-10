@@ -48,11 +48,12 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   buildEmbedding();
   E_tot = 0.0;
   string fname = sparams["initconfig"];
-  RCut = dparams["RCut"];
+  RCut = (dparams["RCut"] == 0.0) ? 3.0 : dparams["RCut"];
   RCut2 = 1.65 * RCut;
   maxIter = iparams["maxIter"];
-  nTallyConf = iparams["nTallyConf"];
-  nTallyOutput = iparams["nTallyOutput"];
+  nTallyConf = (iparams["nTallyConf"] == 0) ? 1000 : iparams["nTallyConf"];
+  nTallyOutput = \
+           (iparams["nTallyOutput"] == 0) ? 1000 : iparams["nTallyOutput"];
   EDiff = sparams["EDiff"];
   ECutoff = dparams["ECutoff"];
 
