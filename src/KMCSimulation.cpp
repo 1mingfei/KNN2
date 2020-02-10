@@ -53,7 +53,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   maxIter = iparams["maxIter"];
   nTallyConf = iparams["nTallyConf"];
   nTallyOutput = iparams["nTallyOutput"];
-  switchEngy = bparams["EDiff"];
+  EDiff = sparams["EDiff"];
   ECutoff = dparams["ECutoff"];
 
   trapStep = 0;
@@ -96,7 +96,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   /* reading the model binary file, initialize the model */
   string modelFname = sparams["kerasModelBarrier"];
   k2pModelB = Model::load(modelFname);
-  if (switchEngy) {
+  if (EDiff == "model") {
     modelFname = sparams["kerasModelEDiff"];
     k2pModelD = Model::load(modelFname);
   }
@@ -179,7 +179,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                 temperature, \
                                 RCut2, \
-                                switchEngy, \
+                                EDiff, \
                                 embedding, \
                                 k2pModelB, \
                                 k2pModelD, \
@@ -242,7 +242,7 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
       vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                                 temperature, \
                                                 RCut2, \
-                                                switchEngy, \
+                                                EDiff, \
                                                 embedding, \
                                                 k2pModelB, \
                                                 k2pModelD, \
@@ -357,7 +357,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
                               const double& T, \
                               const double& RCut2, \
-                              const bool& switchEngy, \
+                              const string& EDiff, \
                               unordered_map<string, double>& embedding, \
                               Model& k2pModelB, \
                               Model& k2pModelD, \
@@ -403,7 +403,8 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
   for (int i = 0; i < nRow; ++i)
     for (int j = 0; j < nCol; ++j)
       in.data_[i * nCol + j] = input[i][j];
-  if (switchEngy) {
+
+  if (EDiff == "model") {
     Tensor outB = k2pModelB(in);
     Tensor outD = k2pModelD(in);
 
@@ -417,6 +418,30 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     tmpEdiff /= static_cast<double>(nRow);
 
     return {deltaE, tmpEdiff};
+  }  else if (EDiff == "barrier"){
+    Tensor outB = k2pModelB(in);
+
+    double deltaE = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+
+    Tensor inBack{ nRow, nCol };
+    for (int i = 0; i < nRow; ++i) {
+      inBack.data_[i * nCol] = input[i][0];
+      for (int j = 1; j < nCol; ++j)
+        inBack.data_[i * nCol + j] = input[i][nCol - 1 -j];
+    }
+    Tensor outBBack = k2pModelB(inBack);
+
+    double deltaEBack = 0.0;
+    for (int i = 0; i < nRow; ++i) {
+      deltaEBack += static_cast<double>(outBBack(i, 0));
+    }
+    deltaEBack /= static_cast<double>(nRow);
+
+    return {deltaE, deltaE - deltaEBack};
   } else {
     Tensor outB = k2pModelB(in);
 
@@ -425,6 +450,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
       deltaE += static_cast<double>(outB(i, 0));
     }
     deltaE /= static_cast<double>(nRow);
+
     return {deltaE, 0.0};
   }
 }

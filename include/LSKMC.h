@@ -77,6 +77,8 @@ private:
   int& nTallyConf;
   int& nTallyOutput;
 
+  string& EDiff;
+
   vvd VVD_M, VVD_R, VVD_T;
   vd VD_Tau;
 
@@ -107,6 +109,7 @@ public:
         Config&, \
         unordered_map<string, double>&, \
         vector<int>&, \
+        string& , \
         Model&, \
         Model&, \
         double&, \

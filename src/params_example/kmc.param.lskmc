@@ -5,7 +5,7 @@ trapStepCriteria 50
 oneTrapTimeCriteria 5e-9
 initconfig Zn.cfg
 kerasModelBarrier ../../../external/keras.model.1
-EDiff false
+EDiff barrier   #model off
 kerasModelEDiff ../../../external/keras.model.2
 RCut 3.0
 maxIter 400

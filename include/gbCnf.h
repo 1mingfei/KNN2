@@ -105,7 +105,7 @@ public:
   vector<double> calBarrierAndEdiff(Config&, \
                                    const double&, \
                                    const double&, \
-                                   const bool&, \
+                                   const string&, \
                                    unordered_map<string, double>&, \
                                    Model&, \
                                    Model&, \
