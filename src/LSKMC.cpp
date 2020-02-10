@@ -14,6 +14,7 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              Config& c0In, \
              unordered_map<string, double>& embeddingIn, \
              vector<int>& vacListIn, \
+             string& EDiffIn, \
              Model& k2pModelBIn, \
              Model& k2pModelDIn, \
              double& RCutIn, \
@@ -33,6 +34,7 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     c0(c0In), \
     embedding(embeddingIn), \
     vacList(vacListIn), \
+    EDiff(EDiffIn), \
     k2pModelB(k2pModelBIn), \
     k2pModelD(k2pModelDIn), \
     RCut(RCutIn), \
@@ -317,7 +319,7 @@ void LSKMC::getOrPutEvent(const int& i, const int& j) {
     vector<double> currBarr = cnfModifier.calBarrierAndEdiff(c0, \
                                           temperature, \
                                           RCut2, \
-                                          false, \
+                                          EDiff, \
                                           embedding, \
                                           k2pModelB, \
                                           k2pModelD, \
@@ -447,6 +449,7 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   c0, \
                   embedding, \
                   vacList, \
+                  EDiff, \
                   k2pModelB, \
                   k2pModelD, \
                   RCut, \
@@ -509,6 +512,7 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                 c0, \
                 embedding, \
                 vacList, \
+                EDiff, \
                 k2pModelB, \
                 k2pModelD, \
                 RCut, \

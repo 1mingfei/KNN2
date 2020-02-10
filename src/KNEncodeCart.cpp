@@ -105,8 +105,6 @@ inline mat calculateRotateMatrix(const vec& A, const vec& B) {
   return R;
 }
 
-
-
 inline double getDistPrlDirect(double locA, double locB) {
   double A = locA;
   double B = locB;
@@ -199,18 +197,9 @@ mat gbCnf::getJumpCoor(const Config& cnf, \
   vec v3a(3);
   KNAtom atm = ref.atoms[pair[0]];
 
-// #ifdef DEBUG
-//   cout << atm.prl[0] << " " << atm.prl[1] << " " << atm.prl[2] << endl;
-// #endif
-
   for (int i = 0; i < atm.NBL.size(); ++i) {
     int ii = atm.NBL[i];
     KNAtom nbAtm1 = ref.atoms[ii];
-
-// #ifdef DEBUG
-//     cout << nbAtm1.prl[0] << " " << nbAtm1.prl[1] \
-//          << " " << nbAtm1.prl[2] << endl;
-// #endif
 
     vec v2tmp(3);
 
@@ -218,19 +207,15 @@ mat gbCnf::getJumpCoor(const Config& cnf, \
           << getDistPrlDirect(nbAtm1.prl[1], atm.prl[1]) \
           << getDistPrlDirect(nbAtm1.prl[2], atm.prl[2]);
 
-
-
     double dotProd = dot(v1a, v2tmp);
-
-// #ifdef DEBUG
-//     cout << "dot : " << dotProd << endl;
-// #endif
 
     if (abs(dotProd) < 1e-6) {
       double dist = calDistPrl(length, atm, nbAtm1);
+
 #ifdef DEBUG
       cout << dist << endl;
 #endif
+
       if (dist < 3.0) {
         v2a = arma::normalise(v2tmp);
         break;
@@ -367,11 +352,12 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
 }
 
 vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
-                                                   const vector<int>& pair, \
-                                                   const double RCut, \
-                                                   vector<string>& codes, \
-                                                   const vector<int>& infoPair, \
-                                                   const bool calNBL) {
+                                           const vector<int>& pair, \
+                                           const double RCut, \
+                                           vector<string>& codes, \
+                                           const vector<int>& infoPair, \
+                                           const bool calNBL) {
+
   // assert(pair.size() == 2); //the size of input pair must equals 2
   if (calNBL)
     getNBL(cnf, RCut);
@@ -430,10 +416,10 @@ vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
   for (unsigned int i = 0 ; i < tmpId.size(); ++i) {
     cNew.atoms.push_back(cnf.atoms[tmpId[i]]);
   }
+
 #ifdef DEBUG
   writeCfgData(cNew, "debug_encode_before.cfg");
 #endif
-
 
   Config cfgRotated = rotateJumpPair(cNew, pair, cnf);
   vector<int> resId;
@@ -444,15 +430,13 @@ vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
     resId.push_back(atm.id);
     codes.push_back(atm.tp);
   }
+
 #ifdef DEBUG
   writeCfgData(cfgRotated, "debug_encode_after.cfg");
   writeVector<int>("debug_ID.txt", infoPair[0], infoPair[1],\
                   resId);
 #endif
   res.push_back(codes);
-  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-  //                     codes);
-
 
   // 2 fold rotation
   vector<double> v2 = {1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0};
@@ -471,8 +455,6 @@ vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
                   resId);
 #endif
   res.push_back(codes2Fold);
-  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-  //                     codes2Fold);
 
   // mirror y
   v2 = {1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0};
@@ -491,8 +473,6 @@ vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
                   resId);
 #endif
   res.push_back(codesMirrorY);
-  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-  //                     codesMirrorY);
 
   // mirror z
   v2 = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0};
@@ -511,8 +491,6 @@ vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
                   resId);
 #endif
   res.push_back(codesMirrorZ);
-  // writeVector<string>("encode.symm.txt", infoPair[0], infoPair[1],\
-  //                     codesMirrorZ);
 
   return res;
 }
@@ -534,15 +512,6 @@ Config gbCnf::rotateJumpPair(Config& cnf, \
   m2a = arma::normalise(m2a);
 
   mat R = calculateRotateMatrix(m1a, m2a);
-
-// #ifdef DEBUG
-//   cout << "initial jump direction:\n";
-//   m1a.print();
-//   cout << "reference jump direction:\n";
-//   m2a.print();
-//   cout << "rotation matrix:\n";
-//   R.print();
-// #endif
 
   Config res = cnf;
 

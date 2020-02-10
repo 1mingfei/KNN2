@@ -127,8 +127,6 @@ map<string, int> gbCnf::countPairs(Config& cnf, \
     }
   }
 
-
-
   // for (int i = 0; i < 2; ++i) {
   //   KNAtom atm = cnf.atoms[pair[i]];
   //   for (const int ii : atm.NBL) {

@@ -84,7 +84,7 @@ private:
   unordered_map<string, double> embedding;
   unordered_map<string, int> eventListMap;
 
-  bool switchEngy;
+  string EDiff;
 
   bool isTrapped(const double&);
   double updateTime();
@@ -121,12 +121,12 @@ public:
                      const string&);
 
   int createOrderedSingle(const int&, \
-                           int, \
-                           gbCnf&, \
-                           const vector<int>&, \
-                           const double&, \
-                           const string&, \
-                           const FCCEmbededCluster::occupInfo_256&);
+                          int, \
+                          gbCnf&, \
+                          const vector<int>&, \
+                          const double&, \
+                          const string&, \
+                          const FCCEmbededCluster::occupInfo_256&);
 
   /* KNvasp.cpp */
   void prepVASPFiles(const string&, \
