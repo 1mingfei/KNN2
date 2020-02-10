@@ -431,7 +431,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     for (int i = 0; i < nRow; ++i) {
       inBack.data_[i * nCol] = input[i][0];
       for (int j = 1; j < nCol; ++j)
-        inBack.data_[i * nCol + j] = input[i][nCol - 1 -j];
+        inBack.data_[i * nCol + j] = input[i][nCol - j];
     }
     Tensor outBBack = k2pModelB(inBack);
 

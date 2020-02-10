@@ -109,7 +109,7 @@ public:
         Config&, \
         unordered_map<string, double>&, \
         vector<int>&, \
-        string& , \
+        string&, \
         Model&, \
         Model&, \
         double&, \
