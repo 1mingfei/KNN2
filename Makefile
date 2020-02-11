@@ -19,7 +19,7 @@ CPPFLAGS	  =  -std=c++17 #-DDEBUG_SELECT_TRAP
 #include and lib while compile
 CINCLUDE 	=  -I${INC_DIR} -I${K2C_INC_DIR}
 CDLINK  	=  -L${LIB_DIR} -lm -lmpi -lpthread  -lgmp \
--larmadillo -lkeras2cpp -fopenmp -lomp
+-larmadillo -lkeras2cpp -fopenmp #-lomp
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 
