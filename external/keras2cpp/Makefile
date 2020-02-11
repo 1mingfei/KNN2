@@ -27,6 +27,7 @@ OBJECTS := $(subst .cc,.o,${KRSRC})
 	${CC} -c  $<  ${CINCLUDE}  ${OPTFLAGS}  ${CPPFLAGS} 
 
 lib:	$(OBJECTS)
+	mkdir -p ../../lib
 	ar rcs ../../lib/libkeras2cpp.a model.o tensor.o ${OBJECTS}                                
 
 clean:

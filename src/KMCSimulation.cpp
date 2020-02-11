@@ -152,6 +152,7 @@ double KNHome::updateTime() {
   /* update time elapsed */
   double tau = log(rand() / static_cast<double>(RAND_MAX)) \
                / (prefix * kTot);
+
   time -= tau;
   return -tau;
 }
@@ -163,42 +164,47 @@ void KNHome::updateEnergy(const int& eventID) {
 void KNHome::buildEventList(gbCnf& cnfModifier) {
   eventList.clear();
   kTot = 0.0;
-  for (int i = 0; i < vacList.size(); ++i) {
-    for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
-      /* skip Vac jump to Vac in event list */
+  int i, j;
+  #pragma omp parallel shared(kTot, eventList, vacList) private(i, j)
+  {
+    for (i = 0; i < vacList.size(); ++i) {
+      #pragma omp for ordered
+      for (j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
+        /* skip Vac jump to Vac in event list */
 
-      int iFirst = vacList[i];
-      int iSecond = c0.atoms[vacList[i]].FNNL[j];
+        int iFirst = vacList[i];
+        int iSecond = c0.atoms[vacList[i]].FNNL[j];
 
-      // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
-      //   continue;
+        // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
+        //   continue;
 
-      KMCEvent event(make_pair(iFirst, iSecond));
-      // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
-      // eventListMap[tmpHash] = i * jumpList[0].size() + j;
+        KMCEvent event(make_pair(iFirst, iSecond));
+        // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
+        // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-                                temperature, \
-                                RCut2, \
-                                EDiff, \
-                                embedding, \
-                                k2pModelB, \
-                                k2pModelD, \
-                                make_pair(iFirst, iSecond));
+        vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond));
 
-      if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
-        event.setRate(0.0);
-        event.setEnergyChange(0.0);
-        event.setBarrier(0.0);
+        if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
+          event.setRate(0.0);
+          event.setEnergyChange(0.0);
+          event.setBarrier(0.0);
+        }
+        else {
+          event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
+          event.setEnergyChange(currBarrier[1]);
+          event.setBarrier(currBarrier[0]);
+        }
+
+        kTot += event.getRate();
+        eventList.push_back(event);
       }
-      else {
-        event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
-        event.setEnergyChange(currBarrier[1]);
-        event.setBarrier(currBarrier[0]);
-      }
-
-      kTot += event.getRate();
-      eventList.push_back(event);
     }
   }
 
@@ -210,7 +216,6 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     curr += event.getProb();
     event.setcProb(curr);
   }
-
 #ifdef DEBUGJUMP
   for (int i = 0; i < eventList.size(); ++i) {
     const auto& event = eventList[i];
@@ -260,8 +265,10 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
         event.setBarrier(currBarrier[0]);
       }
       kTot += event.getRate();
+      // kTot += event.getRate() * omp_get_num_threads() * omp_get_num_threads();
       eventList.push_back(event);
     }
+    cout << "kTot : " << kTot << "\n";
   }
 
   /* calculate relative and cumulative probability */
@@ -385,22 +392,10 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     for (int j = 0; j < encodes[i].size(); ++j)
       input[i][j] = embedding[encodes[i][j]];
 
-#ifdef DEBUGNN
-  for (int i = 0; i < encodes.size(); ++i) {
-    for (int j = 0; j < encodes[i].size(); ++j)
-      cout << encodes[i][j] << " ";
-    cout << endl;
-  }
-  for (int i = 0; i < input.size(); ++i) {
-    for (int j = 0; j < input[i].size(); ++j)
-      cout << input[i][j] << " ";
-    cout << endl;
-  }
-#endif
-
   int nRow = input.size(); // encodings for one jump pair considering symmetry
   int nCol = nRow ? input[0].size() : 0;
   Tensor in{ nRow, nCol };
+
   for (int i = 0; i < nRow; ++i)
     for (int j = 0; j < nCol; ++j)
       in.data_[i * nCol + j] = input[i][j];
@@ -411,6 +406,8 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
 
     double deltaE = 0.0;
     double tmpEdiff = 0.0;
+
+    #pragma omp parallel for shared(deltaE, tmpEdiff)
     for (int i = 0; i < nRow; ++i) {
       deltaE += static_cast<double>(outB(i, 0));
       tmpEdiff += static_cast<double>(outD(i, 0));
@@ -423,12 +420,14 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     Tensor outB = k2pModelB(in);
 
     double deltaE = 0.0;
+
     for (int i = 0; i < nRow; ++i) {
       deltaE += static_cast<double>(outB(i, 0));
     }
     deltaE /= static_cast<double>(nRow);
 
     Tensor inBack{ nRow, nCol };
+
     for (int i = 0; i < nRow; ++i) {
       inBack.data_[i * nCol] = input[i][0];
       for (int j = 1; j < nCol; ++j)
@@ -437,6 +436,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     Tensor outBBack = k2pModelB(inBack);
 
     double deltaEBack = 0.0;
+
     for (int i = 0; i < nRow; ++i) {
       deltaEBack += static_cast<double>(outBBack(i, 0));
     }
@@ -447,6 +447,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     Tensor outB = k2pModelB(in);
 
     double deltaE = 0.0;
+
     for (int i = 0; i < nRow; ++i) {
       deltaE += static_cast<double>(outB(i, 0));
     }
