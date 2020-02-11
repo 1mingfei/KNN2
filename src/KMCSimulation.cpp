@@ -168,7 +168,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   #pragma omp parallel shared(kTot, eventList, vacList) private(i, j)
   {
     for (i = 0; i < vacList.size(); ++i) {
-      #pragma omp for
+      #pragma omp for ordered
       for (j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
         /* skip Vac jump to Vac in event list */
 
