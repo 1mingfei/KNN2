@@ -3,6 +3,8 @@
 
 #include <math.h>
 #include <mpi.h>
+#include <omp.h>
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <chrono>

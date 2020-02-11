@@ -10,15 +10,16 @@ LMP_LIB     =  ${HOME}/Softwares/lammps/src/
 # compiler
 CC_SERIAL     =  g++
 CC_MPI        =  mpicxx
-OMPI_CC       =  mpicxx
-OMPI_CLINKER  =  mpicxx
+OMPI_CC       =	 clang++ -Xpreprocessor
+OMPI_CLINKER  =  clang++ -Xpreprocessor
 MPI_LIB       =  ${MPI_HOME}
-OPTFLAGS	  =  -Wall -O3 -g
+OPTFLAGS	  =  -O3 -g
 CPPFLAGS	  =  -std=c++17 #-DDEBUG_SELECT_TRAP
 
 #include and lib while compile
 CINCLUDE 	=  -I${INC_DIR} -I${K2C_INC_DIR}
-CDLINK  	=  -L${LIB_DIR} -lm -lmpi -lpthread  -lgmp -larmadillo -lkeras2cpp
+CDLINK  	=  -L${LIB_DIR} -lm -lmpi -lpthread  -lgmp \
+-larmadillo -lkeras2cpp -fopenmp -lomp
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 
@@ -27,6 +28,7 @@ SRC_FILES   = $(wildcard ${SRC_DIR}/*.cpp)
 # parallel
 PARALLEL = MPI
 CC = ${CC_MPI}
+# CC = ${OMPI_CC}
 
 # Rules
 # all objects depend on headers
