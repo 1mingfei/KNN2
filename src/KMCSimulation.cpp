@@ -163,7 +163,10 @@ void KNHome::updateEnergy(const int& eventID) {
 void KNHome::buildEventList(gbCnf& cnfModifier) {
   eventList.clear();
   kTot = 0.0;
+
+  #pragma omp parallel
   for (int i = 0; i < vacList.size(); ++i) {
+    #pragma omp for
     for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
       /* skip Vac jump to Vac in event list */
 
@@ -381,79 +384,79 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
   vector<vector<double>> input(encodes.size(), \
                                vector<double>(encodes[0].size(), 0.0));
   #pragma omp parallel
-  {
-    #pragma omp for collapse(2)
-    for (int i = 0; i < encodes.size(); ++i)
-      for (int j = 0; j < encodes[i].size(); ++j)
-        input[i][j] = embedding[encodes[i][j]];
+  for (int i = 0; i < encodes.size(); ++i)
+    #pragma omp for 
+    for (int j = 0; j < encodes[i].size(); ++j)
+      input[i][j] = embedding[encodes[i][j]];
 
-    int nRow = input.size(); // encodings for one jump pair considering symmetry
-    int nCol = nRow ? input[0].size() : 0;
-    Tensor in{ nRow, nCol };
+  int nRow = input.size(); // encodings for one jump pair considering symmetry
+  int nCol = nRow ? input[0].size() : 0;
+  Tensor in{ nRow, nCol };
 
-    #pragma omp for collapse(2)
-    for (int i = 0; i < nRow; ++i)
-      for (int j = 0; j < nCol; ++j)
-        in.data_[i * nCol + j] = input[i][j];
+  #pragma omp parallel
+  for (int i = 0; i < nRow; ++i)
+    #pragma omp for 
+    for (int j = 0; j < nCol; ++j)
+      in.data_[i * nCol + j] = input[i][j];
 
-    if (EDiff == "model") {
-      Tensor outB = k2pModelB(in);
-      Tensor outD = k2pModelD(in);
+  if (EDiff == "model") {
+    Tensor outB = k2pModelB(in);
+    Tensor outD = k2pModelD(in);
 
-      double deltaE = 0.0;
-      double tmpEdiff = 0.0;
+    double deltaE = 0.0;
+    double tmpEdiff = 0.0;
 
-      #pragma omp for
-      for (int i = 0; i < nRow; ++i) {
-        deltaE += static_cast<double>(outB(i, 0));
-        tmpEdiff += static_cast<double>(outD(i, 0));
-      }
-      deltaE /= static_cast<double>(nRow);
-      tmpEdiff /= static_cast<double>(nRow);
-
-      return {deltaE, tmpEdiff};
-    }  else if (EDiff == "barrier"){
-      Tensor outB = k2pModelB(in);
-
-      double deltaE = 0.0;
-
-      #pragma omp for
-      for (int i = 0; i < nRow; ++i) {
-        deltaE += static_cast<double>(outB(i, 0));
-      }
-      deltaE /= static_cast<double>(nRow);
-
-      Tensor inBack{ nRow, nCol };
-
-      #pragma omp for collapse(2)
-      for (int i = 0; i < nRow; ++i) {
-        inBack.data_[i * nCol] = input[i][0];
-        for (int j = 1; j < nCol; ++j)
-          inBack.data_[i * nCol + j] = input[i][nCol - j];
-      }
-      Tensor outBBack = k2pModelB(inBack);
-
-      double deltaEBack = 0.0;
-
-      #pragma omp for
-      for (int i = 0; i < nRow; ++i) {
-        deltaEBack += static_cast<double>(outBBack(i, 0));
-      }
-      deltaEBack /= static_cast<double>(nRow);
-
-      return {deltaE, deltaE - deltaEBack};
-    } else {
-      Tensor outB = k2pModelB(in);
-
-      double deltaE = 0.0;
-
-      #pragma omp for
-      for (int i = 0; i < nRow; ++i) {
-        deltaE += static_cast<double>(outB(i, 0));
-      }
-      deltaE /= static_cast<double>(nRow);
-
-      return {deltaE, 0.0};
+    #pragma omp parallel for
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+      tmpEdiff += static_cast<double>(outD(i, 0));
     }
+    deltaE /= static_cast<double>(nRow);
+    tmpEdiff /= static_cast<double>(nRow);
+
+    return {deltaE, tmpEdiff};
+  }  else if (EDiff == "barrier"){
+    Tensor outB = k2pModelB(in);
+
+    double deltaE = 0.0;
+
+    #pragma omp parallel for
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+
+    Tensor inBack{ nRow, nCol };
+
+    #pragma omp parallel 
+    for (int i = 0; i < nRow; ++i) {
+      inBack.data_[i * nCol] = input[i][0];
+      #pragma omp for
+      for (int j = 1; j < nCol; ++j)
+        inBack.data_[i * nCol + j] = input[i][nCol - j];
+    }
+    Tensor outBBack = k2pModelB(inBack);
+
+    double deltaEBack = 0.0;
+
+    #pragma omp parallel for
+    for (int i = 0; i < nRow; ++i) {
+      deltaEBack += static_cast<double>(outBBack(i, 0));
+    }
+    deltaEBack /= static_cast<double>(nRow);
+
+    return {deltaE, deltaE - deltaEBack};
+  } else {
+    Tensor outB = k2pModelB(in);
+
+    double deltaE = 0.0;
+
+    #pragma omp parallel for
+    for (int i = 0; i < nRow; ++i) {
+      deltaE += static_cast<double>(outB(i, 0));
+    }
+    deltaE /= static_cast<double>(nRow);
+
+    return {deltaE, 0.0};
   }
 }

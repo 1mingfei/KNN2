@@ -13,13 +13,13 @@ CC_MPI        =  mpicxx
 OMPI_CC       =	 clang++ -Xpreprocessor
 OMPI_CLINKER  =  clang++ -Xpreprocessor
 MPI_LIB       =  ${MPI_HOME}
-OPTFLAGS	  =  -O3 -g
+OPTFLAGS	  =  -O3 -g -fopenmp 
 CPPFLAGS	  =  -std=c++17 #-DDEBUG_SELECT_TRAP
 
 #include and lib while compile
 CINCLUDE 	=  -I${INC_DIR} -I${K2C_INC_DIR}
-CDLINK  	=  -L${LIB_DIR} -lm -lmpi -lpthread  -lgmp \
--larmadillo -lkeras2cpp -fopenmp #-lomp
+CDLINK  	=  -L${LIB_DIR} -lm -lmpi -lpthread  \
+-larmadillo -lkeras2cpp #-lomp
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 
