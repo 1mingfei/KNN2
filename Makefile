@@ -14,7 +14,7 @@ OMPI_CC       =	 clang++ -Xpreprocessor
 OMPI_CLINKER  =  clang++ -Xpreprocessor
 MPI_LIB       =  ${MPI_HOME}
 OPTFLAGS	  =  -O3 -g -fopenmp 
-CPPFLAGS	  =  -std=c++17 #-DDEBUG_SELECT_TRAP
+CPPFLAGS	  =  -std=c++17 #-DDEBUGJUMP
 
 #include and lib while compile
 CINCLUDE 	=  -I${INC_DIR} -I${K2C_INC_DIR}
