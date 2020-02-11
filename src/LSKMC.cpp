@@ -29,7 +29,8 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              long long& stepIn, \
              int& nTallyConfIn, \
              int& nTallyOutput,
-             double& LS_output_cfg_CriteriaIn)
+             double& LS_output_cfg_CriteriaIn, \
+             ofstream& ofsIn)
   : cnfModifier(cnfModifierIn), \
     c0(c0In), \
     embedding(embeddingIn), \
@@ -49,7 +50,8 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     step(stepIn), \
     nTallyConf(nTallyConfIn), \
     nTallyOutput(nTallyOutput), \
-    LS_output_cfg_Criteria(LS_output_cfg_CriteriaIn)
+    LS_output_cfg_Criteria(LS_output_cfg_CriteriaIn), \
+    ofs(ofsIn)
 {
 
   eventMap.clear();
@@ -424,7 +426,7 @@ void LSKMC::selectAndExecute(const int& vac) {
     cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + "_1.cfg");
 
   updateTime();
-  cout << "# LSKMC " << step << " " << time << " ave exit time : " \
+  ofs << "# LSKMC " << step << " " << time << " ave exit time : " \
        << exitTime << endl;
 
 #ifdef DEBUG_SELECT_TRAP
@@ -464,7 +466,8 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   step, \
                   nTallyConf, \
                   nTallyOutput, \
-                  LS_output_cfg_Criteria);
+                  LS_output_cfg_Criteria, \
+                  ofs);
 
 #ifdef DEBUG_TRAP
   for (const auto& i : vacList) {
@@ -527,17 +530,16 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                 step, \
                 nTallyConf, \
                 nTallyOutput, \
-                LS_output_cfg_Criteria);
+                LS_output_cfg_Criteria, \
+                ofs);
       for (const auto& i : vacList) {
         lskmc.selectAndExecute(i);
       }
     }
 
     if (step % nTallyOutput == 0)
-    cout << std::setprecision(7) << step << " " << time << " " \
-         << E_tot << " " \
-         << event.getJumpPair().first << " " << event.getJumpPair().second \
-         << endl;
+    ofs << std::setprecision(7) << step << " " << time << " " \
+        << E_tot << " " << endl;
 
     if (step % nTallyConf == 0)
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");

@@ -88,6 +88,8 @@ private:
   Model& k2pModelB;
   Model& k2pModelD;
 
+  ofstream& ofs;
+
   // calculate time of taking each state
   void getVD_Tau(const int&, const int&);
 
@@ -124,7 +126,8 @@ public:
         long long&, \
         int&, \
         int&, \
-        double&);
+        double&, \
+        ofstream&);
 
   void testCnfModification();
   static void test_vvd2mat();

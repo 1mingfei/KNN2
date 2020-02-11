@@ -86,6 +86,8 @@ private:
   unordered_map<string, double> embedding;
   unordered_map<string, int> eventListMap;
 
+  ofstream ofs;
+
   string EDiff;
 
   bool isTrapped(const double&);
