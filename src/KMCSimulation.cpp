@@ -46,6 +46,8 @@ void KNHome::getVacList() {
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
   buildEmbedding();
+  ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
+
   E_tot = 0.0;
   string fname = sparams["initconfig"];
   RCut = (dparams["RCut"] == 0.0) ? 3.0 : dparams["RCut"];
@@ -107,7 +109,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
     time = dparams["startingTime"];
     step = iparams["startingStep"];
     iter = 0;
-    cout << "#restarting from step " << step << "\n";
+    ofs << "#restarting from step " << step << "\n";
 
   } else {
     iter = 0;
@@ -116,7 +118,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   }
 
   cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
-  cout << "#step     time     Ediff     jumpFrom     jumpTo\n";
+  ofs << "#step     time     Ediff\n";
 
 }
 
@@ -207,6 +209,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       }
     }
   }
+  // cout << "kTot : " << kTot << "\n";
 
   /* calculate relative and cumulative probability */
   double curr = 0.0;
@@ -268,7 +271,6 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
       // kTot += event.getRate() * omp_get_num_threads() * omp_get_num_threads();
       eventList.push_back(event);
     }
-    cout << "kTot : " << kTot << "\n";
   }
 
   /* calculate relative and cumulative probability */
@@ -351,10 +353,8 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     ++iter;
 
     if (step % nTallyOutput == 0)
-    cout << std::setprecision(7) << step << " " << time << " " \
-         << E_tot << " " \
-         << event.getJumpPair().first << " " << event.getJumpPair().second \
-         << endl;
+    ofs << std::setprecision(7) << step << " " << time << " " \
+        << E_tot << " " << endl;
 
     if (step % nTallyConf == 0)
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
