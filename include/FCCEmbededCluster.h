@@ -177,7 +177,7 @@ struct occupInfo_256 {
         indexMap.push_back(j);
       }
     }
-    int purpleNum = int(purpleFraction * indexMap.size());
+    auto purpleNum = static_cast<int>(round(purpleFraction * indexMap.size()));
     shuffle(indexMap.begin(),
             indexMap.end(),
             std::default_random_engine(rand()));

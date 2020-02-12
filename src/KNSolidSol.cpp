@@ -173,8 +173,9 @@ void KNHome::createPreNEB() {
     std::cout << "generating inital and final structures\n";
   if (subMode == "ordered_cluster") {
     createOrdered(cnfModifier, dupFactors, LC, POT);
-  } else if (subMode == "ordered_cluster_random"){
-    createOrderedRandom(cnfModifier, dupFactors, LC, POT);
+  } else if (subMode == "ordered_cluster_random") {
+    createOrderedRandom(cnfModifier, dupFactors, LC,
+                        POT, iparams["duplicateTimes"]);
   } else if (subMode == "random") {
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;

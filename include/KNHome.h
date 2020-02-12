@@ -130,18 +130,14 @@ public:
                           const vector<int>&, \
                           const double&, \
                           const string&, \
-                          const FCCEmbededCluster::occupInfo_256&);
+                          const FCCEmbededCluster::occupInfo_256&, \
+                          const pair<string, string>&);
   void createOrderedRandom(gbCnf&, \
                      const vector<int>&, \
                      const double&, \
-                     const string&);
-  int createOrderedSingleRandom(const int&, \
-                                int, \
-                                gbCnf&, \
-                                const vector<int> &, \
-                                const double &, \
-                                const string &, \
-                                const FCCEmbededCluster::occupInfo_256 &);
+                     const string&, \
+                     const int&);
+
 
   /* KNvasp.cpp */
   void prepVASPFiles(const string&, \
