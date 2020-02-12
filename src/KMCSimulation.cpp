@@ -108,6 +108,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
 
     time = dparams["startingTime"];
     step = iparams["startingStep"];
+    E_tot = dparams["startingEnergy"];
     iter = 0;
     ofs << "#restarting from step " << step << "\n";
 

@@ -77,6 +77,8 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("startingTime")) {
       dparams[segs[0]] = stod(segs[1]);
+    } else if (!segs[0].compare("startingEnergy")) {
+      dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("EDiff")) {
       // bparams[segs[0]] = (segs[1] == "true") ? true : false;
       sparams[segs[0]] = segs[1];
