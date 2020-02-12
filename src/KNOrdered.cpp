@@ -160,4 +160,31 @@ void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
     }
   }
 }
+void KNHome::createOrderedDiffCon(gbCnf& cnfModifier, \
+                                 const vector<int>& dupFactors,\
+                                 const double& LC,\
+                                 const string& POT,\
+                                 const int& numDataset) {
+  vector<double> concentrationFracList;
+  concentrationFracList.push_back(0.0);
+  for (int i = 0; i < numDataset; ++i) {
+    auto num = static_cast<double>(i);
+    concentrationFracList.push_back((num + 1) / (numDataset + 1));
+  }
+  concentrationFracList.push_back(1.0);
 
+  pair<string, string> elemPair = {"Zn", "Mg"};
+  FCCEmbededCluster::occupInfo_256 o256;
+  int index = 0;
+  for (int i = 0; i < o256.mapping.size(); ++i) {
+    for (int j = 1; j <= 2; ++j) {
+      for (const auto& k : concentrationFracList) {
+        FCCEmbededCluster::occupInfo_256 o256;
+        o256.omit(i, j);
+        o256.makeShuffleFraction(i, k);
+        index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
+                                LC, POT, o256, elemPair);
+      }
+    }
+  }
+}

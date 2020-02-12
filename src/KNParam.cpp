@@ -92,7 +92,7 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoi(segs[1]);
     } else if (!segs[0].compare("solventAtomType")) {
       sparams[segs[0]] = segs[1];
-    } else if (!segs[0].compare("duplicateTimes")) {
+    } else if (!segs[0].compare("numDataset")) {
       iparams[segs[0]] = stoi(segs[1]);
     }
 

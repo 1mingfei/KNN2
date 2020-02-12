@@ -175,7 +175,10 @@ void KNHome::createPreNEB() {
     createOrdered(cnfModifier, dupFactors, LC, POT);
   } else if (subMode == "ordered_cluster_random") {
     createOrderedRandom(cnfModifier, dupFactors, LC,
-                        POT, iparams["duplicateTimes"]);
+                        POT, iparams["numDataset"]);
+  } else if (subMode == "ordered_cluster_diffcon") {
+    createOrderedDiffCon(cnfModifier, dupFactors, LC,
+                        POT, iparams["numDataset"]);
   } else if (subMode == "random") {
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;

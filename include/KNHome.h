@@ -137,7 +137,11 @@ public:
                      const double&, \
                      const string&, \
                      const int&);
-
+  void createOrderedDiffCon(gbCnf&, \
+                     const vector<int>&, \
+                     const double&, \
+                     const string&, \
+                     const int&);
 
   /* KNvasp.cpp */
   void prepVASPFiles(const string&, \
