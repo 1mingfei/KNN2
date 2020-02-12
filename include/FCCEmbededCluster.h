@@ -148,6 +148,43 @@ struct occupInfo_256 {
                                                      {79,74} }) );
   };
   ~occupInfo_256() {};
+  // change purple or yellow to base element, 1 for purple, 2 for yellow
+  // i is the sturcture index
+  void omit(int i,int colorI){
+    for (int j = 0; j < mapping[i].size(); ++j) {
+      if (mapping[i][j] == colorI) {
+        mapping[i][j] = 0;
+      }
+    }
+  }
+  // This function re-partitions yellow and purple atoms randomly.
+  // i is the sturcture index
+  void makeRandom(int i){
+    for (int & pos : mapping[i]) {
+      if (pos != 0) {
+        pos = (rand() % 2) + 1;
+      }
+    }
+  }
+  // This function re-partitions yellow and purple atoms randomly.
+  // i is the sturcture index,
+  // purpleFraction is the fraction of purple atoms in all none-base atoms.
+  void makeShuffleFraction(int i, double purpleFraction) {
+    vector<int> indexMap;
+    for (int j = 0; j < mapping[i].size(); ++j) {
+      if (mapping[i][j] != 0) {
+        mapping[i][j] = 2;
+        indexMap.push_back(j);
+      }
+    }
+    int purpleNum = int(purpleFraction * indexMap.size());
+    shuffle(indexMap.begin(),
+            indexMap.end(),
+            std::default_random_engine(rand()));
+    for (int k = 0; k < purpleNum; ++k) {
+      mapping[i][indexMap[k]] = 1;
+    }
+  }
 };
 
 } // namespace FCCEmbededCluster

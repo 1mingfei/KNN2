@@ -144,3 +144,114 @@ Config gbCnf::embedCluster(const Config& cIn, \
 
   return c0;
 }
+int KNHome::createOrderedSingleRandom(const int& i, \
+                         int index, \
+                         gbCnf& cnfModifier, \
+                         const vector<int>& dupFactors, \
+                         const double& LC, \
+                         const string& POT, \
+                         const FCCEmbededCluster::occupInfo_256& o256Origin) {
+
+  Config c0 = cnfModifier.getFCCConv(LC, "Al", dupFactors);
+  pair<string, string> elemPair = {"Zn", "Mg"};
+  const vector<pair<int, int>>& jumpPairsRef = o256Origin.jumpPairs[i];
+  int subIndex = 0;
+
+  for (int indexChange : vector<int>({1,2,1,2,1,2})) {
+    FCCEmbededCluster::occupInfo_256 o256 = o256Origin;
+    o256.omit(i,indexChange);
+    o256.makeRandom(i);
+
+    Config c1 = cnfModifier.embedCluster(c0, elemPair, o256, i);
+    cnfModifier.writeCfgData(c1, to_string(index) + ".cfg");
+    Config cS = c0;
+
+    for (int j = 0; j < jumpPairsRef.size(); ++j) {
+      string tmpType;
+      if ( (j == 0) || \
+           ((j > 0) && (jumpPairsRef[j].first != jumpPairsRef[j-1].first)) ) {
+
+        string baseDir = "config" + to_string(index) + "/s";
+        string mkBaseDir = "mkdir -p " + baseDir;
+        const char *cmkBaseDir = mkBaseDir.c_str();
+        const int dir_err = std::system(cmkBaseDir);
+        if (-1 == dir_err) {
+          cout << "Error creating directory!\n";
+          exit(1);
+        }
+        cS = c0;
+        cS = cnfModifier.embedCluster(c1, elemPair, o256, i);
+
+        tmpType = cS.atoms[jumpPairsRef[j].first].tp;
+        cS.atoms[jumpPairsRef[j].first].tp = "X";
+
+        cnfModifier.writeCfgData(cS, "config" + to_string(index) + \
+                                     "/s/start.cfg");
+
+        std::sort(cS.atoms.begin(), cS.atoms.end());
+        cnfModifier.cnvprl2pst(cS);
+        cnfModifier.perturb(cS);
+        map<string, int> elemName = cnfModifier.writePOSCAR(cS, \
+                              "config" + to_string(index) + "/s/POSCAR");
+        prepVASPFiles(baseDir, dupFactors, elemName, POT);
+        subIndex = 0;
+      }
+
+
+      string subDir = "config" + to_string(index) \
+                      + "/e_" + to_string(subIndex);
+      const char *csubDir = subDir.c_str();
+      const int dir_err = mkdir(csubDir, \
+                                S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      if (-1 == dir_err) {
+        cout << "Error creating directory!\n";
+        exit(1);
+      }
+
+      Config cF = cnfModifier.swapPair(c0, jumpPairsRef[j]);
+      cF = cnfModifier.embedCluster(cF, elemPair, o256, i);
+      cF.atoms[jumpPairsRef[j].first].tp = "X";
+
+
+      string name1 = "config" + to_string(index) \
+                     + "/e_" + to_string(subIndex) + "/";
+      cnfModifier.writeCfgData(cF, name1 + "end.cfg");
+
+      std::sort(cF.atoms.begin(), cF.atoms.end());
+      cnfModifier.cnvprl2pst(cF);
+      cnfModifier.perturb(cF);
+      map<string, int> elemName = cnfModifier.writePOSCAR(cF, \
+                                                  name1 + "POSCAR");
+
+      ofstream ofs("log.txt", std::ofstream::app);
+
+      ofs << "config " << index << " end " << subIndex \
+          << " pair: " << jumpPairsRef[j].first \
+          << " " << jumpPairsRef[j].second << "\n";
+
+      ofs.close();
+
+      prepVASPFiles(name1, dupFactors, elemName, POT);
+
+      ++subIndex;
+      if ((j < jumpPairsRef.size()) \
+          && (jumpPairsRef[j].first != jumpPairsRef[j+1].first)) {
+        ++index;
+      }
+    }
+  }
+  return index;
+}
+
+void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
+                           const vector<int>& dupFactors,
+                                 const double& LC,
+                                 const string& POT) {
+
+  FCCEmbededCluster::occupInfo_256 o256;
+  int index = 0;
+  for (int i = 0; i < o256.mapping.size(); ++i)
+    index = createOrderedSingleRandom(i, index, cnfModifier, dupFactors, \
+                                LC, POT, o256);
+
+}

@@ -131,6 +131,17 @@ public:
                           const double&, \
                           const string&, \
                           const FCCEmbededCluster::occupInfo_256&);
+  void createOrderedRandom(gbCnf&, \
+                     const vector<int>&, \
+                     const double&, \
+                     const string&);
+  int createOrderedSingleRandom(const int&, \
+                                int, \
+                                gbCnf&, \
+                                const vector<int> &, \
+                                const double &, \
+                                const string &, \
+                                const FCCEmbededCluster::occupInfo_256 &);
 
   /* KNvasp.cpp */
   void prepVASPFiles(const string&, \
@@ -172,6 +183,7 @@ public:
 
   /* findClusters */
   void findClts(gbCnf&);
+
 };
 
 #endif
