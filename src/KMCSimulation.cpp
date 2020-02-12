@@ -103,22 +103,25 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
     modelFname = sparams["kerasModelEDiff"];
     k2pModelD = Model::load(modelFname);
   }
-  /* initialize time */
+
+  /* initialize parameters */
+  iter = 0;
   if (sparams["method"] == "restart") {
 
     time = dparams["startingTime"];
     step = iparams["startingStep"];
     E_tot = dparams["startingEnergy"];
-    iter = 0;
     ofs << "#restarting from step " << step << "\n";
 
   } else {
-    iter = 0;
-    time = 0.0;
-    step = 0;
+    time = (dparams["startingTime"] == 0.0) ? 0.0 : dparams["startingTime"];
+    E_tot = \
+          (dparams["startingEnergy"] == 0.0) ? 0.0 : dparams["startingEnergy"];
+    step = (iparams["startingStep"] == 0) ? 0 : iparams["startingStep"];
+    cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+
   }
 
-  cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   ofs << "#step     time     Ediff\n";
 
 }
