@@ -31,7 +31,7 @@ int KNHome::createOrderedSingle(const int& i, \
 
   Config c0 = cnfModifier.getFCCConv(LC, "Al", dupFactors);
 
-  const vector<pair<int, int>> &jumpPairsRef = o256.jumpPairs[i];
+  const vector<pair<int, int>>& jumpPairsRef = o256.jumpPairs[i];
   int subIndex = 0;
 
   Config c1 = cnfModifier.embedCluster(c0, elemPair, o256, i);
@@ -44,7 +44,7 @@ int KNHome::createOrderedSingle(const int& i, \
 
       string baseDir = "config" + to_string(index) + "/s";
       string mkBaseDir = "mkdir -p " + baseDir;
-      const char *cmkBaseDir = mkBaseDir.c_str();
+      const char* cmkBaseDir = mkBaseDir.c_str();
       const int dir_err = std::system(cmkBaseDir);
       if (-1 == dir_err) {
         cout << "Error creating directory!\n";
@@ -115,8 +115,8 @@ int KNHome::createOrderedSingle(const int& i, \
 }
 
 void KNHome::createOrdered(gbCnf& cnfModifier, \
-                           const vector<int>& dupFactors,
-                           const double& LC,
+                           const vector<int>& dupFactors, \
+                           const double& LC, \
                            const string& POT) {
   vector<pair<string, string>> elemPairs = {{"Al", "Mg"}, \
                                             {"Al", "Zn"}, \
@@ -135,15 +135,14 @@ void KNHome::createOrdered(gbCnf& cnfModifier, \
   for (int i = 0; i < o256.mapping.size(); ++i)
     for  (const auto& elemPair : elemPairs) {
       index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
-                                LC, POT, o256, elemPair);
+                                  LC, POT, o256, elemPair);
     }
 }
 
-
 void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
-                                 const vector<int>& dupFactors,\
-                                 const double& LC,\
-                                 const string& POT,\
+                                 const vector<int>& dupFactors, \
+                                 const double& LC, \
+                                 const string& POT, \
                                  const int& dupTimes) {
   pair<string, string> elemPair = {"Zn", "Mg"};
   FCCEmbededCluster::occupInfo_256 o256;
@@ -152,7 +151,7 @@ void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
     for (int j = 0; j < dupTimes; ++j) {
       for (int k = 1; k <= 2; ++k) {
         FCCEmbededCluster::occupInfo_256 o256;
-        o256.omit(i,k);
+        o256.omit(i, k);
         o256.makeRandom(i);
         index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
                                 LC, POT, o256, elemPair);
@@ -161,10 +160,10 @@ void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
   }
 }
 void KNHome::createOrderedDiffCon(gbCnf& cnfModifier, \
-                                 const vector<int>& dupFactors,\
-                                 const double& LC,\
-                                 const string& POT,\
-                                 const int& numDataset) {
+                                  const vector<int>& dupFactors, \
+                                  const double& LC, \
+                                  const string& POT, \
+                                  const int& numDataset) {
   vector<double> concentrationFracList;
   concentrationFracList.push_back(0.0);
   for (int i = 0; i < numDataset; ++i) {
