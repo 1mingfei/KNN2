@@ -1,0 +1,9 @@
+============example1================
+mode generate
+method ordered_cluster_random
+numDataset 3
+randSeed 1234
+LC 4.046
+factors 4 4 4
+POT /Users/zhucongxi/Program/goali/pot_old/potpaw_PBE/elements/
+====================================
