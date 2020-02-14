@@ -20,9 +20,10 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["Rcut"] = 3.0; //kmc
   iparams["randSeed"] = 1234567; //kmc
 
-  gbCnf cnfModifier(sparams);
+  gbCnf cnfModifier(me, nProcs);
 
-  if (!strcmp(argv[1], "POSCAR")) {
+
+  if (!strcmp(argv[1], "POSCAR") && (me == 0)) {
 
     Config cfg = std::move(cnfModifier.readPOSCAR("POSCAR"));
 
@@ -44,11 +45,11 @@ KNHome::KNHome(int argc, char* argv[]) {
 
   if ((sparams["mode"]) == "generate") {
     srand(iparams["randSeed"] + me);
-    createPreNEB();
+    createPreNEB(cnfModifier);
   } else if (sparams["mode"] == "encode") {
-    KNEncode();
+    KNEncode(cnfModifier);
   } else if (sparams["mode"] == "BondCount") {
-    KNBondCount();
+    KNBondCount(cnfModifier);
   } else if (sparams["mode"] == "kmc") {
     KMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "lskmc_test") {

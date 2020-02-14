@@ -116,7 +116,7 @@ public:
   void readParam();
 
   /* KNSolidSol.cpp */
-  void createPreNEB();
+  void createPreNEB(gbCnf&);
 
   /* KNOrdered.cpp */
   void createOrdered(gbCnf&, \
@@ -150,11 +150,11 @@ public:
                      const string&);
 
   /* KNEncode.cpp */
-  void KNEncode();
+  void KNEncode(gbCnf&);
   vector<vector<int>> readPairs(const string&);
 
   /* KNBondCount.cpp */
-  void KNBondCount();
+  void KNBondCount(gbCnf&);
 
   /* KMCSimulation.cpp */
   void KMCInit(gbCnf&);

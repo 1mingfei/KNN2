@@ -156,8 +156,7 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
   }
 }
 
-void KNHome::createPreNEB() {
-  gbCnf cnfModifier(sparams);
+void KNHome::createPreNEB(gbCnf& cnfModifier) {
   vector<int> dupFactors = viparams["factors"];
   double LC = dparams["LC"];
   vector<string> elems = vsparams["elems"];

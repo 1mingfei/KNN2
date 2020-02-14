@@ -32,8 +32,7 @@ inline void writeHashmap(const string& fname, \
   ofs << endl;
 }
 
-void KNHome::KNBondCount() {
-  gbCnf cnfModifier(sparams);
+void KNHome::KNBondCount(gbCnf& cnfModifier) {
   vector<string> elems = vsparams["elems"];
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
