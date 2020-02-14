@@ -171,7 +171,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   eventList.clear();
   kTot = 0.0;
   int i, j;
-  #pragma omp parallel shared(kTot, eventList, vacList) private(i, j)
+  #pragma omp parallel shared(eventList) private(i, j) reduction(+:kTot)
   {
     for (i = 0; i < vacList.size(); ++i) {
       #pragma omp for ordered
