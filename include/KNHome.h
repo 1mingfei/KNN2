@@ -130,7 +130,7 @@ public:
                           const vector<int>&, \
                           const double&, \
                           const string&, \
-                          const FCCEmbededCluster::occupInfo_256&, \
+                          const FCCEmbededCluster::AFOccupInfo_256&, \
                           const pair<string, string>&);
   void createOrderedRandom(gbCnf&, \
                            const vector<int>&, \

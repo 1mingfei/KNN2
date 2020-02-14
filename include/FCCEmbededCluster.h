@@ -5,11 +5,11 @@
 
 namespace FCCEmbededCluster {
 
-struct occupInfo_256 {
+struct AFOccupInfo_256 {
   vector<vector<int>> mapping;
   vector<vector<pair<int, int>>> jumpPairs;
 
-  occupInfo_256() {
+  AFOccupInfo_256() {
     mapping = vector<vector<int>>(6, vector<int>(256, 0));
     // possibleJumpPairs = vector<vector<pair<int, int>>> (7, \
     //                            vector<pair<int, int>>);
@@ -155,8 +155,8 @@ struct occupInfo_256 {
                                                    {79, 141},
                                                    {79, 74}
                                                   }));
-  };
-  ~occupInfo_256() {};
+  }
+  ~AFOccupInfo_256() {}
   // change purple or yellow to base element, 1 for purple, 2 for yellow
   // i is the sturcture index
   void omit(int i, int colorI) {
@@ -196,6 +196,43 @@ struct occupInfo_256 {
   }
 };
 
+struct CAOccupInfo_256 {
+  vector<vector<int>> mapping;
+  vector<vector<pair<int, int>>> jumpPairs;
+
+  CAOccupInfo_256() {
+    mapping = vector<vector<int>>(1, vector<int>(256, 0));
+    // filled circles
+    for (int i : {0, 1, 64, 65, 16, 17, 80, 81, 6, 11, 10, 22, 27, 26, 70, 75,
+                  74, 86, 91, 90, 13, 29, 77, 93})
+      mapping[0][i] = 1;
+    // open circles
+    for (int i : {2, 3, 18, 19, 66, 67, 82, 83, 5, 8, 9, 21, 24, 25, 69, 72, 73,
+                  85, 88, 89, 14, 30, 78, 94})
+      mapping[0][i] = 2;
+    // hatched circles
+    for (int i : {4, 20, 7, 23, 68, 84, 71, 87, 79, 76, 15, 12, 95, 92, 31, 28})
+      mapping[0][i] = 3;
+    jumpPairs.emplace_back(vector<pair<int, int>>({{71, 132},
+                                                   {71, 66},
+                                                   {71, 70},
+                                                   {71, 84},
+                                                   {71, 65},
+                                                   {22, 11},
+                                                   {22, 69},
+                                                   {22, 23},
+                                                   {18, 23},
+                                                   {18, 84},
+                                                   {18, 19},
+                                                   {20, 18},
+                                                   {20, 215},
+                                                   {20, 21},
+                                                   {20, 17},
+                                                   {20, 5}
+                                                  }));
+  };
+  ~CAOccupInfo_256() {};
+};
 } // namespace FCCEmbededCluster
 
 #endif

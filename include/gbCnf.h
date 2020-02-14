@@ -137,7 +137,7 @@ public:
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \
                       const pair<string, string>&, \
-                      const FCCEmbededCluster::occupInfo_256&, \
+                      const FCCEmbededCluster::AFOccupInfo_256&, \
                       const int&);
 };
 

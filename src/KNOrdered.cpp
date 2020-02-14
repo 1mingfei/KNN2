@@ -4,7 +4,7 @@
 
 Config gbCnf::embedCluster(const Config& cIn, \
                            const pair<string, string>& Elems, \
-                           const FCCEmbededCluster::occupInfo_256& o256, \
+                           const FCCEmbededCluster::AFOccupInfo_256& o256, \
                            const int& i) {
   Config c0 = cIn;
 
@@ -26,7 +26,7 @@ int KNHome::createOrderedSingle(const int& i, \
                          const vector<int>& dupFactors, \
                          const double& LC, \
                          const string& POT, \
-                         const FCCEmbededCluster::occupInfo_256& o256, \
+                         const FCCEmbededCluster::AFOccupInfo_256& o256, \
                          const pair<string, string>& elemPair) {
 
   Config c0 = cnfModifier.getFCCConv(LC, "Al", dupFactors);
@@ -131,7 +131,7 @@ void KNHome::createOrdered(gbCnf& cnfModifier, \
   //   }
   // }
   int index = 0;
-  FCCEmbededCluster::occupInfo_256 o256;
+  FCCEmbededCluster::AFOccupInfo_256 o256;
   for (int i = 0; i < o256.mapping.size(); ++i)
     for  (const auto& elemPair : elemPairs) {
       index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
@@ -145,12 +145,12 @@ void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
                                  const string& POT, \
                                  const int& dupTimes) {
   pair<string, string> elemPair = {"Zn", "Mg"};
-  FCCEmbededCluster::occupInfo_256 o256;
+  FCCEmbededCluster::AFOccupInfo_256 o256;
   int index = 0;
   for (int i = 0; i < o256.mapping.size(); ++i) {
     for (int j = 0; j < dupTimes; ++j) {
       for (int k = 1; k <= 2; ++k) {
-        FCCEmbededCluster::occupInfo_256 o256;
+        FCCEmbededCluster::AFOccupInfo_256 o256;
         o256.omit(i, k);
         o256.makeRandom(i);
         index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
@@ -173,12 +173,12 @@ void KNHome::createOrderedDiffCon(gbCnf& cnfModifier, \
   concentrationFracList.push_back(1.0);
 
   pair<string, string> elemPair = {"Zn", "Mg"};
-  FCCEmbededCluster::occupInfo_256 o256;
+  FCCEmbededCluster::AFOccupInfo_256 o256;
   int index = 0;
   for (int i = 0; i < o256.mapping.size(); ++i) {
     for (int j = 1; j <= 2; ++j) {
       for (const auto& k : concentrationFracList) {
-        FCCEmbededCluster::occupInfo_256 o256;
+        FCCEmbededCluster::AFOccupInfo_256 o256;
         o256.omit(i, j);
         o256.makeShuffleFraction(i, k);
         index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
