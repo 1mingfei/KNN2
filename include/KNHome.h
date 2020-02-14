@@ -132,11 +132,13 @@ public:
                           const string&, \
                           const FCCEmbededCluster::occupInfo_256&, \
                           const pair<string, string>&);
+
   void createOrderedRandom(gbCnf&, \
                            const vector<int>&, \
                            const double&, \
                            const string&, \
                            const int&);
+
   void createOrderedDiffCon(gbCnf&, \
                             const vector<int>&, \
                             const double&, \

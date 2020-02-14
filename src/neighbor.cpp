@@ -8,12 +8,8 @@
 #define FNN_DIST 3.0
 
 void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
-  //int factor = getExpdParam(cnf, Rcut);
   vector<double> tmpLength;
   tmpLength = cnf.length;
-  //tmpLength[Z] *= double(factor);
-  //vector<KNAtom> tmpAtoms = expandCellZ(cnf, factor);
-
   vector<KNAtom> tmpAtoms = cnf.atoms;
   for (int i = 0; i < cnf.atoms.size(); ++i) {
     vector<int> res;
@@ -30,11 +26,48 @@ void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   }
 }
 
+void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
+  vector<double> tmpLength;
+  tmpLength = cnf.length;
+  vector<KNAtom> tmpAtoms = cnf.atoms;
+
+  int size = cnf.atoms.size();
+  int quotient = size / nProcs;
+  int remainder = size % nProcs;
+  int nCycle = remainder ? (quotient + 1) : quotient;
+
+  for (int j = 0; j < nCycle; ++j) {
+
+    int** ary = new int*[nProcs];
+    for (int i = 0; i < nProcs; ++i)
+      ary[i] = new int[18];
+
+    for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
+      if ((i % nProcs != me) || (i >= size)) continue;
+
+      vector<int> res;
+      int k = 0;
+      for (int l = 0; l < tmpAtoms.size(); ++l) {
+        double dist = calDistPrl(tmpLength, tmpAtoms[i], tmpAtoms[l]);
+        if ((dist <= Rcut) && (l % size - i != 0)) {
+          res.push_back(l);
+          if (dist <= FNN_DIST)
+            cnf.atoms[i].FNNL[k++] = l;
+        }
+      }
+      cnf.atoms[i].NBL = std::move(res);
+
+    }
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+
+}
+
 int gbCnf::getExpdParam(const Config& cnf, const double Rcut = 3.8) {
-  if (cnf.length[Z] > 2.0*Rcut) {
+  if (cnf.length[Z] > 2.0 * Rcut) {
     return 1;
   } else {
-    return(static_cast<int>((2.0*Rcut/cnf.length[Z])+1));
+    return(static_cast<int>((2.0 * Rcut / cnf.length[Z]) + 1));
   }
 }
 
@@ -45,18 +78,18 @@ vector<KNAtom> gbCnf::expandCellZ(const Config& cnf, const int factor) {
   for (int i = 0; i < initSize; ++i) {
     res.push_back(cnf.atoms[i]);
   }
-  for (int i = initSize; i < initSize*factor; ++i) {
-    KNAtom atm = cnf.atoms[i%initSize];
+  for (int i = initSize; i < initSize * factor; ++i) {
+    KNAtom atm = cnf.atoms[i % initSize];
     res.push_back(KNAtom(i, atm.tp, atm.pst[X], atm.pst[Y],
-           atm.pst[Z] + cnf.length[Z]*int(i/initSize)));
+           atm.pst[Z] + cnf.length[Z]*int(i / initSize)));
   }
   return res;
 }
 
 /*calculate distance between one atom in configuration and one from ref*/
 double gbCnf::calDist(const vector<double> length, \
-                              const KNAtom& atm1, \
-                              const KNAtom& atm2) {
+                      const KNAtom& atm1, \
+                      const KNAtom& atm2) {
   double xi = atm1.pst[X];
   double xj = atm2.pst[X];
   double yi = atm1.pst[Y];
@@ -126,6 +159,6 @@ double gbCnf::calDistPrl(const vector<double>& length, \
   b *= length[Y];
   c *= length[Z];
 
-  double dist = sqrt(a*a + b*b + c*c);
+  double dist = sqrt(a * a + b * b + c * c);
   return dist;
 }

@@ -46,7 +46,8 @@ void KNHome::getVacList() {
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
   buildEmbedding();
-  ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
+  if (me == 0)
+    ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
 
   E_tot = 0.0;
   string fname = sparams["initconfig"];
@@ -87,13 +88,14 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   // }
 
 #ifdef DEBUG
-  for (int i = 0; i < vacList.size(); ++i) {
-    cout << vacList[i] << " size: " << c0.atoms[vacList[i]].FNNL.size() \
-         << endl;
-    for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j)
-      cout << c0.atoms[vacList[i]].FNNL[j] << " ";
-    cout << endl;
-  }
+  if (me == 0)
+    for (int i = 0; i < vacList.size(); ++i) {
+      cout << vacList[i] << " size: " << c0.atoms[vacList[i]].FNNL.size() \
+      << endl;
+      for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j)
+        cout << c0.atoms[vacList[i]].FNNL[j] << " ";
+      cout << endl;
+    }
 #endif
 
   /* reading the model binary file, initialize the model */
@@ -111,18 +113,19 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
     time = dparams["startingTime"];
     step = iparams["startingStep"];
     E_tot = dparams["startingEnergy"];
-    ofs << "#restarting from step " << step << "\n";
+    if (me == 0)
+      ofs << "#restarting from step " << step << "\n";
 
   } else {
     time = (dparams["startingTime"] == 0.0) ? 0.0 : dparams["startingTime"];
     E_tot = \
           (dparams["startingEnergy"] == 0.0) ? 0.0 : dparams["startingEnergy"];
     step = (iparams["startingStep"] == 0) ? 0 : iparams["startingStep"];
-    cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
-
+    if (me == 0)
+      cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   }
-
-  ofs << "#step     time     Ediff\n";
+  if (me == 0)
+    ofs << "#step     time     Ediff\n";
 
 }
 
@@ -345,24 +348,26 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
   KMCInit(cnfModifier);
 
   // buildEventList(cnfModifier);
-  while (iter < maxIter) {
-    buildEventList(cnfModifier);
-    int eventID = 0;
-    auto&& event = selectEvent(eventID);
-    event.exeEvent(c0, RCut); // event updated
-    double oneStepTime = updateTime();
-    updateEnergy(eventID);
-    // updateEventList(cnfModifier, event.getJumpPair(), eventID);
-    ++step;
-    ++iter;
+  if (me == 0) {
+    while (iter < maxIter) {
+      buildEventList(cnfModifier);
+      int eventID = 0;
+      auto&& event = selectEvent(eventID);
+      event.exeEvent(c0, RCut); // event updated
+      double oneStepTime = updateTime();
+      updateEnergy(eventID);
+      // updateEventList(cnfModifier, event.getJumpPair(), eventID);
+      ++step;
+      ++iter;
 
-    if (step % nTallyOutput == 0)
-    ofs << std::setprecision(7) << step << " " << time << " " \
-        << E_tot << " " << endl;
+      if (step % nTallyOutput == 0)
+        ofs << std::setprecision(7) << step << " " << time << " " \
+            << E_tot << " " << endl;
 
-    if (step % nTallyConf == 0)
-      cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
+      if (step % nTallyConf == 0)
+        cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
 
+    }
   }
 }
 
