@@ -138,14 +138,20 @@ void gbCnf::helperAddFNNs(const Config &cnfReference,
 map<int, int> gbCnf::findAtm2Clts(Config &inCnf,
                                   const int &numClustersKept,
                                   const string &solventAtomType) {
+  MPI_Barrier(MPI_COMM_WORLD);
   getNBL(inCnf, 3.5);
-  unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);
-  unordered_multimap<int, int> clt2Atm;
-  map<int, int> atm2Clt;
-  int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
-  getLargestClts(numClustersFound, numClustersKept, clt2Atm, atm2Clt);
-  helperAddFNNs(inCnf, clt2Atm, atm2Clt);
-  return atm2Clt;
+
+  if (me == 0) {
+    unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);
+    unordered_multimap<int, int> clt2Atm;
+    map<int, int> atm2Clt;
+    int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
+    getLargestClts(numClustersFound, numClustersKept, clt2Atm, atm2Clt);
+    helperAddFNNs(inCnf, clt2Atm, atm2Clt);
+    return atm2Clt;
+  } else {
+    return map<int, int> {};
+  }
 }
 
 void KNHome::findClts(gbCnf &inGbCnf) {
@@ -153,23 +159,26 @@ void KNHome::findClts(gbCnf &inGbCnf) {
   map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
                                                iparams["numClustersKept"],
                                                sparams["solventAtomType"]);
-  Config outCnf;
-  outCnf.cell = inCnf.cell;
-  outCnf.length = inCnf.length;
-  outCnf.bvx = inCnf.bvx;
-  outCnf.tvx = inCnf.tvx;
-  outCnf.bvy = inCnf.bvy;
-  outCnf.tvy = inCnf.tvy;
-  outCnf.bvz = inCnf.bvz;
-  outCnf.tvz = inCnf.tvz;
-  outCnf.vacList = inCnf.vacList;
-  outCnf.natoms = atm2Clt.size();
+  if (me == 0) {
+    Config outCnf;
+    outCnf.cell = inCnf.cell;
+    outCnf.length = inCnf.length;
+    outCnf.bvx = inCnf.bvx;
+    outCnf.tvx = inCnf.tvx;
+    outCnf.bvy = inCnf.bvy;
+    outCnf.tvy = inCnf.tvy;
+    outCnf.bvz = inCnf.bvz;
+    outCnf.tvz = inCnf.tvz;
+    outCnf.vacList = inCnf.vacList;
+    outCnf.natoms = atm2Clt.size();
 
-  vector<int> tmp;
-  for (const auto &iter : atm2Clt) {
-    outCnf.atoms.push_back(inCnf.atoms[iter.first]);
-    tmp.push_back(iter.second);
+    vector<int> tmp;
+    for (const auto &iter : atm2Clt) {
+      outCnf.atoms.push_back(inCnf.atoms[iter.first]);
+      tmp.push_back(iter.second);
+    }
+
+    inGbCnf.writeCfgAux(outCnf, tmp, "cluster_with_id.cfg");
   }
-  inGbCnf.writeCfgAux(outCnf, tmp, "cluster_with_id.cfg");
 
 }

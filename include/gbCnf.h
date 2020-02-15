@@ -17,12 +17,13 @@ using keras2cpp::Model;
 using keras2cpp::Tensor;
 
 class gbCnf {
-  // KNHome& hm;
-  unordered_map<string, string>& sparams;
 
 public:
+  int& me;
+  int& nProcs;
+
   double rcut;
-  gbCnf(unordered_map<string, string>&);
+  gbCnf(int&, int&);
 
   /* gbInCnf.cpp */
   Config readLmpData(const string&);
@@ -95,11 +96,12 @@ public:
 
   vec getCenterShift(Config&);
   void shiftToCenter(Config&, vector<double>&);
-  mat getJumpCoor(const Config&, const vector<int>, const Config&);
+  mat getJumpCoor(const Config&, const vector<int>&, const Config&);
 
   /* KNBondCount.cpp */
-  map<string, int> countPairs(Config&, const vector<string>&, \
-                                       const vector<int>& );
+  map<string, int> countPairs(Config&, \
+                              const vector<string>&, \
+                              const vector<int>& );
 
   /* KMCSimulation.cpp */
   vector<double> calBarrierAndEdiff(Config&, \

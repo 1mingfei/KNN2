@@ -116,7 +116,7 @@ public:
   void readParam();
 
   /* KNSolidSol.cpp */
-  void createPreNEB();
+  void createPreNEB(gbCnf&);
 
   /* KNOrdered.cpp */
   void createOrdered(gbCnf&, \
@@ -132,11 +132,13 @@ public:
                           const string&, \
                           const FCCEmbededCluster::occupInfo_256&, \
                           const pair<string, string>&);
+
   void createOrderedRandom(gbCnf&, \
                            const vector<int>&, \
                            const double&, \
                            const string&, \
                            const int&);
+
   void createOrderedDiffCon(gbCnf&, \
                             const vector<int>&, \
                             const double&, \
@@ -150,11 +152,11 @@ public:
                      const string&);
 
   /* KNEncode.cpp */
-  void KNEncode();
+  void KNEncode(gbCnf&);
   vector<vector<int>> readPairs(const string&);
 
   /* KNBondCount.cpp */
-  void KNBondCount();
+  void KNBondCount(gbCnf&);
 
   /* KMCSimulation.cpp */
   void KMCInit(gbCnf&);

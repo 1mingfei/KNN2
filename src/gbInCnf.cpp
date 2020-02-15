@@ -38,8 +38,9 @@ inline vector<int> splitStr2Int(const string& stringIn) {
   return wordVector;
 }
 
-gbCnf::gbCnf(unordered_map<string, string>& sparamsIn)
-      : sparams(sparamsIn),
+gbCnf::gbCnf(int& meIn, int& nProcsIn)
+      : me(meIn), \
+        nProcs(nProcsIn), \
         rcut(3.0) {};
 /**************************************************
  * convert vector cell to matrix cell
@@ -90,7 +91,7 @@ vector<double> gbCnf::cnvVecXY2VecAng(const vector<double>& v) {
  **************************************************/
 /*
 Config KNHome::gbCnf::readLmpData(const string& fname) {
-  ifstream ifs(fname.empty() ? sparams["datafile"] : fname, std::ifstream::in);
+  ifstream ifs(fname, std::ifstream::in);
   string buff;
   Config cnf;
   vector<string> s;
@@ -142,7 +143,7 @@ Config KNHome::gbCnf::readLmpData(const string& fname) {
  **************************************************/
 
 Config gbCnf::readCfg(const string& fname) {
-  ifstream ifs(fname.empty() ? sparams["datafile"] : fname, std::ifstream::in);
+  ifstream ifs(fname, std::ifstream::in);
   string buff;
   Config cnf;
   getline(ifs, buff);
