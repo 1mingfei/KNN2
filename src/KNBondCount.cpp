@@ -34,10 +34,7 @@ inline void writeHashmap(const string& fname, \
 
 void KNHome::KNBondCount(gbCnf& cnfModifier) {
   vector<string> elems = vsparams["elems"];
-  int NConfigs = iparams["NConfigs"];
-  int NBars = iparams["NBarriers"];
   double RCut = dparams["RCut"];
-  //string fpname = "pairs.txt";//
   string fpname = sparams["PairFile"];
   vector<vector<int>> pairs = readPairs(fpname);
 
@@ -63,7 +60,6 @@ void KNHome::KNBondCount(gbCnf& cnfModifier) {
   for (int j = 0; j < nCycle; ++j) {
     for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
       if ((i % nProcs != me) || (i >= pairs.size())) continue;
-      //string fname = "in.cfg";//
       string fname = "config" + to_string(pairs[i][0]) + "/s/start.cfg";
 
       Config cfg = cnfModifier.readCfg(fname);
@@ -126,21 +122,6 @@ map<string, int> gbCnf::countPairs(Config& cnf, \
     }
   }
 
-  // for (int i = 0; i < 2; ++i) {
-  //   KNAtom atm = cnf.atoms[pair[i]];
-  //   for (const int ii : atm.NBL) {
-  //     KNAtom nbAtm = cnf.atoms[ii];
-  //     string curr = atm.tp + "-" + nbAtm.tp;
-  //     if (res.find(curr) == res.end()) {
-  //       curr = nbAtm.tp + "-" + atm.tp;
-  //     }
-  //     if (i) {
-  //       res[curr] += 1;
-  //     } else {
-  //       res[curr] -= 1;
-  //     }
-  //   }
-  // }
   return res;
 }
 

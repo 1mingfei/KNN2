@@ -7,24 +7,24 @@
 #include "gbCnf.h"
 #define FNN_DIST 3.0
 
-// void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
-//   vector<double> tmpLength;
-//   tmpLength = cnf.length;
-//   vector<KNAtom> tmpAtoms = cnf.atoms;
-//   for (int i = 0; i < cnf.atoms.size(); ++i) {
-//     vector<int> res;
-//     int k = 0;
-//     for (int j = 0; j < tmpAtoms.size(); ++j) {
-//       double dist = calDistPrl(tmpLength, tmpAtoms[i], tmpAtoms[j]);
-//       if ((dist <= Rcut) && (j % cnf.atoms.size() - i != 0)) {
-//         res.push_back(j);
-//         if (dist <= FNN_DIST)
-//           cnf.atoms[i].FNNL[k++] = j;
-//       }
-//     }
-//     cnf.atoms[i].NBL = std::move(res);
-//   }
-// }
+void gbCnf::getNBL_serial(Config& cnf, double Rcut = 3.8) {
+  vector<double> tmpLength;
+  tmpLength = cnf.length;
+  vector<KNAtom> tmpAtoms = cnf.atoms;
+  for (int i = 0; i < cnf.atoms.size(); ++i) {
+    vector<int> res;
+    int k = 0;
+    for (int j = 0; j < tmpAtoms.size(); ++j) {
+      double dist = calDistPrl(tmpLength, tmpAtoms[i], tmpAtoms[j]);
+      if ((dist <= Rcut) && (j % cnf.atoms.size() - i != 0)) {
+        res.push_back(j);
+        if (dist <= FNN_DIST)
+          cnf.atoms[i].FNNL[k++] = j;
+      }
+    }
+    cnf.atoms[i].NBL = std::move(res);
+  }
+}
 
 void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   vector<double> tmpLength;

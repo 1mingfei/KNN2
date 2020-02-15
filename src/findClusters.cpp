@@ -139,7 +139,10 @@ map<int, int> gbCnf::findAtm2Clts(Config &inCnf,
                                   const int &numClustersKept,
                                   const string &solventAtomType) {
   MPI_Barrier(MPI_COMM_WORLD);
-  getNBL(inCnf, 3.5);
+  if (nProcs == 1)
+    getNBL_serial(inCnf, 3.5);
+  else
+    getNBL(inCnf, 3.5);
 
   if (me == 0) {
     unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);

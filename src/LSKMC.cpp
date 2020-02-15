@@ -499,51 +499,55 @@ bool KNHome::isTrapped(const double& oneStepTime) {
 void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
   KMCInit(cnfModifier);
   double LS_output_cfg_Criteria = dparams["LS_output_cfg_Criteria"];
-
+  double oneStepTime = 0.0;
   while (iter < maxIter) {
-    buildEventList(cnfModifier);
-    int eventID = 0;
-    auto&& event = selectEvent(eventID);
-    event.exeEvent(c0, RCut); // event updated
-    double oneStepTime = updateTime();
-    updateEnergy(eventID);
+    if (me == 0) {
+      buildEventList(cnfModifier);
+      int eventID = 0;
+      auto&& event = selectEvent(eventID);
+      event.exeEvent(c0, RCut); // event updated
+      oneStepTime = updateTime();
+      updateEnergy(eventID);
+    }
+
     ++step;
     ++iter;
 
-    if (isTrapped(oneStepTime)) {
-      LS::LSKMC lskmc(cnfModifier, \
-                c0, \
-                embedding, \
-                vacList, \
-                EDiff, \
-                k2pModelB, \
-                k2pModelD, \
-                RCut, \
-                RCut2, \
-                temperature, \
-                time, \
-                prefix, \
-                E_tot, \
-                ECutoff, \
-                maxIter, \
-                iter, \
-                step, \
-                nTallyConf, \
-                nTallyOutput, \
-                LS_output_cfg_Criteria, \
-                ofs);
-      for (const auto& i : vacList) {
-        lskmc.selectAndExecute(i);
+    if (me == 0) {
+      if (isTrapped(oneStepTime)) {
+        LS::LSKMC lskmc(cnfModifier, \
+                  c0, \
+                  embedding, \
+                  vacList, \
+                  EDiff, \
+                  k2pModelB, \
+                  k2pModelD, \
+                  RCut, \
+                  RCut2, \
+                  temperature, \
+                  time, \
+                  prefix, \
+                  E_tot, \
+                  ECutoff, \
+                  maxIter, \
+                  iter, \
+                  step, \
+                  nTallyConf, \
+                  nTallyOutput, \
+                  LS_output_cfg_Criteria, \
+                  ofs);
+        for (const auto& i : vacList) {
+          lskmc.selectAndExecute(i);
+        }
       }
+
+      if (step % nTallyOutput == 0)
+      ofs << std::setprecision(7) << step << " " << time << " " \
+          << E_tot << " " << endl;
+
+      if (step % nTallyConf == 0)
+        cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
     }
-
-    if (step % nTallyOutput == 0)
-    ofs << std::setprecision(7) << step << " " << time << " " \
-        << E_tot << " " << endl;
-
-    if (step % nTallyConf == 0)
-      cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
-
   }
 
 }
