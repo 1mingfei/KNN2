@@ -287,12 +287,13 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
 void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
   KMCInit(cnfModifier);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   while (iter < maxIter) {
 
     if (nProcs == 1)
       buildEventList_serial(cnfModifier);
-    else
+    else if (me == 0)
       buildEventList(cnfModifier);
 
     if (me == 0) {
