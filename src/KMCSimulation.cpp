@@ -71,21 +71,11 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
 
   /* get neibour list of atoms */
   cnfModifier.wrapAtomPrl(c0);
-  cnfModifier.getNBL(c0, RCut2);
 
-  // for (auto&& i : vacList) {
-  //   vector<int> tmpVector;
-  //   for (const auto& j : c0.atoms[i].NBL) {
-  //     // if (c0.atoms[j].tp == "X")
-  //     //   continue;
-  //     double dist = cnfModifier.calDistPrl(c0.length, \
-  //                                          c0.atoms[i], \
-  //                                          c0.atoms[j]);
-  //     if (dist <= RCut)
-  //       tmpVector.push_back(j);
-  //   }
-  //   jumpList[i] = tmpVector;
-  // }
+  if (nProcs == 1)
+    cnfModifier.getNBL_serial(c0, RCut2);
+  else
+    cnfModifier.getNBL(c0, RCut2);
 
 #ifdef DEBUG
   if (me == 0)
@@ -170,79 +160,13 @@ void KNHome::updateEnergy(const int& eventID) {
   E_tot += eventList[eventID].getEnergyChange();
 }
 
-void KNHome::buildEventList(gbCnf& cnfModifier) {
+void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
   eventList.clear();
   kTot = 0.0;
   int i, j;
-  #pragma omp parallel shared(eventList) private(i, j) reduction(+:kTot)
-  {
-    for (i = 0; i < vacList.size(); ++i) {
-      #pragma omp for ordered
-      for (j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
-        /* skip Vac jump to Vac in event list */
 
-        int iFirst = vacList[i];
-        int iSecond = c0.atoms[vacList[i]].FNNL[j];
-
-        // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
-        //   continue;
-
-        KMCEvent event(make_pair(iFirst, iSecond));
-        // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
-        // eventListMap[tmpHash] = i * jumpList[0].size() + j;
-
-        vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-                                  temperature, \
-                                  RCut2, \
-                                  EDiff, \
-                                  embedding, \
-                                  k2pModelB, \
-                                  k2pModelD, \
-                                  make_pair(iFirst, iSecond));
-
-        if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
-          event.setRate(0.0);
-          event.setEnergyChange(0.0);
-          event.setBarrier(0.0);
-        }
-        else {
-          event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
-          event.setEnergyChange(currBarrier[1]);
-          event.setBarrier(currBarrier[0]);
-        }
-
-        kTot += event.getRate();
-        eventList.push_back(event);
-      }
-    }
-  }
-  // cout << "kTot : " << kTot << "\n";
-
-  /* calculate relative and cumulative probability */
-  double curr = 0.0;
-  for (int i = 0; i < eventList.size(); ++i) {
-    auto&& event = eventList[i];
-    event.calProb(kTot);
-    curr += event.getProb();
-    event.setcProb(curr);
-  }
-#ifdef DEBUGJUMP
-  for (int i = 0; i < eventList.size(); ++i) {
-    const auto& event = eventList[i];
-    cout << setprecision(12) << i << " rate: " << event.getRate() \
-         << " cumulative prob: " << event.getcProb() << endl;
-  }
-  cout << endl;
-#endif
-}
-
-void KNHome::updateEventList(gbCnf& cnfModifier, \
-                             const pair<int, int>& jumpPair, \
-                             const int& eventID) {
-  eventList.clear();
-  kTot = 0.0;
-  for (int i = 0; i < vacList.size(); ++i) {
-    for (int j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
+  for (i = 0; i < vacList.size(); ++i) {
+    for (j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
       /* skip Vac jump to Vac in event list */
 
       int iFirst = vacList[i];
@@ -256,13 +180,13 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
       // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
       vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-                                                temperature, \
-                                                RCut2, \
-                                                EDiff, \
-                                                embedding, \
-                                                k2pModelB, \
-                                                k2pModelD, \
-                                                make_pair(iFirst, iSecond));
+                                temperature, \
+                                RCut2, \
+                                EDiff, \
+                                embedding, \
+                                k2pModelB, \
+                                k2pModelD, \
+                                make_pair(iFirst, iSecond));
 
       if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
         event.setRate(0.0);
@@ -274,8 +198,8 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
         event.setEnergyChange(currBarrier[1]);
         event.setBarrier(currBarrier[0]);
       }
+
       kTot += event.getRate();
-      // kTot += event.getRate() * omp_get_num_threads() * omp_get_num_threads();
       eventList.push_back(event);
     }
   }
@@ -288,7 +212,6 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
     curr += event.getProb();
     event.setcProb(curr);
   }
-
 #ifdef DEBUGJUMP
   for (int i = 0; i < eventList.size(); ++i) {
     const auto& event = eventList[i];
@@ -297,78 +220,103 @@ void KNHome::updateEventList(gbCnf& cnfModifier, \
   }
   cout << endl;
 #endif
+}
 
-  /* new implementation here */
-  /*
-      1. remove old keys from hash
-      2. calculate where to start and stop, then do it.
-      3. update any previous that has iFirst or iSecond that need to be updated.
-   */
+void KNHome::buildEventList(gbCnf& cnfModifier) {
+  eventList.clear();
+  kTot = 0.0;
+  int i, j;
 
-  // step 1
-  // int iFirst = jumpPair.first;
-  // int iSecond = jumpPair.second;
-  // for (const auto& i : oldJumpList[iFirst]) {
-  //   string tmpName = to_string(iFirst) + "_" + to_string(i);
-  //   eventListMap.erase(tmpName);
-  // }
+  for (i = 0; i < vacList.size(); ++i) {
+    for (j = 0; j < c0.atoms[vacList[i]].FNNL.size(); ++j) {
+      /* skip Vac jump to Vac in event list */
 
-  //
-  // int start = eventID / NEI_NUMBER;
-  // for (int i = 0; i < JumpList[iFirst].size(); ++i) {
-  //   kTot -= eventList[start + i];
-  //   KMCEvent event(make_pair(iFirst, JumpList[iFirst][i]));
+      int iFirst = vacList[i];
+      int iSecond = c0.atoms[vacList[i]].FNNL[j];
 
-  //   string tmpHash = to_string(iFirst) + "_" + to_string(JumpList[iFirst][i]);
-  //   eventListMap[tmpHash] = start + i;
+      // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
+      //   continue;
 
-  //   double currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-  //                           temperature, \
-  //                           RCut2, \
-  //                           switchEngy, \
-  //                           embedding, \
-  //                           k2pModelB, \
-  //                           k2pModelD, \
-  //                           make_pair(iFirst, JumpList[iFirst][i]));
-  //   event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
-  //   kTot += event.getRate();
-  //   eventList[start + i] = event;
-  // }
+      KMCEvent event(make_pair(iFirst, iSecond));
+      // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
+      // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
-  // for (pair<int, vector<int>>&& elem : jumpList) {
-  //   if (elem.first == first)
-  //     continue;
-  //   for (int j = 0; j < elem.second.size(); ++j) {
-  //   }
-  // }
+      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
+                                temperature, \
+                                RCut2, \
+                                EDiff, \
+                                embedding, \
+                                k2pModelB, \
+                                k2pModelD, \
+                                make_pair(iFirst, iSecond));
 
+      if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
+        event.setRate(0.0);
+        event.setEnergyChange(0.0);
+        event.setBarrier(0.0);
+      }
+      else {
+        event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
+        event.setEnergyChange(currBarrier[1]);
+        event.setBarrier(currBarrier[0]);
+      }
+
+      kTot += event.getRate();
+      eventList.push_back(event);
+    }
+  }
+
+  /* calculate relative and cumulative probability */
+  double curr = 0.0;
+  for (int i = 0; i < eventList.size(); ++i) {
+    auto&& event = eventList[i];
+    event.calProb(kTot);
+    curr += event.getProb();
+    event.setcProb(curr);
+  }
+#ifdef DEBUGJUMP
+  for (int i = 0; i < eventList.size(); ++i) {
+    const auto& event = eventList[i];
+    cout << setprecision(12) << i << " rate: " << event.getRate() \
+         << " cumulative prob: " << event.getcProb() << endl;
+  }
+  cout << endl;
+#endif
 }
 
 void KNHome::KMCSimulation(gbCnf& cnfModifier) {
+
   KMCInit(cnfModifier);
 
-  // buildEventList(cnfModifier);
-  if (me == 0) {
-    while (iter < maxIter) {
+  while (iter < maxIter) {
+
+    if (nProcs == 1)
+      buildEventList_serial(cnfModifier);
+    else
       buildEventList(cnfModifier);
+
+    if (me == 0) {
       int eventID = 0;
       auto&& event = selectEvent(eventID);
       event.exeEvent(c0, RCut); // event updated
       double oneStepTime = updateTime();
       updateEnergy(eventID);
-      // updateEventList(cnfModifier, event.getJumpPair(), eventID);
-      ++step;
-      ++iter;
+    }
 
+    ++step;
+    ++iter;
+
+    if (me == 0) {
       if (step % nTallyOutput == 0)
         ofs << std::setprecision(7) << step << " " << time << " " \
             << E_tot << " " << endl;
 
       if (step % nTallyConf == 0)
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
-
     }
   }
+  MPI_Barrier(MPI_COMM_WORLD);
+
 }
 
 vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
@@ -416,7 +364,6 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
     double deltaE = 0.0;
     double tmpEdiff = 0.0;
 
-    #pragma omp parallel for shared(deltaE, tmpEdiff)
     for (int i = 0; i < nRow; ++i) {
       deltaE += static_cast<double>(outB(i, 0));
       tmpEdiff += static_cast<double>(outD(i, 0));

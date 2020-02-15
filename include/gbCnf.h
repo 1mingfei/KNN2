@@ -52,6 +52,7 @@ public:
   double calDist(const vector<double>, const KNAtom&, const KNAtom&);
   double calDistPrl(const vector<double>&, const KNAtom&, const KNAtom&);
   void getNBL(Config&, double);
+  void getNBL_serial(Config&, double);
 
   /* gbBox.cpp */
   void initBox(Config&);

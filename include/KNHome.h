@@ -168,7 +168,9 @@ public:
                          gbCnf&, \
                          pair<int, int>);
 
+  void buildEventList_serial(gbCnf&);
   void buildEventList(gbCnf&);
+
   void updateEventList(gbCnf&, \
                        const pair<int, int>&, \
                        const int&);

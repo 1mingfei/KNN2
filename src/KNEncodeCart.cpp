@@ -290,8 +290,8 @@ vec gbCnf::getCenterShift(Config& c) {
 void KNHome::KNEncode(gbCnf& cnfModifier) {
 
   vector<string> elems = vsparams["elems"];
-  int NConfigs = iparams["NConfigs"];
-  int NBars = iparams["NBarriers"];
+  // int NConfigs = iparams["NConfigs"];
+  // int NBars = iparams["NBarriers"];
   double RCut = dparams["RCut"];
   //string fpname = "pairs.txt";//
   string fpname = sparams["PairFile"];
