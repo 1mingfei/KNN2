@@ -291,9 +291,9 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
   while (iter < maxIter) {
 
-    if (nProcs == 1)
-      buildEventList_serial(cnfModifier);
-    else if (me == 0)
+    // if (nProcs == 1)
+    //   buildEventList_serial(cnfModifier);
+    if (me == 0)
       buildEventList(cnfModifier);
 
     if (me == 0) {
