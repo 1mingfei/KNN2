@@ -12,6 +12,13 @@
 KNHome::KNHome(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
+  
+  int tid;
+  #pragma omp parallel private(tid)
+  {
+    tid = omp_get_thread_num();
+    cout << "OpenMP using # " << tid << " thread.\n";
+  }
 
   sparams["mode"] = "generate";
   sparams["initconfig"] = "initconfig.cfg";
