@@ -192,8 +192,7 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
         event.setRate(0.0);
         event.setEnergyChange(0.0);
         event.setBarrier(0.0);
-      }
-      else {
+      } else {
         event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
         event.setEnergyChange(currBarrier[1]);
         event.setBarrier(currBarrier[0]);
@@ -234,12 +233,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       int iFirst = vacList[i];
       int iSecond = c0.atoms[vacList[i]].FNNL[j];
 
-      // if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp)
-      //   continue;
-
       KMCEvent event(make_pair(iFirst, iSecond));
-      // string tmpHash = to_string(iFirst) + "_" + to_string(iSecond);
-      // eventListMap[tmpHash] = i * jumpList[0].size() + j;
 
       vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                 temperature, \
@@ -254,8 +248,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
         event.setRate(0.0);
         event.setEnergyChange(0.0);
         event.setBarrier(0.0);
-      }
-      else {
+      } else {
         event.setRate(exp(-currBarrier[0] * KB_INV / temperature));
         event.setEnergyChange(currBarrier[1]);
         event.setBarrier(currBarrier[0]);
