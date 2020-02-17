@@ -5,6 +5,7 @@
  */
 
 #include "gbCnf.h"
+#include "KNUtility.h"
 #define FNN_DIST 3.0
 
 void gbCnf::getNBL_serial(Config& cnf, double Rcut = 3.8) {
@@ -40,13 +41,16 @@ void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
   // allocate largest memory for all nAtom (this is slightly larger than needed)
   // Note that "nCycle * nProcs >= nAtoms"
   // all data store here after this
-  int** NBLArry = new int* [nCycle * nProcs];
-  int** FNNLArry = new int* [nCycle * nProcs];
-
-  for (int i = 0; i < (nCycle * nProcs); ++i) {
-    NBLArry[i] = new int [18];
-    FNNLArry[i] = new int [12];
-  }
+  // int** NBLArry = new int* [nCycle * nProcs];
+  // int** FNNLArry = new int* [nCycle * nProcs];
+  int** NBLArry;
+  int** FNNLArry;
+  // for (int i = 0; i < (nCycle * nProcs); ++i) {
+  //   NBLArry[i] = new int [18];
+  //   FNNLArry[i] = new int [12];
+  // }
+  NBLArry = alloc_2d_array<int>(nCycle * nProcs, 18);
+  FNNLArry = alloc_2d_array<int>(nCycle * nProcs, 12);
 
   // smallest buff for gathering in each cycle
   int* buff_NBLArry = new int [18];
@@ -91,8 +95,9 @@ void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
       } else {
         for (int ii = 0; ii < 18; ++ii) {
           NBLArry[j * nProcs + i % nProcs][ii] = buff_NBLArry[ii];
-          if (ii >= 12)
-            continue;
+        }
+
+        for (int ii = 0; ii < 12; ++ii) {
           FNNLArry[j * nProcs + i % nProcs][ii] = buff_FNNLArry[ii];
         }
       }
@@ -100,38 +105,20 @@ void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
-  MPI_Bcast(&NBLArry[0][0], nCycle * nProcs * 18, MPI_INT, 0, MPI_COMM_WORLD);
-  // MPI_Bcast(&FNNLArry[0][0], nCycle * nProcs * 12, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
-  // if (me == 0) {
-  //   // If we are the root process, send our data to everyone
-  //   int i;
-  //   for (i = 0; i < nProcs; ++i) {
-  //     if (i != me) {
-  //       MPI_Send(NBLArry, sizeof(NBLArry), MPI_INT, i, 2, MPI_COMM_WORLD);
+  // MPI_Bcast(&(NBLArry[0][0]), nCycle * nProcs * 18, MPI_INT, 0, MPI_COMM_WORLD);
+  // MPI_Bcast(&(FNNLArry[0][0]), nCycle * nProcs * 12, MPI_INT, 0, MPI_COMM_WORLD);
+  // MPI_Barrier(MPI_COMM_WORLD);
 
-  //       MPI_Send(FNNLArry, sizeof(FNNLArry), MPI_INT, i, 3, MPI_COMM_WORLD);
+  // for (int j = 0; j < nProcs; ++j) {
+  //   if (me == j) {
+  //     cout << me << " : ";
+  //     // cout << NBLArry[10][17] << " " << FNNLArry[12][11] << " ";
+  //     cout << NBLArry[10][17] << " ";
 
-  //     }
   //   }
-  // } else {
-  //   // If we are a receiver process, receive the data from the root
-  //   MPI_Recv(NBLArry, sizeof(NBLArry), MPI_INT, 0, 2, MPI_COMM_WORLD,
-  //            MPI_STATUS_IGNORE);
-
-  //   MPI_Recv(FNNLArry, sizeof(FNNLArry), MPI_INT, 0, 3, MPI_COMM_WORLD,
-  //            MPI_STATUS_IGNORE);
   // }
 
-  for (int j = 0; j < nProcs; ++j) {
-    if (me == j) {
-      cout << me << " : ";
-      // cout << NBLArry[10][17] << " " << FNNLArry[12][11] << " ";
-      cout << NBLArry[10][17] << " ";
-
-    }
-  }
-
+  if (me == 0)
   for (int i = 0; i < size; ++i) {
     for (int j = 0; j < 18; ++j) {
       cnf.atoms[i].NBL.push_back(NBLArry[i][j]);
@@ -139,33 +126,36 @@ void gbCnf::getNBL(Config& cnf, double Rcut = 3.8) {
       cnf.atoms[i].FNNL[j] = FNNLArry[i][j];
     }
   }
-  MPI_Barrier(MPI_COMM_WORLD);
 
-  for (int j = 0; j < nProcs; ++j) {
-    if (me == j) {
-      cout << "proc #" << j << " " << cnf.atoms.size() << " " << cnf.bvx[0] << endl;
-      for (int i = 499 ; i > 490; --i) {
-        cout << "proc #" << j << " atom #" << i << " NB size: "
-             << cnf.atoms[i].NBL.size() << "\n";
-      }
+  // if (me == 0)
+  // for (int j = 0; j < nProcs; ++j) {
+  //   if (me == j) {
+  //     cout << "proc #" << j << " " << cnf.atoms.size() << endl;
+  //     for (int i = 499 ; i > 490; --i) {
+  //       cout << "proc #" << j << " atom #" << i << " NB size: "
+  //            << cnf.atoms[i].NBL.size() << "\n";
+  //     }
 
-      for (int i = 499 ; i > 490; --i) {
-        cout << "proc #" << j << "\n";
-        for (int k = 0; k < 18; ++k)
-          cout << " " << cnf.atoms[i].NBL[k] << " ";
-      }
-    }
-  }
+  //     for (int i = 499 ; i > 490; --i) {
+  //       cout << "proc #" << j << "\n";
+  //       for (int k = 0; k < 18; ++k)
+  //         cout << " " << cnf.atoms[i].NBL[k] << " ";
+  //     }
+  //   }
+  // }
 
   delete [] buff_NBLArry;
   delete [] buff_FNNLArry;
   for (int i = 0; i < (nCycle * nProcs); ++i) {
     delete [] NBLArry[i];
     delete [] FNNLArry[i];
+    // free(NBLArry[i]);
+    // free(FNNLArry[i]);
   }
+  // free(NBLArry);
+  // free(FNNLArry);
   delete [] NBLArry;
   delete [] FNNLArry;
-
 }
 
 int gbCnf::getExpdParam(const Config& cnf, const double Rcut = 3.8) {
