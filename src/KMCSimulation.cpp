@@ -226,7 +226,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   // MPI_Type_struct(1, );
 
   eventList.clear();
-  eventList.reserve(NEI_NUMBER);
+  eventList.resize(NEI_NUMBER);
   kTot = 0.0;
 
   int iFirst = vacList[0];
@@ -238,11 +238,12 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   int nCycle = remainder ? (quotient + 1) : quotient;
 
   double** data;
-  data = alloc_2d_array<double> (nCycle * nProcs, 3);
+  data = alloc_2d_array<double> (nCycle * nProcs, 5);
 
   // smallest buff for gathering in each cycle
-  double* buffData = new double [3];
+  double* buffData = new double [5];
 
+#ifdef DEBUG_MPI
   if (me == 0) {
     for (int i = 0; i < NI; ++i) {
       cout << c0.atoms[iFirst].FNNL[i] << " " \
@@ -250,6 +251,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     }
     cout << "\n";
   }
+#endif
 
 
   for (int j = 0; j < nCycle; ++j) {
@@ -259,20 +261,22 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
       int iSecond = c0.atoms[iFirst].FNNL[i];
 
       if ((me == 0) && (i % nProcs != 0)) {
-        MPI_Recv(&data[i][0], 3, MPI_DOUBLE, (i % nProcs), 0, \
+        MPI_Recv(&data[i][0], 5, MPI_DOUBLE, (i % nProcs), 0, \
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
       if (i % nProcs != me) continue;
 
-      for (int k = 0; k < 3; ++k)
+      for (int k = 0; k < 5; ++k)
         buffData[j] = 0.0;
 
       if (i >= NI) continue;
 
+#ifdef DEBUG_MPI
       cout << "processor #" << me << " iteration: "
            << iter << " neighbor #" << i << " pair: "
            << iFirst << " " << iSecond << " " << c0.atoms[iSecond].tp << "\n";
+#endif
 
       vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                 temperature, \
@@ -283,20 +287,24 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
                                 k2pModelD, \
                                 make_pair(iFirst, iSecond));
 
+#ifdef DEBUG_MPI
       cout << "processor #" << me << " iteration: " \
            << iter << " neighbor #" << i \
            << " calulate barrier done.\n";
+#endif
 
       if (c0.atoms[iFirst].tp != c0.atoms[iSecond].tp) {
         buffData[0] = exp(-currBarrier[0] * KB_INV / temperature); // rate
         buffData[1] = currBarrier[1];                              // Ediff
         buffData[2] = currBarrier[0];                              // Ebarr
+        buffData[3] = static_cast<double>(iFirst);                 // jmpPair1
+        buffData[4] = static_cast<double>(iSecond);                // jmpPair2
       }
 
       if (me != 0) {
-        MPI_Send(&buffData[0], 3, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(&buffData[0], 5, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
       } else {
-        for (int ii = 0; ii < 3; ++ii)
+        for (int ii = 0; ii < 5; ++ii)
           data[j * nProcs + i % nProcs][ii] = buffData[ii];
       }
 
@@ -304,7 +312,7 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
-  MPI_Bcast(&data[0][0], nCycle * nProcs * 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&data[0][0], nCycle * nProcs * 5, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < NEI_NUMBER; ++i) {
@@ -312,6 +320,8 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     eventList[i].setRate(data[i][0]);
     eventList[i].setEnergyChange(data[i][1]);
     eventList[i].setBarrier(data[i][2]);
+    eventList[i].setJumpPair(static_cast<int>(data[i][3]), \
+                             static_cast<int>(data[i][4]));
   }
 
   /* calculate relative and cumulative probability */
@@ -324,8 +334,10 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   }
 
   // MPI_Barrier(MPI_COMM_WORLD);
+#ifdef DEBUG_MPI
   cout << "processor #" << me << " iteration: "
        << iter << " set eventList done.\n";
+#endif
 
   /*free smallest buffer*/
   delete [] buffData;
@@ -342,13 +354,15 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
   while (iter < maxIter) {
 
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // if (nProcs == 1)
-    //   buildEventList_serial(cnfModifier);
-    buildEventList(cnfModifier);
+    if (nProcs == 1)
+      buildEventList_serial(cnfModifier);
+    else
+      buildEventList(cnfModifier);
 
-    cout << "build event list processor #" << me << " iteration: "
-         << iter << "\n";
+#ifdef DEBUG_MPI
+    cout << "built event list processor #" << me << " iteration: "
+         << iter << " eventList size: " << eventList.size() << "\n";
+#endif
 
     int eventID = 0;
 
@@ -357,12 +371,21 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     }
 
     MPI_Bcast(&eventID, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Barrier(MPI_COMM_WORLD);
+    // MPI_Barrier(MPI_COMM_WORLD);
 
-    cout << "processor #" << me << " selected event #" << eventID
-         << "iteration: " << iter << "\n";
+#ifdef DEBUG_MPI
+    cout << "iteration: " << iter << "processor #" << me \
+         << " selected event #" << eventID << "\n";
+#endif
 
     eventList[eventID].exeEvent(c0, RCut); // event updated
+
+#ifdef DEBUG_MPI
+    cout << "iteration: " << iter << "processor #" << me \
+         << " event #" << eventID << " jump pair " \
+         << eventList[eventID].getJumpPair().first << "-" \
+         << eventList[eventID].getJumpPair().second << "\n";
+#endif
 
     if (me == 0) {
       double oneStepTime = updateTime();

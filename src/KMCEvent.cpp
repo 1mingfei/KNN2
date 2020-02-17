@@ -52,6 +52,10 @@ void KMCEvent::setBarrier(const double& inBarrier) {
   barrier = inBarrier;
 }
 
+void KMCEvent::setJumpPair(const int& i, const int& j) {
+  jumpPair = std::make_pair(i, j);
+}
+
 void KMCEvent::exeEvent(Config& cnf, \
                         const double& RCut) {
   int first = jumpPair.first;
