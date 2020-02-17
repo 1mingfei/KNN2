@@ -37,4 +37,13 @@ mat vvd2mat(vvd&);
 vec vd2vec(vd&);
 vd mat2vd(mat&);
 
+template <class T>
+T** alloc_2d_array(int rows, int cols) {
+  T* data = (T*) malloc(rows * cols * sizeof(T));
+  T** array= (T**) malloc(rows * sizeof(T*));
+  for (int i = 0; i < rows; ++i)
+      array[i] = &(data[cols * i]);
+  return array;
+}
+
 #endif

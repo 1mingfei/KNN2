@@ -158,7 +158,9 @@ inline void changeBox(Config& c, double newSize) {
   }
 }
 
-inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
+inline vector<double> getPairCenter(const Config& c, \
+                                    const int a, \
+                                    const int b) {
   vector<double> res(3, 0.0);
   for (int i : {0, 1, 2}) {
     double locA = c.atoms[a].prl[i];
@@ -180,8 +182,8 @@ inline vector<double> getPairCenter(const Config& c, const int a, const int b) {
 }
 
 mat gbCnf::getJumpCoor(const Config& cnf, \
-                               const vector<int> pair, \
-                               const Config& ref) {
+                       const vector<int>& pair, \
+                       const Config& ref) {
 
   vector<double> length({ ref.bvx[0], ref.bvy[1], ref.bvz[2] });
   int id1 = pair[0], id2 = pair[1];
@@ -285,11 +287,11 @@ vec gbCnf::getCenterShift(Config& c) {
   return res;
 }
 
-void KNHome::KNEncode() {
-  gbCnf cnfModifier(sparams);
+void KNHome::KNEncode(gbCnf& cnfModifier) {
+
   vector<string> elems = vsparams["elems"];
-  int NConfigs = iparams["NConfigs"];
-  int NBars = iparams["NBarriers"];
+  // int NConfigs = iparams["NConfigs"];
+  // int NBars = iparams["NBarriers"];
   double RCut = dparams["RCut"];
   //string fpname = "pairs.txt";//
   string fpname = sparams["PairFile"];
