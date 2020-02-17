@@ -175,13 +175,17 @@ void KNHome::findClts(gbCnf &inGbCnf) {
     outCnf.vacList = inCnf.vacList;
     outCnf.natoms = atm2Clt.size();
 
-    vector<int> tmp;
-    for (const auto &iter : atm2Clt) {
-      outCnf.atoms.push_back(inCnf.atoms[iter.first]);
-      tmp.push_back(iter.second);
+    vector<int> cltId;
+    for (const auto &item : atm2Clt) {
+      outCnf.atoms.push_back(inCnf.atoms[item.first]);
+      cltId.push_back(item.second);
     }
 
-    inGbCnf.writeCfgAux(outCnf, tmp, "cluster_with_id.cfg");
+    vector<string> str;
+    split(sparams["initconfig"], ".", str);
+    string oFName;
+    oFName = str[0] + "_cluster.cfg";
+    inGbCnf.writeCfgAux(outCnf, cltId, oFName);
   }
 
 }
