@@ -55,6 +55,7 @@ public:
   void calProb(const double&);
   void setcProb(const double&);
   void setEnergyChange(const double&);
+  void setJumpPair(const int&, const int&);
   virtual void exeEvent(Config&, const double&);
 
 };
