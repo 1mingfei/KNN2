@@ -217,7 +217,6 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
 
 void KNHome::buildEventList(gbCnf& cnfModifier) {
 
-  MPI_Barrier(MPI_COMM_WORLD);
   // MPI_Datatype ConfigType;
   // MPI_Aint address;
   // if (me == 0) {
@@ -233,28 +232,25 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
   int iFirst = vacList[0];
 
   int NI = c0.atoms[iFirst].FNNL.size();
-  cout << "processor #" << me << " iteration: "
-       << iter << " NI #" << NI << "\n";
 
   int quotient = NI / nProcs;
   int remainder = NI % nProcs;
   int nCycle = remainder ? (quotient + 1) : quotient;
 
-  double** data = new double* [nCycle * nProcs];
-  for (int i = 0; i < (nCycle * nProcs); ++i)
-    data[i] = new double [3];
+  double** data;
+  data = alloc_2d_array<double> (nCycle * nProcs, 3);
 
   // smallest buff for gathering in each cycle
   double* buffData = new double [3];
 
-  for (int j = 0; j < nProcs; ++j) {
-    if (me == j) {
-      cout << "proc #" << j << " " << c0.atoms.size() << endl;
-      for (int i = 0 ; i < NI; ++i)
-        cout << c0.atoms[iFirst].FNNL[i] << " ";
-      cout << "\n";
+  if (me == 0) {
+    for (int i = 0; i < NI; ++i) {
+      cout << c0.atoms[iFirst].FNNL[i] << " " \
+           << c0.atoms[c0.atoms[iFirst].FNNL[i]].tp << " ";
     }
+    cout << "\n";
   }
+
 
   for (int j = 0; j < nCycle; ++j) {
 
@@ -262,13 +258,8 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
 
       int iSecond = c0.atoms[iFirst].FNNL[i];
 
-      cout << "processor #" << me << " iteration: "
-           << iter << " neighbor #" << i << " pair: "
-           // << iFirst << " " << iSecond << " T: " << temperature <<"\n";
-           << iFirst << " " << iSecond << " " << c0.atoms[iSecond].tp << "\n";
-
       if ((me == 0) && (i % nProcs != 0)) {
-        MPI_Recv(&data[i][0], 3, MPI_DOUBLE, (i % nProcs), 0,
+        MPI_Recv(&data[i][0], 3, MPI_DOUBLE, (i % nProcs), 0, \
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
@@ -279,6 +270,10 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
 
       if (i >= NI) continue;
 
+      cout << "processor #" << me << " iteration: "
+           << iter << " neighbor #" << i << " pair: "
+           << iFirst << " " << iSecond << " " << c0.atoms[iSecond].tp << "\n";
+
       vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
                                 temperature, \
                                 RCut2, \
@@ -288,8 +283,9 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
                                 k2pModelD, \
                                 make_pair(iFirst, iSecond));
 
-      cout << "processor #" << me << " iteration: "
-           << iter << " neighbor #" << i << "\n";
+      cout << "processor #" << me << " iteration: " \
+           << iter << " neighbor #" << i \
+           << " calulate barrier done.\n";
 
       if (c0.atoms[iFirst].tp != c0.atoms[iSecond].tp) {
         buffData[0] = exp(-currBarrier[0] * KB_INV / temperature); // rate
@@ -308,7 +304,8 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
-  MPI_Bcast(data, sizeof(data), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&data[0][0], nCycle * nProcs * 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < NEI_NUMBER; ++i) {
     kTot += data[i][0];
@@ -326,21 +323,22 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
     event.setcProb(curr);
   }
 
+  // MPI_Barrier(MPI_COMM_WORLD);
+  cout << "processor #" << me << " iteration: "
+       << iter << " set eventList done.\n";
 
   /*free smallest buffer*/
   delete [] buffData;
 
   /*free largest data set*/
-  for (int i = 0; i < (nCycle * nProcs); ++i)
-    delete [] data[i];
-  delete [] data;
+  free(data[0]);
+  free(data);
 
 }
 
 void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
   KMCInit(cnfModifier);
-
 
   while (iter < maxIter) {
 
@@ -358,8 +356,8 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
       auto&& event = selectEvent(eventID);
     }
 
-    // MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(&eventID, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
     cout << "processor #" << me << " selected event #" << eventID
          << "iteration: " << iter << "\n";
