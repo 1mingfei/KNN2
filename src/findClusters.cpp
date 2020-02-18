@@ -127,8 +127,7 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
   }
 }
 
-void KNHome::findClts(gbCnf& inGbCnf) {
-  const string& fname = sparams["initconfig"];
+void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
   Config inCnf = inGbCnf.readCfg(fname);
   map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
                                                iparams["numClustersKept"],
@@ -170,5 +169,16 @@ void KNHome::findClts(gbCnf& inGbCnf) {
     }
     ofs << endl;
     ofs.close();
+  }
+}
+
+void KNHome::loopConfig(gbCnf& inGbCnf) {
+  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
+  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
+  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
+  for (long long i = initNum; i <= finalNum; i += increment) {
+    string fname = to_string(i) + ".cfg";
+    findClts(inGbCnf, fname);
+    MPI_Barrier(MPI_COMM_WORLD);
   }
 }
