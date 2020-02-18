@@ -1,4 +1,7 @@
 examples/
 prod/
 build
+bin/*
+obj/*
+lib/
 .idea

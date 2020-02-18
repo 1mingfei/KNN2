@@ -4,37 +4,10 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 
-/*
-Config gbCnf::removeAtoms(Config &inCnf,
-                          const string &atomType,
-                          unordered_set<int> &atomID) {
-  getNBL(inCnf, 3.5);
-  Config cnf;
-  cnf.cell = inCnf.cell;
-  cnf.length = inCnf.length;
-  cnf.bvx = inCnf.bvx;
-  cnf.tvx = inCnf.tvx;
-  cnf.bvy = inCnf.bvy;
-  cnf.tvy = inCnf.tvy;
-  cnf.bvz = inCnf.bvz;
-  cnf.tvz = inCnf.tvz;
-  cnf.vacList = inCnf.vacList;
-  cnf.ntypes = inCnf.ntypes - 1;
-  for (auto &atm : inCnf.atoms) {
-    if (atm.tp != atomType) {
-      atomID.insert(atm.id);
-      cnf.atoms.push_back(atm);
-      cnf.natoms++;
-    }
-  }
-  return cnf;
-}
-*/
-
-unordered_set<int> gbCnf::findSoluteAtoms(const Config &inCnf,
-                                          const string &solventAtomType) {
+unordered_set<int> gbCnf::findSoluteAtoms(const Config& inCnf,
+                                          const string& solventAtomType) {
   unordered_set<int> soluteAtomID;
-  for (const auto &atm : inCnf.atoms) {
+  for (const auto& atm : inCnf.atoms) {
     if (atm.tp != solventAtomType) {
       soluteAtomID.insert(atm.id);
     }
@@ -42,13 +15,10 @@ unordered_set<int> gbCnf::findSoluteAtoms(const Config &inCnf,
   return soluteAtomID;
 }
 
-int gbCnf::helperBFS(const Config &inCnf,
-                     const unordered_set<int> &soluteAtomID,
-                     unordered_multimap<int, int> &clt2Atm,
-                     map<int, int> &atm2Clt) {
-//  bool *visited = new bool[soluteAtomID.size()];
-//  for (int i = 0; i < soluteAtomID.size(); i++) { visited[i] = false; }
-
+int gbCnf::helperBFS(const Config& inCnf,
+                     const unordered_set<int>& soluteAtomID,
+                     unordered_multimap<int, int>& clt2Atm,
+                     map<int, int>& atm2Clt) {
   unordered_set<int> unvisited = soluteAtomID;
   queue<int> visitQueue;
 
@@ -81,10 +51,10 @@ int gbCnf::helperBFS(const Config &inCnf,
   return cltID;
 }
 
-void gbCnf::getLargestClts(const int &numClustersFound,
-                           const int &numClustersKept,
-                           unordered_multimap<int, int> &clt2Atm,
-                           map<int, int> &atm2Clt) {
+void gbCnf::getLargestClts(const int& numClustersFound,
+                           const int& numClustersKept,
+                           unordered_multimap<int, int>& clt2Atm,
+                           map<int, int>& atm2Clt) {
   vector<vector<int>> keyValueNumMat;
   keyValueNumMat.resize(numClustersFound);
   for (int i = 0; i < numClustersFound; i++) {
@@ -95,7 +65,7 @@ void gbCnf::getLargestClts(const int &numClustersFound,
   int col = 1;
   sort(keyValueNumMat.begin(),
        keyValueNumMat.end(),
-       [col](const vector<int> &lhs, const vector<int> &rhs) -> bool {
+       [col](const vector<int>& lhs, const vector<int>& rhs) -> bool {
          return lhs[col] > rhs[col];
        });
 
@@ -116,9 +86,9 @@ void gbCnf::getLargestClts(const int &numClustersFound,
   atm2Clt = atm2Clt2;
 }
 // add FNNs back
-void gbCnf::helperAddFNNs(const Config &cnfReference,
-                          unordered_multimap<int, int> &clt2Atm,
-                          map<int, int> &atm2Clt) {
+void gbCnf::helperAddFNNs(const Config& cnfReference,
+                          unordered_multimap<int, int>& clt2Atm,
+                          map<int, int>& atm2Clt) {
   for (pair<int, int> i : atm2Clt) {
     int atom = i.first;
     int cluster = i.second;
@@ -135,9 +105,9 @@ void gbCnf::helperAddFNNs(const Config &cnfReference,
   }
 }
 
-map<int, int> gbCnf::findAtm2Clts(Config &inCnf,
-                                  const int &numClustersKept,
-                                  const string &solventAtomType) {
+map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
+                                  const int& numClustersKept,
+                                  const string& solventAtomType) {
   MPI_Barrier(MPI_COMM_WORLD);
   if (nProcs == 1)
     getNBL_serial(inCnf, 3.5);
@@ -153,12 +123,12 @@ map<int, int> gbCnf::findAtm2Clts(Config &inCnf,
     helperAddFNNs(inCnf, clt2Atm, atm2Clt);
     return atm2Clt;
   } else {
-    return map<int, int> {};
+    return map<int, int>{};
   }
 }
 
-void KNHome::findClts(gbCnf &inGbCnf) {
-  Config inCnf = inGbCnf.readCfg(sparams["initconfig"]);
+void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
+  Config inCnf = inGbCnf.readCfg(fname);
   map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
                                                iparams["numClustersKept"],
                                                sparams["solventAtomType"]);
@@ -175,13 +145,44 @@ void KNHome::findClts(gbCnf &inGbCnf) {
     outCnf.vacList = inCnf.vacList;
     outCnf.natoms = atm2Clt.size();
 
-    vector<int> tmp;
-    for (const auto &iter : atm2Clt) {
-      outCnf.atoms.push_back(inCnf.atoms[iter.first]);
-      tmp.push_back(iter.second);
+    vector<int> cltId;
+    for (const auto& item : atm2Clt) {
+      outCnf.atoms.push_back(inCnf.atoms[item.first]);
+      cltId.push_back(item.second);
     }
 
-    inGbCnf.writeCfgAux(outCnf, tmp, "cluster_with_id.cfg");
-  }
+    vector<string> str;
+    split(fname, ".", str);
+    string oFName;
+    oFName = str[0] + "_cluster.cfg";
+    inGbCnf.writeCfgAux(outCnf, cltId, oFName);
 
+    ofs.open("clusters_info.txt", std::ofstream::out | std::ofstream::app);
+    std::map<string, int> names;
+    vector<string> elems = vsparams["elems"];
+    for (const auto& elem :elems) {
+      names.insert(make_pair(elem, 0));
+    }
+    for (const auto& atm : outCnf.atoms) {
+      names[atm.tp]++;
+    }
+    ofs << str[0] << " ";
+    for (auto& name : names) {
+      if (name.first == "X") continue;
+      ofs << name.second << " ";
+    }
+    ofs << endl;
+    // ofs.close();
+  }
+}
+
+void KNHome::loopConfig(gbCnf& inGbCnf) {
+  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
+  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
+  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
+  for (long long i = initNum; i <= finalNum; i += increment) {
+    string fname = to_string(i) + ".cfg";
+    findClts(inGbCnf, fname);
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
 }

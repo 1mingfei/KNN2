@@ -96,8 +96,13 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("numDataset")) {
       iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("initNum")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("increment")) {
+      iparams[segs[0]] = stoi(segs[1]);
+    } else if (!segs[0].compare("finalNum")) {
+      iparams[segs[0]] = stoi(segs[1]);
     }
-
   }
   fid.close();
 }
