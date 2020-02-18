@@ -128,7 +128,8 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
 }
 
 void KNHome::findClts(gbCnf& inGbCnf) {
-  Config inCnf = inGbCnf.readCfg(sparams["initconfig"]);
+  const string& fname = sparams["initconfig"];
+  Config inCnf = inGbCnf.readCfg(fname);
   map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
                                                iparams["numClustersKept"],
                                                sparams["solventAtomType"]);
@@ -152,9 +153,22 @@ void KNHome::findClts(gbCnf& inGbCnf) {
     }
 
     vector<string> str;
-    split(sparams["initconfig"], ".", str);
+    split(fname, ".", str);
     string oFName;
     oFName = str[0] + "_cluster.cfg";
     inGbCnf.writeCfgAux(outCnf, cltId, oFName);
+
+    ofs.open("clusters_info.txt", std::ofstream::out | std::ofstream::app);
+    std::map<string, int> names;
+    for (const auto& atm : outCnf.atoms) {
+      names[atm.tp]++;
+    }
+    ofs << str[0] << " ";
+    for (auto& name : names) {
+      if (name.first == "X") continue;
+      ofs << name.second << " ";
+    }
+    ofs << endl;
+    ofs.close();
   }
 }
