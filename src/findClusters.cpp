@@ -127,8 +127,9 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
   }
 }
 
-void KNHome::findClts(gbCnf& inGbCnf) {
-  Config inCnf = inGbCnf.readCfg(sparams["initconfig"]);
+void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
+  Config inCnf = inGbCnf.readCfg(fname);
+  // Config inCnf = inGbCnf.readCfg(sparams["initconfig"]);
   map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
                                                iparams["numClustersKept"],
                                                sparams["solventAtomType"]);
@@ -152,9 +153,22 @@ void KNHome::findClts(gbCnf& inGbCnf) {
     }
 
     vector<string> str;
-    split(sparams["initconfig"], ".", str);
+    split(fname, ".", str);
+    // split(sparams["initconfig"], ".", str);
+
     string oFName;
     oFName = str[0] + "_cluster.cfg";
     inGbCnf.writeCfgAux(outCnf, cltId, oFName);
+  }
+}
+
+void KNHome::loopConfig(gbCnf& inGbCnf) {
+  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
+  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
+  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
+  for (long long i = initNum; i <= finalNum; i += increment) {
+    string fname = to_string(i) + ".cfg";
+    findClts(inGbCnf, fname);
+    MPI_Barrier(MPI_COMM_WORLD);
   }
 }
