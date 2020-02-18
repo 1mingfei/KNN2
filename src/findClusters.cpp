@@ -76,8 +76,8 @@ void gbCnf::getLargestClts(const int& numClustersFound,
     auto beg = clt2Atm.equal_range(key).first;
     auto end = clt2Atm.equal_range(key).second;
     for (auto m = beg; m != end; m++) {
-      clt2Atm2.insert(pair<int, int>(m->first, m->second));
-      atm2Clt2.insert(pair<int, int>(m->second, m->first));
+      clt2Atm2.insert(pair<int, int>(i, m->second));
+      atm2Clt2.insert(pair<int, int>(m->second, i));
     }
   }
   clt2Atm.clear();
