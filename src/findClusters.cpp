@@ -159,6 +159,10 @@ void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
 
     ofs.open("clusters_info.txt", std::ofstream::out | std::ofstream::app);
     std::map<string, int> names;
+    vector<string> elems = vsparams["elems"];
+    for (const auto& elem :elems) {
+      names.insert(make_pair(elem, 0));
+    }
     for (const auto& atm : outCnf.atoms) {
       names[atm.tp]++;
     }
@@ -168,7 +172,7 @@ void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
       ofs << name.second << " ";
     }
     ofs << endl;
-    ofs.close();
+    // ofs.close();
   }
 }
 

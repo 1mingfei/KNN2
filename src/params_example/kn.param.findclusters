@@ -4,5 +4,6 @@ initNum 0
 increment 5000
 finalNum 20000
 solventAtomType Al
+elems Al Mg Zn
 numClustersKept 1
 ====================================
