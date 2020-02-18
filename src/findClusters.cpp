@@ -172,7 +172,7 @@ void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
       ofs << name.second << " ";
     }
     ofs << endl;
-    // ofs.close();
+    ofs.close();
   }
 }
 
