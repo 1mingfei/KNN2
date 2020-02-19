@@ -1,10 +1,3 @@
-/*
- * Author: 1mingfei
- * Date:   2019-05-09
- * Purpose: function to generate FCC structures
- * self-explained
- */
-
 #include "gbCnf.h"
 Config gbCnf::getFCCConv(const double LC, const string elem,
                                  const vector<int>& factors) {

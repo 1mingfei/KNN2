@@ -1,17 +1,5 @@
-/*
- * Author: 1mingfei
- * Date:   2019-10-23
- * Purpose: encoding based on Bond Count
- * self-explained
- */
-
 #include "gbCnf.h"
 #include "KNHome.h"
-// #include "armadillo"
-// using arma::mat;
-// using arma::vec;
-
-
 
 /* output hashmap to file */
 template<class T, class Y>

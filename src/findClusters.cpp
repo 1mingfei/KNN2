@@ -1,6 +1,3 @@
-//
-// Created by Zhucong Xi on 1/28/20.
-//
 #include "gbCnf.h"
 #include "KNHome.h"
 

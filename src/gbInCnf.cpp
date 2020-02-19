@@ -1,10 +1,3 @@
-/*
- * @Author: chaomy
- * @Date:   2018-06-20
- * @Last Modified by:  1mingfei
- * @Last Modified time: 2020-01-22
- */
-
 #include "gbCnf.h"
 inline vector<string> splitStr2Str(const string& stringIn) {
   // Used to split string around spaces.

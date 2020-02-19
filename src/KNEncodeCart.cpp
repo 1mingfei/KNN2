@@ -1,10 +1,3 @@
-/*
- * Author: 1mingfei
- * Date:   2019-05-25
- * Purpose: encoding neighbor atoms of the jumping pairs
- * self-explained
- */
-
 #include "gbCnf.h"
 #include "KNHome.h"
 #include "armadillo"

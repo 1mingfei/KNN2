@@ -1,10 +1,3 @@
-/*
- * Author: 1mingfei
- * Date:   2019-05-27
- * Purpose: functions for KNHome
- * self-explained
- */
-
 #include "gbCnf.h"
 #include "KNHome.h"
 #include "LSKMC.h"

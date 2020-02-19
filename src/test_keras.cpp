@@ -1,5 +1,4 @@
 #include <iostream>
-//#include "src/model.h"
 #include "KNHome.h"
 #include "model.h"
 
