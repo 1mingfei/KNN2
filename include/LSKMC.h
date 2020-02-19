@@ -45,9 +45,24 @@ class LSKMC {
 private:
   gbCnf& cnfModifier;
   Config& c0;
-  vector<int>& vacList;
   // unordered_map<int, vector<int>>& jumpList;
   unordered_map<string, double>& embedding;
+
+  vector<int>& vacList;
+  string& EDiff;
+  Model& k2pModelB;
+  Model& k2pModelD;
+  double& RCut;
+  double& RCut2;
+  double& temperature;
+  double& time;
+  double& prefix;
+  double& ECutoff;
+  double exitTime;
+  long long& iter;
+  long long& step;
+  ofstream& ofs;
+
   // lists for trapping locations of each atom
   unordered_map<int, unordered_set<int>> trapList;
   // lists for absorbing locations of each atom
@@ -61,34 +76,11 @@ private:
   // event map: i_j --> event_i_j
   unordered_map<string, LSEvent> eventMap;
 
-  double& RCut;
-  double& RCut2;
-  double& temperature;
-  double& time;
-  double& prefix;
-  double& E_tot; // total energy change of the system
-  double& ECutoff;
-  double exitTime;
-  double& LS_output_cfg_Criteria;
-
-  long long& maxIter;
-  long long& iter;
-  long long& step;
-  int& nTallyConf;
-  int& nTallyOutput;
-
-  string& EDiff;
-
   vvd VVD_M, VVD_R, VVD_T;
   vd VD_Tau;
 
   mat Arm_M, Arm_R, Arm_T, Arm_Pi;
   vec Arm_Tau;
-
-  Model& k2pModelB;
-  Model& k2pModelD;
-
-  ofstream& ofs;
 
   // calculate time of taking each state
   void getVD_Tau(const int&, const int&);
@@ -119,14 +111,9 @@ public:
         double&, \
         double&, \
         double&, \
-        double&, \
         double& ,\
         long long&, \
         long long&, \
-        long long&, \
-        int&, \
-        int&, \
-        double&, \
         ofstream&);
 
   void testCnfModification();

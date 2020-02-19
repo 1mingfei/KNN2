@@ -22,14 +22,9 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              double& temperatureIn, \
              double& timeIn, \
              double& prefixIn, \
-             double& E_totIn, \
              double& ECutoffIn, \
-             long long& maxIterIn, \
              long long& iterIn, \
              long long& stepIn, \
-             int& nTallyConfIn, \
-             int& nTallyOutput,
-             double& LS_output_cfg_CriteriaIn, \
              ofstream& ofsIn)
   : cnfModifier(cnfModifierIn), \
     c0(c0In), \
@@ -43,14 +38,9 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     temperature(temperatureIn), \
     time(timeIn), \
     prefix(prefixIn), \
-    E_tot(E_totIn), \
     ECutoff(ECutoffIn), \
-    maxIter(maxIterIn), \
     iter(iterIn), \
     step(stepIn), \
-    nTallyConf(nTallyConfIn), \
-    nTallyOutput(nTallyOutput), \
-    LS_output_cfg_Criteria(LS_output_cfg_CriteriaIn), \
     ofs(ofsIn)
 {
 
@@ -418,16 +408,18 @@ void LSKMC::selectAndExecute(const int& vac) {
   LSEvent lsevent(make_pair(iFirst, iSecond));
 
   if (exitTime > 4.0)
-    cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + "_0.cfg");
+    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" + to_string(iter) + "_0.cfg");
 
   lsevent.exeEvent(c0, RCut);
 
   if (exitTime > 4.0)
-    cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + "_1.cfg");
+    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" + to_string(iter) + "_1.cfg");
 
   updateTime();
   ofs << "# LSKMC " << step << " " << time << " ave exit time : " \
        << exitTime << endl;
+
+  cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + ".cfg");
 
 #ifdef DEBUG_SELECT_TRAP
   for (int i = 0; i < probAccu.size(); ++i)
@@ -445,7 +437,6 @@ void LSKMC::selectAndExecute(const int& vac) {
 void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
 
   KMCInit(cnfModifier);
-  double LS_output_cfg_Criteria = dparams["LS_output_cfg_Criteria"];
   buildEventList(cnfModifier);
   LS::LSKMC lskmc(cnfModifier, \
                   c0, \
@@ -459,14 +450,9 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   temperature, \
                   time, \
                   prefix, \
-                  E_tot, \
                   ECutoff, \
-                  maxIter, \
                   iter, \
                   step, \
-                  nTallyConf, \
-                  nTallyOutput, \
-                  LS_output_cfg_Criteria, \
                   ofs);
 
 #ifdef DEBUG_TRAP
@@ -476,7 +462,6 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
     lskmc.barrierStats();
     if (validTrap()) {
       lskmc.selectAndExecute(i);
-      cnfModifier.writeCfgData(c0, "debug_out_" + to_string(i) + ".cfg");
     }
   }
 #endif
@@ -497,16 +482,29 @@ bool KNHome::isTrapped(const double& oneStepTime) {
 }
 
 void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
+
   KMCInit(cnfModifier);
-  double LS_output_cfg_Criteria = dparams["LS_output_cfg_Criteria"];
+
   double oneStepTime = 0.0;
+
   while (iter < maxIter) {
-    if (me == 0) {
+
+    if (nProcs == 1)
+      buildEventList_serial(cnfModifier);
+    else
       buildEventList(cnfModifier);
-      int eventID = 0;
+
+    int eventID = 0;
+    if (me == 0) {
       auto&& event = selectEvent(eventID);
-      event.exeEvent(c0, RCut); // event updated
-      oneStepTime = updateTime();
+    }
+
+    MPI_Bcast(&eventID, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    eventList[eventID].exeEvent(c0, RCut); // event updated
+
+    if (me == 0) {
+      double oneStepTime = updateTime();
       updateEnergy(eventID);
     }
 
@@ -516,26 +514,21 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
     if (me == 0) {
       if (isTrapped(oneStepTime)) {
         LS::LSKMC lskmc(cnfModifier, \
-                  c0, \
-                  embedding, \
-                  vacList, \
-                  EDiff, \
-                  k2pModelB, \
-                  k2pModelD, \
-                  RCut, \
-                  RCut2, \
-                  temperature, \
-                  time, \
-                  prefix, \
-                  E_tot, \
-                  ECutoff, \
-                  maxIter, \
-                  iter, \
-                  step, \
-                  nTallyConf, \
-                  nTallyOutput, \
-                  LS_output_cfg_Criteria, \
-                  ofs);
+                        c0, \
+                        embedding, \
+                        vacList, \
+                        EDiff, \
+                        k2pModelB, \
+                        k2pModelD, \
+                        RCut, \
+                        RCut2, \
+                        temperature, \
+                        time, \
+                        prefix, \
+                        ECutoff, \
+                        iter, \
+                        step, \
+                        ofs);
         for (const auto& i : vacList) {
           lskmc.selectAndExecute(i);
         }
@@ -549,5 +542,6 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
     }
   }
+  MPI_Barrier(MPI_COMM_WORLD);
 
 }
