@@ -1,10 +1,3 @@
-/*
- * @Author: chaomy
- * @Date:   2018-07-07 16:58:27
- * @Last Modified by:  1mingfei
- * @Last Modified time: 2019-5-26
- */
-
 #include "gbCnf.h"
 
 double gbCnf::findMass(string x) {

@@ -1,10 +1,3 @@
-/*
- * @Author: chaomy
- * @Date:   2018-06-20 15:52:26
- * @Last Modified by:   1mingfei
- * @Last Modified time: 2019-04-18 10:43:00
- */
-
 #include "gbCnf.h"
 #include "KNHome.h"
 
@@ -50,9 +43,9 @@ void gbCnf::wrapAtomPos(Config& tmpc) {
   }
 
   for (auto&& atm : tmpc.atoms) {
-    for (int ix = -1; ix <= 1; ix++) {
-      for (int iy = -1; iy <= 1; iy++) {
-        for (int iz = -1; iz <= 1; iz++) {
+    for (int ix = -1; ix <= 1; ++ix) {
+      for (int iy = -1; iy <= 1; ++iy) {
+        for (int iz = -1; iz <= 1; ++iz) {
           if ((ix == 0) && (iy == 0) && (iz == 0)) continue;
           npst[0] = atm.pst[0] + ix * tmpc.bvx[0] + iy * tmpc.bvy[0] +
                     iz * tmpc.bvz[0];

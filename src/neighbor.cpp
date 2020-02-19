@@ -1,9 +1,3 @@
-/*
- * Author: 1mingfei
- * Date:   2019-04-17
- * Purpose:
- */
-
 #include "gbCnf.h"
 #include "KNUtility.h"
 #define FNN_DIST 3.0

@@ -1,6 +1,3 @@
-//
-// Created by Zhucong Xi on 1/28/20.
-//
 #include "gbCnf.h"
 #include "KNHome.h"
 
@@ -37,7 +34,7 @@ int gbCnf::helperBFS(const Config& inCnf,
       clt2Atm.insert(pair<int, int>(cltID, atmID));
       atm2Clt.insert(pair<int, int>(atmID, cltID));
 
-      for (int fnnID:inCnf.atoms[atmID].FNNL) {
+      for (int fnnID : inCnf.atoms[atmID].FNNL) {
         // if inFNN in the unvisited set
         it = unvisited.find(fnnID);
         if (it != unvisited.end()) {
@@ -46,7 +43,7 @@ int gbCnf::helperBFS(const Config& inCnf,
         }
       }
     }
-    cltID++;
+    ++cltID;
   }
   return cltID;
 }
@@ -57,7 +54,7 @@ void gbCnf::getLargestClts(const int& numClustersFound,
                            map<int, int>& atm2Clt) {
   vector<vector<int>> keyValueNumMat;
   keyValueNumMat.resize(numClustersFound);
-  for (int i = 0; i < numClustersFound; i++) {
+  for (int i = 0; i < numClustersFound; ++i) {
     keyValueNumMat[i].push_back(i);
     keyValueNumMat[i].push_back(clt2Atm.count(i));
   }
@@ -71,11 +68,11 @@ void gbCnf::getLargestClts(const int& numClustersFound,
 
   unordered_multimap<int, int> clt2Atm2;
   map<int, int> atm2Clt2;
-  for (int i = 0; i < numClustersKept; i++) {
+  for (int i = 0; i < numClustersKept; ++i) {
     int key = keyValueNumMat[i][0];
     auto beg = clt2Atm.equal_range(key).first;
     auto end = clt2Atm.equal_range(key).second;
-    for (auto m = beg; m != end; m++) {
+    for (auto m = beg; m != end; ++m) {
       clt2Atm2.insert(pair<int, int>(i, m->second));
       atm2Clt2.insert(pair<int, int>(m->second, i));
     }
@@ -164,7 +161,7 @@ void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
       names.insert(make_pair(elem, 0));
     }
     for (const auto& atm : outCnf.atoms) {
-      names[atm.tp]++;
+      ++names[atm.tp];
     }
     ofs << str[0] << " ";
     for (auto& name : names) {

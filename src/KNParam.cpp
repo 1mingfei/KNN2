@@ -1,10 +1,3 @@
-/*
- * @Author: chaomy
- * @Date:   2017-12-31 16:04:15
- * @Last Modified by:  1mingfei
- * @Last Modified time: 2019-10-25
- */
-
 #include "gbCnf.h"
 #include "KNHome.h"
 
@@ -111,7 +104,7 @@ void KNHome::readParam() {
  * parse arguments
  **************************************************/
 void KNHome::parseArgs(int argc, char* argv[]) {
-  for (int i = 0; i < argc; i++) {
+  for (int i = 0; i < argc; ++i) {
     if (!strcmp(argv[i], "--p") || !strcmp(argv[i], "-p"))
       sparams["parfile"] = string(argv[++i]);
     if (!strcmp(argv[i], "--i") || !strcmp(argv[i], "-i"))
