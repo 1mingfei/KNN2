@@ -115,7 +115,7 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
       nblType.push_back(i);
       --carryOver;
     }
-    for (int j = 0; j < carryOver; ++ j) {
+    for (int j = 0; j < carryOver; ++j) {
       resType.push_back(i);
     }
   }
