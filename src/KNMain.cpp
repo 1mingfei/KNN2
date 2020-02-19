@@ -13,10 +13,10 @@ int main(int argc, char* argv[]) {
   auto t2 = Clock::now();
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0) {
-    ofstream ofs("log.txt", std::ofstream::app);
-    ofs << "Delta t2-t1: " << setprecision(8) \
-        << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() \
-        << " seconds" << endl;
+    // ofstream ofs("log.txt", std::ofstream::app);
+    cout << "Delta t2-t1: " << setprecision(8) \
+         << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() \
+         << " seconds" << endl;
   }
 
   MPI_Finalize();

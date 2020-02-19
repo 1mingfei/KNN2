@@ -186,7 +186,8 @@ public:
   void LSKMCSimulation(gbCnf&);
 
   /* findClusters */
-  void findClts(gbCnf&);
+  void findClts(gbCnf&, const string&);
+  void loopConfig(gbCnf&);
 
 };
 

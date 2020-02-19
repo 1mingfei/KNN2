@@ -1,6 +1,9 @@
 ============example1================
 mode clusterCount
-initconfig 377000000.cfg
+initNum 0
+increment 5000
+finalNum 20000
 solventAtomType Al
-numClustersKept 5
+elems Al Mg Zn
+numClustersKept 1
 ====================================
