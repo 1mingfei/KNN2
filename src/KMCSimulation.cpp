@@ -371,7 +371,6 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     }
 
     MPI_Bcast(&eventID, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    // MPI_Barrier(MPI_COMM_WORLD);
 
 #ifdef DEBUG_MPI
     cout << "iteration: " << iter << "processor #" << me \
