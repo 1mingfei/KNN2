@@ -100,7 +100,7 @@ public:
   Model k2pModelD;
 
   unordered_map<string, double> dparams;
-  unordered_map<string, int> iparams;
+  unordered_map<string, long long> iparams;
   unordered_map<string, bool> bparams;
   unordered_map<string, string> sparams;
   unordered_map<string, vector<string>> vsparams;
