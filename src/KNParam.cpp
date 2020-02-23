@@ -55,46 +55,45 @@ void KNHome::readParam() {
       }
       viparams[segs[0]] = tmpVec;
     } else if (!segs[0].compare("NConfigs")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("NBarriers")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("maxIter")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("nTallyConf")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("nTallyOutput")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("randSeed")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("startingStep")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("startingTime")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("startingEnergy")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("EDiff")) {
-      // bparams[segs[0]] = (segs[1] == "true") ? true : false;
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("ECutoff")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("trapStepCriteria")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("oneTrapTimeCriteria")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("LS_output_cfg_Criteria")) {
       dparams[segs[0]] = stod(segs[1]);
     } else if (!segs[0].compare("numClustersKept")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("solventAtomType")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("numDataset")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("initNum")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("increment")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("finalNum")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     }
   }
   fid.close();
