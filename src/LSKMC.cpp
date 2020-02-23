@@ -408,12 +408,14 @@ void LSKMC::selectAndExecute(const int& vac) {
   LSEvent lsevent(make_pair(iFirst, iSecond));
 
   if (exitTime > 4.0)
-    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" + to_string(iter) + "_0.cfg");
+    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
+                                 + to_string(iter) + "_0.cfg");
 
   lsevent.exeEvent(c0, RCut);
 
   if (exitTime > 4.0)
-    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" + to_string(iter) + "_1.cfg");
+    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
+                                 + to_string(iter) + "_1.cfg");
 
   updateTime();
   ofs << "# LSKMC " << step << " " << time << " ave exit time : " \
