@@ -1,8 +1,6 @@
-//
-// Created by Zhucong Xi on 2/19/20.
-//
-
 #include "OrderedStruct.h"
+
+namespace ODS {
 
 OrderedStruct::OrderedStruct() {
 }
@@ -227,3 +225,4 @@ void OrderedStruct::makeShuffleFraction(int i,
     mapping[i][indexMap[k]] = 1;
   }
 }
+} // end namespace ODS

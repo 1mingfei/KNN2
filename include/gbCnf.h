@@ -140,7 +140,7 @@ public:
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \
                       const pair<string, string>&, \
-                      const OrderedStruct&, \
+                      const ODS::OrderedStruct&, \
                       const int&);
 };
 

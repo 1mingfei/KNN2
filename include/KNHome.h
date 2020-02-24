@@ -124,7 +124,7 @@ public:
                    const vector<int>&, \
                    const double&, \
                    const string&, \
-                   const OrderedStruct&, \
+                   const ODS::OrderedStruct&, \
                    const pair<string, string>&);
 
   void createOrdered(gbCnf&, \

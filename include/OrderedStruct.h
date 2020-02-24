@@ -1,13 +1,10 @@
-//
-// Created by Zhucong Xi on 2/19/20.
-//
-
 #ifndef _ORDEREDSTRUCT_H_
 #define _ORDEREDSTRUCT_H_
 
 #include <vector>
 #include <random>
 
+namespace ODS {
 using std::pair;
 using std::vector;
 class OrderedStruct {
@@ -23,4 +20,6 @@ public:
   void makeRandom(int);
   void makeShuffleFraction(int, double);
 };
+} // end namespace ODS
+
 #endif //_ORDEREDSTRUCT_H_
