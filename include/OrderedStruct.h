@@ -11,10 +11,10 @@
 using std::pair;
 using std::vector;
 class OrderedStruct {
- public:
+public:
   vector<vector<int>> mapping;
   vector<vector<pair<int, int>>> jumpPairs;
- public:
+public:
   OrderedStruct();
   ~OrderedStruct();
   void generateAuFeOccupInfo();
