@@ -202,7 +202,7 @@ void OrderedStruct::omit(int i, int colorI) {
   }
 }
 // This function re-partitions yellow and purple atoms randomly.
-// i is the sturcture index
+// i is the structure index
 void OrderedStruct::makeRandom(int i) {
   for (int& pos : mapping[i]) {
     if (pos != 0) {
