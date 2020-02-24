@@ -65,7 +65,7 @@ using keras2cpp::Tensor;
 class gbCnf;
 
 class KNHome {
- private:
+private:
 
   Config c0;
   vector<KMCEvent> eventList;
@@ -93,7 +93,7 @@ class KNHome {
   bool isTrapped(const double&);
   double updateTime();
 
- public:
+public:
   int me, nProcs;
 
   Model k2pModelB;
