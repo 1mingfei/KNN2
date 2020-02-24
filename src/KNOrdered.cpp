@@ -1,10 +1,12 @@
 #include "gbCnf.h"
 #include "KNHome.h"
-#include "FCCEmbededCluster.h"
 
+// This function returns the clusters information stored
+// in OrderedStruct Class to
+// the FCC config. Index i means we use the information stored in the i th row.
 Config gbCnf::embedCluster(const Config& cIn, \
                            const pair<string, string>& Elems, \
-                           const FCCEmbededCluster::occupInfo_256& o256, \
+                           const ODS::OrderedStruct& o256, \
                            const int& i) {
   Config c0 = cIn;
 
@@ -15,18 +17,18 @@ Config gbCnf::embedCluster(const Config& cIn, \
       c0.atoms[j].tp = Elems.second;
     }
   }
-  // std::sort(c0.atoms.begin(), c0.atoms.end());
-
   return c0;
 }
 
-int KNHome::createOrderedSingle(const int& i, \
+// This function creates structure proto config in the root folder and create
+// more configs with vac for vasp calculations
+int KNHome::createSingle(const int& i, \
                          int index, \
                          gbCnf& cnfModifier, \
                          const vector<int>& dupFactors, \
                          const double& LC, \
                          const string& POT, \
-                         const FCCEmbededCluster::occupInfo_256& o256, \
+                         const ODS::OrderedStruct& o256, \
                          const pair<string, string>& elemPair) {
 
   Config c0 = cnfModifier.getFCCConv(LC, "Al", dupFactors);
@@ -34,14 +36,16 @@ int KNHome::createOrderedSingle(const int& i, \
   const vector<pair<int, int>>& jumpPairsRef = o256.jumpPairs[i];
   int subIndex = 0;
 
+  // create structure proto for visualization
   Config c1 = cnfModifier.embedCluster(c0, elemPair, o256, i);
   cnfModifier.writeCfgData(c1, to_string(index) + ".cfg");
-  Config cS = c0;
+
+  Config cS;
   for (int j = 0; j < jumpPairsRef.size(); ++j) {
     string tmpType;
     if ((j == 0) || \
          ((j > 0) && (jumpPairsRef[j].first != jumpPairsRef[j - 1].first))) {
-
+      // Create sub folder "s" for initial vac config
       string baseDir = "config" + to_string(index) + "/s";
       string mkBaseDir = "mkdir -p " + baseDir;
       const char* cmkBaseDir = mkBaseDir.c_str();
@@ -68,10 +72,10 @@ int KNHome::createOrderedSingle(const int& i, \
       subIndex = 0;
     }
 
-
+    // Create sub folders for different jump directions
     string subDir = "config" + to_string(index) \
                     + "/e_" + to_string(subIndex);
-    const char *csubDir = subDir.c_str();
+    const char* csubDir = subDir.c_str();
     const int dir_err = mkdir(csubDir, \
                               S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (-1 == dir_err) {
@@ -82,7 +86,6 @@ int KNHome::createOrderedSingle(const int& i, \
     Config cF = cnfModifier.swapPair(c0, jumpPairsRef[j]);
     cF = cnfModifier.embedCluster(cF, elemPair, o256, i);
     cF.atoms[jumpPairsRef[j].first].tp = "X";
-
 
     string name1 = "config" + to_string(index) \
                    + "/e_" + to_string(subIndex) + "/";
@@ -121,21 +124,13 @@ void KNHome::createOrdered(gbCnf& cnfModifier, \
   vector<pair<string, string>> elemPairs = {{"Al", "Mg"}, \
                                             {"Al", "Zn"}, \
                                             {"Mg", "Zn"}};
-  // int quotient = NConfigs / nProcs;
-  // int remainder = NConfigs % nProcs;
-  // int nCycle = remainder ? (quotient + 1) : quotient;
-  // for (int j = 0; j < nCycle; ++j) {
-  //   for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
-  //     if ((i % nProcs != me) || (i >= NConfigs)) continue;
-  //     createOrderedSingle(i, cnfModifier, dupFactors, LC, POT);
-  //   }
-  // }
   int index = 0;
-  FCCEmbededCluster::occupInfo_256 o256;
+  ODS::OrderedStruct o256;
+  o256.generateAuFeOccupInfo();
   for (int i = 0; i < o256.mapping.size(); ++i)
-    for  (const auto& elemPair : elemPairs) {
-      index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
-                                  LC, POT, o256, elemPair);
+    for (const auto& elemPair : elemPairs) {
+      index = createSingle(i, index, cnfModifier, dupFactors, \
+                           LC, POT, o256, elemPair);
     }
 }
 
@@ -145,16 +140,17 @@ void KNHome::createOrderedRandom(gbCnf& cnfModifier, \
                                  const string& POT, \
                                  const int& dupTimes) {
   pair<string, string> elemPair = {"Zn", "Mg"};
-  FCCEmbededCluster::occupInfo_256 o256;
+  ODS::OrderedStruct oRef;
+  oRef.generateAuFeOccupInfo();
   int index = 0;
-  for (int i = 0; i < o256.mapping.size(); ++i) {
+  for (int i = 0; i < oRef.mapping.size(); ++i) {
     for (int j = 0; j < dupTimes; ++j) {
       for (int k = 1; k <= 2; ++k) {
-        FCCEmbededCluster::occupInfo_256 o256;
+        ODS::OrderedStruct o256(oRef);
         o256.omit(i, k);
         o256.makeRandom(i);
-        index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
-                                LC, POT, o256, elemPair);
+        index = createSingle(i, index, cnfModifier, dupFactors, \
+                             LC, POT, o256, elemPair);
       }
     }
   }
@@ -173,17 +169,37 @@ void KNHome::createOrderedDiffCon(gbCnf& cnfModifier, \
   concentrationFracList.push_back(1.0);
 
   pair<string, string> elemPair = {"Zn", "Mg"};
-  FCCEmbededCluster::occupInfo_256 o256;
+  ODS::OrderedStruct oRef;
+  oRef.generateAuFeOccupInfo();
   int index = 0;
-  for (int i = 0; i < o256.mapping.size(); ++i) {
+  for (int i = 0; i < oRef.mapping.size(); ++i) {
     for (int j = 1; j <= 2; ++j) {
       for (const auto& k : concentrationFracList) {
-        FCCEmbededCluster::occupInfo_256 o256;
+        ODS::OrderedStruct o256(oRef);
         o256.omit(i, j);
         o256.makeShuffleFraction(i, k);
-        index = createOrderedSingle(i, index, cnfModifier, dupFactors, \
-                                LC, POT, o256, elemPair);
+        index = createSingle(i, index, cnfModifier, dupFactors, \
+                             LC, POT, o256, elemPair);
       }
+    }
+  }
+}
+void KNHome::createOrderedAntiPhase(gbCnf& cnfModifier, \
+                                  const vector<int>& dupFactors, \
+                                  const double& LC, \
+                                  const string& POT, \
+                                  const int& dupTimes) {
+
+  pair<string, string> elemPair = {"Mg", "Zn"};
+  int index = 0;
+  ODS::OrderedStruct o256;
+  o256.generateCuAuOccupInfo();
+  for (int i = 0; i < o256.mapping.size(); ++i) {
+    for (int j = 0; j < dupTimes; ++j) {
+      ODS::OrderedStruct o256;
+      o256.generateCuAuOccupInfo();
+      index = createSingle(i, index, cnfModifier, dupFactors, \
+                           LC, POT, o256, elemPair);
     }
   }
 }
