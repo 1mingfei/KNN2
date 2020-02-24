@@ -178,7 +178,7 @@ void KNHome::createOrderedDiffCon(gbCnf& cnfModifier, \
         o256.omit(i, j);
         o256.makeShuffleFraction(i, k);
         index = createSingle(i, index, cnfModifier, dupFactors, \
-                                LC, POT, o256, elemPair);
+                             LC, POT, o256, elemPair);
       }
     }
   }
