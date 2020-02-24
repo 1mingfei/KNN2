@@ -30,7 +30,7 @@
 #include "model.h"
 #include "LSKMC.h"
 #include "KNUtility.h"
-#include "FCCEmbededCluster.h"
+#include "OrderedStruct.h"
 
 using std::cerr;
 using std::cout;
@@ -65,7 +65,7 @@ using keras2cpp::Tensor;
 class gbCnf;
 
 class KNHome {
-private:
+ private:
 
   Config c0;
   vector<KMCEvent> eventList;
@@ -93,7 +93,7 @@ private:
   bool isTrapped(const double&);
   double updateTime();
 
-public:
+ public:
   int me, nProcs;
 
   Model k2pModelB;
@@ -105,7 +105,6 @@ public:
   unordered_map<string, string> sparams;
   unordered_map<string, vector<string>> vsparams;
   unordered_map<string, vector<int>> viparams;
-
 
   KNHome(int argc, char* argv[]);
   ~KNHome();
@@ -119,19 +118,19 @@ public:
   void createPreNEB(gbCnf&);
 
   /* KNOrdered.cpp */
+  int createSingle(const int&, \
+                   int, \
+                   gbCnf&, \
+                   const vector<int>&, \
+                   const double&, \
+                   const string&, \
+                   const OrderedStruct&, \
+                   const pair<string, string>&);
+
   void createOrdered(gbCnf&, \
                      const vector<int>&, \
                      const double&, \
                      const string&);
-
-  int createOrderedSingle(const int&, \
-                          int, \
-                          gbCnf&, \
-                          const vector<int>&, \
-                          const double&, \
-                          const string&, \
-                          const FCCEmbededCluster::AFOccupInfo_256&, \
-                          const pair<string, string>&);
 
   void createOrderedRandom(gbCnf&, \
                            const vector<int>&, \
@@ -145,6 +144,11 @@ public:
                             const string&, \
                             const int&);
 
+  void createOrderedAntiPhase(gbCnf&, \
+                              const vector<int>&, \
+                              const double&, \
+                              const string&, \
+                              const int&);
   /* KNvasp.cpp */
   void prepVASPFiles(const string&, \
                      const vector<int>&, \

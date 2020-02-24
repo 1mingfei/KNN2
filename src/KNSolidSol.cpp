@@ -178,6 +178,9 @@ void KNHome::createPreNEB(gbCnf& cnfModifier) {
   } else if (subMode == "ordered_cluster_diffcon") {
     createOrderedDiffCon(cnfModifier, dupFactors, LC,
                         POT, iparams["numDataset"]);
+  } else if (subMode == "ordered_cluster_antiphase") {
+    createOrderedAntiPhase(cnfModifier, dupFactors, LC,
+                         POT, iparams["numDataset"]);
   } else if (subMode == "random") {
     int quotient = NConfigs / nProcs;
     int remainder = NConfigs % nProcs;

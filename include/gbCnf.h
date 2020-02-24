@@ -3,7 +3,7 @@
 
 #include "armadillo"
 #include "KNHome.h"
-#include "FCCEmbededCluster.h"
+#include "OrderedStruct.h"
 #include <math.h>
 
 using arma::mat;
@@ -140,7 +140,7 @@ public:
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \
                       const pair<string, string>&, \
-                      const FCCEmbededCluster::AFOccupInfo_256&, \
+                      const OrderedStruct&, \
                       const int&);
 };
 

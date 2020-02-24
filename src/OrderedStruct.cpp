@@ -4,11 +4,11 @@
 
 #include "OrderedStruct.h"
 
-FCCCluster::OrderedStruct::OrderedStruct() {
+OrderedStruct::OrderedStruct() {
 }
-FCCCluster::OrderedStruct::~OrderedStruct() {
+OrderedStruct::~OrderedStruct() {
 }
-void FCCCluster::OrderedStruct::generateAuFeOccupInfo() {
+void OrderedStruct::generateAuFeOccupInfo() {
   mapping = vector<vector<int>>(6, vector<int>(256, 0));
 
   // L10
@@ -154,19 +154,26 @@ void FCCCluster::OrderedStruct::generateAuFeOccupInfo() {
                                                 }));
 }
 
-void FCCCluster::OrderedStruct::generateCuAuOccupInfo() {
+void OrderedStruct::generateCuAuOccupInfo() {
   mapping = vector<vector<int>>(1, vector<int>(256, 0));
-  // filled circles
-  for (int i : {0, 1, 64, 65, 16, 17, 80, 81, 6, 11, 10, 22, 27, 26, 70, 75,
-                74, 86, 91, 90, 13, 29, 77, 93})
-    mapping[0][i] = 1;
+  // Mg 1 or Al 0 as open circles;
+  // Zn 2 atoms as filled circles,
+  // disorder at these sites 0, 1, 2 as hatched circles
+
   // open circles
   for (int i : {2, 3, 18, 19, 66, 67, 82, 83, 5, 8, 9, 21, 24, 25, 69, 72, 73,
                 85, 88, 89, 14, 30, 78, 94})
+    mapping[0][i] = rand() % 2;
+
+  // filled circles
+  for (int i : {0, 1, 64, 65, 16, 17, 80, 81, 6, 11, 10, 22, 27, 26, 70, 75,
+                74, 86, 91, 90, 13, 29, 77, 93})
     mapping[0][i] = 2;
+
   // hatched circles
   for (int i : {4, 20, 7, 23, 68, 84, 71, 87, 79, 76, 15, 12, 95, 92, 31, 28})
-    mapping[0][i] = 3;
+    mapping[0][i] = rand() % 3;
+
   jumpPairs.emplace_back(vector<pair<int, int>>({{71, 132},
                                                  {71, 66},
                                                  {71, 70},
@@ -187,7 +194,7 @@ void FCCCluster::OrderedStruct::generateCuAuOccupInfo() {
 }
 // change purple or yellow to base element, 1 for purple, 2 for yellow
 // i is the sturcture index
-void FCCCluster::OrderedStruct::omit(int i, int colorI) {
+void OrderedStruct::omit(int i, int colorI) {
   for (int j = 0; j < mapping[i].size(); ++j) {
     if (mapping[i][j] == colorI) {
       mapping[i][j] = 0;
@@ -196,15 +203,15 @@ void FCCCluster::OrderedStruct::omit(int i, int colorI) {
 }
 // This function re-partitions yellow and purple atoms randomly.
 // i is the sturcture index
-void FCCCluster::OrderedStruct::makeRandom(int i) {
+void OrderedStruct::makeRandom(int i) {
   for (int& pos : mapping[i]) {
     if (pos != 0) {
       pos = (rand() % 2) + 1;
     }
   }
 }
-void FCCCluster::OrderedStruct::makeShuffleFraction(int i,
-                                                    double purplrFraction) {
+void OrderedStruct::makeShuffleFraction(int i,
+                                        double purpleFraction) {
   vector<int> indexMap;
   for (int j = 0; j < mapping[i].size(); ++j) {
     if (mapping[i][j] != 0) {
