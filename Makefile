@@ -1,4 +1,4 @@
-include	makefiles/macos.include
+include	makefiles/greatlakes.include
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 # source cpp files

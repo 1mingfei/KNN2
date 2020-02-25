@@ -3,10 +3,13 @@
 
 #include <vector>
 #include <random>
+#include <algorithm>
 
 namespace ODS {
 using std::pair;
 using std::vector;
+using std::shuffle;
+
 class OrderedStruct {
 public:
   vector<vector<int>> mapping;
