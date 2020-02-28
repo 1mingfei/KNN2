@@ -25,13 +25,9 @@ add_executable(${PROJECT_NAME} ${KNN2_SRC})
 
 include(FindPkgConfig)
 
-find_package(armadillo REQUIRED)
-find_package(mpi REQUIRED)
+find_package(armadillo)
+find_package(mpi)
 find_package(keras2cpp REQUIRED)
 
-include_directories(${LIBARMADILLO_INCLUDE_DIR})
-include_directories(${LIBMPI_INCLUDE_DIR})
 include_directories(${LIBKERAS2CPP_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${LIBARMADILLO_LIBRARY})
 target_link_libraries(${PROJECT_NAME} ${LIBKERAS2CPP_LIBRARY})
-target_link_libraries(${PROJECT_NAME} ${LIBMPI_LIBRARY})
