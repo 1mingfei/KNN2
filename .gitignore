@@ -1,7 +1,8 @@
 examples/
 prod/
-build
-bin/*
-obj/*
+build/
+bin/
+obj/
 lib/
-.idea
+cmake-build/
+.idea/
