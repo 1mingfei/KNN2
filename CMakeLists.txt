@@ -25,7 +25,7 @@ add_dependencies(KNN2 keras2cpp)
 
 
 
-include(FindPkgConfig)
+#include(FindPkgConfig)
 
 find_package(armadillo REQUIRED)
 include_directories(${LIBARMADILLO_INCLUDE_DIR})
