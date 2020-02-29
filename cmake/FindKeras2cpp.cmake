@@ -1,5 +1,3 @@
-set(FIND_KERAS2CPP_PATHS ${PROJECT_SOURCE_DIR})
-
 set(KERAS2CPP_HEADERS
         ${KERAS2CPP_SOURCE_DIR}/model.h
         ${KERAS2CPP_SOURCE_DIR}/tensor.hh
@@ -20,10 +18,9 @@ set(KERAS2CPP_HEADERS
         )
 
 find_path(LIBKERAS2CPP_INCLUDE_DIR ${KERAS2CPP_HEADERS}
-        PATH_SUFFIXES keras2cpp
-        PATHS "${FIND_KERAS2CPP_PATHS}/external")
+        PATHS "${PROJECT_SOURCE_DIR}/external/keras2cpp")
 
 find_library(LIBKERAS2CPP_LIBRARY
         NAMES keras2cpp
         PATH_SUFFIXES lib
-        PATHS "${FIND_KERAS2CPP_PATHS}")
+        PATHS "${PROJECT_SOURCE_DIR}")
