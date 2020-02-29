@@ -20,8 +20,7 @@ file(GLOB KNN2_SRC
         ${PROJECT_SOURCE_DIR}/src/*.cpp
         ${PROJECT_SOURCE_DIR}/include/*.h)
 add_executable(${PROJECT_NAME} ${KNN2_SRC})
-
-
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "kn.exe")
 
 include(FindPkgConfig)
 
@@ -31,3 +30,7 @@ find_package(keras2cpp REQUIRED)
 
 include_directories(${LIBKERAS2CPP_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} ${LIBKERAS2CPP_LIBRARY})
+include_directories(${LIBMPI_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${LIBMPI_LIBRARY})
+include_directories(${LIBARMADILLO_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${LIBARMADILLO_LIBRARY})
