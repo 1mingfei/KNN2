@@ -22,5 +22,4 @@ find_path(LIBKERAS2CPP_INCLUDE_DIR ${KERAS2CPP_HEADERS}
 
 find_library(LIBKERAS2CPP_LIBRARY
         NAMES keras2cpp
-        PATH_SUFFIXES lib
-        PATHS "${PROJECT_SOURCE_DIR}")
+        PATHS "${PROJECT_SOURCE_DIR}/lib")
