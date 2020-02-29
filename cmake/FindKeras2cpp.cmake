@@ -1,3 +1,8 @@
+# Bulid libkeras2cpp
+add_subdirectory(external/keras2cpp)
+add_dependencies(KNN2 keras2cpp)
+
+# Link the lib
 set(KERAS2CPP_HEADERS
         ${KERAS2CPP_SOURCE_DIR}/model.h
         ${KERAS2CPP_SOURCE_DIR}/tensor.hh
@@ -16,10 +21,13 @@ set(KERAS2CPP_HEADERS
         ${KERAS2CPP_INCLUDE_DIR}/maxPooling2d.h
         ${KERAS2CPP_INCLUDE_DIR}/batchNormalization.h
         )
-
 find_path(LIBKERAS2CPP_INCLUDE_DIR ${KERAS2CPP_HEADERS}
-        PATHS "${PROJECT_SOURCE_DIR}/external/keras2cpp")
+        PATHS "${PROJECT_SOURCE_DIR}/external/keras2cpp"
+        )
 
 find_library(LIBKERAS2CPP_LIBRARY
         NAMES keras2cpp
-        PATHS "${PROJECT_SOURCE_DIR}/lib")
+        PATHS "${PROJECT_SOURCE_DIR}/lib"
+        )
+include_directories(${LIBKERAS2CPP_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${LIBKERAS2CPP_LIBRARY})

@@ -1,8 +1,8 @@
 if (APPLE)
-    message("Working on macOS")
+    message("Looking for mpi on macOS")
     set(FIND_ARMADILLO_PATHS /usr/local/)
 elseif (UNIX)
-    message("Working on Linux")
+    message("Looking for mpi on Linux")
     set(FIND_ARMADILLO_PATHS /usr/)
 endif()
 
@@ -14,3 +14,6 @@ find_library(LIBMPI_LIBRARY
         NAMES mpi
         PATH_SUFFIXES lib
         PATHS ${FIND_MPI_PATHS})
+
+include_directories(${LIBMPI_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${LIBMPI_LIBRARY})
