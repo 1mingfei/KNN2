@@ -1,8 +1,8 @@
 if (APPLE)
-    message("Looking for armadillo on macOS")
+    message("-- Looking for armadillo on macOS")
     set(FIND_ARMADILLO_PATHS /usr/local/)
 elseif (UNIX)
-    message("Looking for armadillo on Linux")
+    message("-- Looking for armadillo on Linux")
     set(FIND_ARMADILLO_PATHS /usr/)
 endif()
 
@@ -13,6 +13,3 @@ find_library(LIBARMADILLO_LIBRARY
         NAMES armadillo
         PATH_SUFFIXES lib
         PATHS ${FIND_ARMADILLO_PATHS})
-
-include_directories(${LIBARMADILLO_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${LIBARMADILLO_LIBRARY})
