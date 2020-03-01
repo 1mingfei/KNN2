@@ -7,5 +7,5 @@ KMC simulations
 ### Compiling
 In the KNN2 directory
 ````
-sh bulid.sh
+sh build.sh
 ````
