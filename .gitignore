@@ -4,5 +4,5 @@ build/
 bin/
 obj/
 lib/
-cmake-build-debug/
+cmake-build-*/
 .idea/

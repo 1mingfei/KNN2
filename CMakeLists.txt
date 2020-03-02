@@ -1,39 +1,23 @@
 cmake_minimum_required(VERSION 3.9)
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")
 
 project(KNN2)
-
 set(CMAKE_CXX_STANDARD 17)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-      -Wall"
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
             CACHE INTERNAL ""
             )
-endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-      -Weverything \
-      -Wno-class-varargs -Wno-padded \
-      -Wc++17-compat \
-      -Wno-c++98-compat -Wno-c++98-compat-pedantic"
-            # -Wno-c++14-extensions
-            # -Wno-c++17-extensions
-            # -Wno-switch-enum -Wno-unused-macros
-            CACHE INTERNAL ""
-            )
-endif()
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb"
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -w -Wall -O0 -ggdb"
         CACHE INTERNAL ""
         )
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
-    -O3 -ffast-math -fno-rtti"
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3 -g3"
         CACHE INTERNAL ""
         )
 
