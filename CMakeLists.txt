@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 set(CMAKE_C_COMPILER "gcc")
-set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_COMPILER "mpicxx")
 
 project(KNN2)
 set(CMAKE_CXX_STANDARD 17)
@@ -13,7 +13,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
             CACHE INTERNAL ""
             )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -w -Wall -O0 -ggdb"
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0 -ggdb"
         CACHE INTERNAL ""
         )
 
