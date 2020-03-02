@@ -1,12 +1,14 @@
 ============example1================
 mode kmc
-kerasModel ../../../external/keras.model.1
-initconfig ./initconfig.cfg
+kerasModelBarrier /home/mingfei/software/KNN2/external/keras.model.weighted.1
+EDiff barrier
+initconfig 0.cfg
 RCut 3.0
-maxIter 2000
-ntally 100
-temperature 300.0
-prefix 2.0e-5
-randSeed 123
+maxIter  1000000000
+nTallyConf  5000000
+nTallyOutput 100000
+temperature 300
+prefix 1e13
+randSeed 1234
 elems Al Mg Zn X
 ====================================

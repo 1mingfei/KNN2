@@ -217,14 +217,6 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
 
 void KNHome::buildEventList(gbCnf& cnfModifier) {
 
-  // MPI_Datatype ConfigType;
-  // MPI_Aint address;
-  // if (me == 0) {
-  //   MPI_Address(c0, address);
-
-  // }
-  // MPI_Type_struct(1, );
-
   eventList.clear();
   eventList.resize(NEI_NUMBER);
   kTot = 0.0;
