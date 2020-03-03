@@ -117,6 +117,34 @@ public:
   /* KNSolidSol.cpp */
   void createPreNEB(gbCnf&);
 
+  /* KNRandom.cpp */
+  void createRandom(gbCnf&, \
+                    const int&, \
+                    const int&,  \
+                    const string&, \
+                    const double&, \
+                    const vector<int>&, \
+                    const vector<string>&, \
+                    const vector<int>&);
+
+  void createRandomUniform(gbCnf&, \
+                           const int&, \
+                           const int&,  \
+                           const string&, \
+                           const double&, \
+                           const vector<int>&, \
+                           vector<string>&, \
+                           const vector<int>&);
+
+  void createRandomSpecific(gbCnf&, \
+                            const int&, \
+                            const int&,  \
+                            const string&, \
+                            const double&, \
+                            const vector<int>&, \
+                            vector<string>&, \
+                            const vector<int>&);
+
   /* KNOrdered.cpp */
   int createSingle(const int&, \
                    int, \
@@ -194,5 +222,11 @@ public:
   void loopConfig(gbCnf&);
 
 };
+
+
+// random generator function:
+inline int myRandInt(int minVal, int maxVal) {
+  return minVal + (std::rand() % static_cast<int>(maxVal - minVal + 1));
+}
 
 #endif

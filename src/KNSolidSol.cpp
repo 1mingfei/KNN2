@@ -2,16 +2,13 @@
 #include "KNHome.h"
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
-// random generator function:
-inline int myRandInt(int minVal, int maxVal) {
-  return minVal + (std::rand() % static_cast<int>(maxVal - minVal + 1));
-}
-
 vector<pair<int, int>> gbCnf::getPairToSwap(Config& cnf) {
   vector<pair<int, int>> res;
-  getNBL(cnf, 3.0);
+  getNBL_serial(cnf, 3.0);
   for (unsigned int i = 0; i < cnf.vacList.size(); ++i) {
     for (unsigned int j = 0; j < cnf.atoms[cnf.vacList[i]].NBL.size(); ++j) {
+      if (cnf.atoms[cnf.vacList[i]].NBL[j] == -1)
+        continue;
       if (cnf.atoms[j].tp != cnf.atoms[cnf.vacList[i]].tp) {
         res.push_back( std::make_pair(cnf.vacList[i], \
               cnf.atoms[cnf.vacList[i]].NBL[j]) );
@@ -64,22 +61,18 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
                                    std::default_random_engine& rng, \
                                    vector<string>& elems,\
                                    const vector<int>& nums) {
-  // assert(cnf.natoms == std::accumulate(nums.begin(), nums.end(), 0));
   /* initialize atom type array */
   vector<int> TPArr(cnf.natoms, 0);
-  //TO-DO: looking for vacancy locations, and corresponding NBL
-  //       change NB atom types and countdown till 0
   /* start */
   vector<string>::iterator it = std::find(elems.begin(), elems.end(), "X");
   int index = std::distance(elems.begin(), it);
   int nVac = nums[index];
-  // assert(nVac > 0);
   // assign the atom#0 to be the vacancy site
   // and keep assigning neigbhors of it by numbers of Mg Zn and X
   TPArr[0] = index;
   --nVac;
 
-  getNBL(cnf, 5.0);
+  getNBL_serial(cnf, 5.0);
 
   int NBLSize = cnf.atoms[0].NBL.size();
   set<int> nblSet;
@@ -89,7 +82,6 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
   vector<int> nblType;
   vector<int> resType;
 
-  //int locRand = myRandInt(0, nVac);
   int locRand = nVac;
   int carryOver = nVac;
 
@@ -108,7 +100,6 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
     if ((elems[i] == "X") || (elems[i] == "Al"))
       continue;
     carryOver = nums[i];
-    //for (int j = 0; j < myRandInt(0, nums[i]); ++j) {
     for (int j = 0; j < nums[i]; ++j) {
       if (nblType.size() == NBLSize)
         break;
@@ -169,291 +160,31 @@ void KNHome::createPreNEB(gbCnf& cnfModifier) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (me == 0)
-    std::cout << "generating inital and final structures\n";
+    std::cout << "generating inital and final structures...\n";
+
   if (subMode == "ordered_cluster") {
     createOrdered(cnfModifier, dupFactors, LC, POT);
   } else if (subMode == "ordered_cluster_random") {
-    createOrderedRandom(cnfModifier, dupFactors, LC,
+    createOrderedRandom(cnfModifier, dupFactors, LC, \
                         POT, iparams["numDataset"]);
   } else if (subMode == "ordered_cluster_diffcon") {
-    createOrderedDiffCon(cnfModifier, dupFactors, LC,
+    createOrderedDiffCon(cnfModifier, dupFactors, LC, \
                         POT, iparams["numDataset"]);
   } else if (subMode == "ordered_cluster_antiphase") {
-    createOrderedAntiPhase(cnfModifier, dupFactors, LC,
+    createOrderedAntiPhase(cnfModifier, dupFactors, LC, \
                          POT, iparams["numDataset"]);
   } else if (subMode == "random") {
-    int quotient = NConfigs / nProcs;
-    int remainder = NConfigs % nProcs;
-    int nCycle = remainder ? (quotient + 1) : quotient;
-    for (int j = 0; j < nCycle; ++j) {
-      for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
-        if ((i % nProcs != me) || (i >= NConfigs)) continue;
-
-        Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
-        cnfModifier.getRandConf(c0, rng, elems, nums);
-        Config c0copy = c0;
-
-        string baseDir = "config" + to_string(i) + "/s";
-        string mkBaseDir = "mkdir -p " + baseDir;
-        const char *cmkBaseDir = mkBaseDir.c_str();
-        const int dir_err = std::system(cmkBaseDir);
-        if (-1 == dir_err) {
-          cout << "Error creating directory!\n";
-          exit(1);
-        }
-
-        cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/s/start.cfg");
-
-        // add small perturbation to break perfect fcc symmetry
-        // this method is about to increase the chance
-        // to find lower ground states for VASP software
-        cnfModifier.cnvprl2pst(c0);
-        cnfModifier.perturb(c0);
-
-        map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
-                              "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, elemName, POT);
-        vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
-
-#ifdef DEBUG
-        if (me == 0) {
-          cout << "config " << i << "\n";
-          for (const auto& p : pairs) {
-            cout << p.first << " " << p.second << "\n";
-          }
-        }
-#endif
-
-        // auto rng = std::default_random_engine {};
-        std::shuffle(std::begin(pairs), std::end(pairs), rng);
-
-        int end = MIN(NBars, pairs.size());
-        for (unsigned int k = 0; k < end; ++k) {
-
-          string subDir = "config" + to_string(i) + "/e_" + to_string(k);
-          const char *csubDir = subDir.c_str();
-          const int dir_err = mkdir(csubDir, \
-                                    S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-          if (-1 == dir_err) {
-            cout << "Error creating directory!\n";
-            exit(1);
-          }
-
-          Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
-          cnfModifier.writeCfgData(c1, name1 + "end.cfg");
-
-          // add small perturbation to break perfect fcc symmetry
-          // this method is about to increase the chance
-          // to find lower ground states for VASP software
-          cnfModifier.cnvprl2pst(c1);
-          cnfModifier.perturb(c1);
-
-          map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
-                                                      name1 + "POSCAR");
-
-          ofstream ofs("log.txt", std::ofstream::app);
-
-          ofs << "config " << i << " end " << k \
-              << " pair: " << pairs[k].first \
-              << " " << pairs[k].second << "\n";
-
-          ofs.close();
-
-          prepVASPFiles(name1, dupFactors, elemName, POT);
-        }
-      }
-    }
+    createRandom(cnfModifier, NConfigs, NBars, POT, LC, \
+                 dupFactors, elems, nums);
   } else if (subMode == "uniform") {
-    /*
-     * the idea is NConfigs be iterating over possible combinations for each
-     * elements in range
-     * and NBars is still how many possible pairs for each configuration
-     */
-    /* in uniform subMode, input nums is the upper limits of each element */
-    int quotient = NConfigs / nProcs;
-    int remainder = NConfigs % nProcs;
-    int nCycle = remainder ? (quotient + 1) : quotient;
-    for (int j = 0; j < nCycle; ++j) {
-      for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
-        if ((i % nProcs != me) || (i >= NConfigs)) continue;
-        Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
-        /* get rand ints */
-        vector<int> numsVec;
-        for (int k = 0; k < nums.size(); ++k) {
-          if (elems[k] == "Al") continue;
-          int offset;
-          if (elems[k] == "X") {
-            offset = 1;
-          } else {
-            offset = 0;
-          }
-          numsVec.push_back(myRandInt(offset, nums[k]));
-        }
-        int others = 0; //other than Al
-        for (const auto val : numsVec) {
-          others += val;
-        }
-        auto it = numsVec.insert(numsVec.begin(), (c0.natoms - others));
-
-        /* get rand ints end */
-        cnfModifier.getRandConfUniformDist(c0, rng, elems, numsVec);
-        Config c0copy = c0; //because write POS will sort c0, hence change index
-
-        string baseDir = "config" + to_string(i) + "/s";
-        string mkBaseDir = "mkdir -p " + baseDir;
-        const char *cmkBaseDir = mkBaseDir.c_str();
-        const int dir_err = std::system(cmkBaseDir);
-        if (-1 == dir_err) {
-          cout << "Error creating directory!\n";
-          exit(1);
-        }
-
-        cnfModifier.writeCfgData(c0, "config" + to_string(i) + "/s/start.cfg");
-
-        // add small perturbation to break perfect fcc symmetry
-        // this method is about to increase the chance
-        // to find lower ground states for VASP software
-        cnfModifier.cnvprl2pst(c0);
-        cnfModifier.perturb(c0);
-
-        map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
-                                        "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, elemName, POT);
-        vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
-
-#ifdef DEBUG
-        if (me == 0) {
-          cout << "config " << i << "\n";
-          for (const auto& p : pairs) {
-            cout << p.first << " " << p.second << "\n";
-          }
-        }
-#endif
-
-        // auto rng = std::default_random_engine {};
-        std::shuffle(std::begin(pairs), std::end(pairs), rng);
-
-        int end = MIN(NBars, pairs.size());
-        for (unsigned int k = 0; k < end; ++k) {
-
-          string subDir = "config" + to_string(i) + "/e_" + to_string(k);
-          const char *csubDir = subDir.c_str();
-          const int dir_err = mkdir(csubDir, \
-                                    S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-          if (-1 == dir_err) {
-            cout << "Error creating directory!\n";
-            exit(1);
-          }
-
-          Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
-          cnfModifier.writeCfgData(c1, name1 + "end.cfg");
-
-          // add small perturbation to break perfect fcc symmetry
-          // this method is about to increase the chance
-          // to find lower ground states for VASP software
-          cnfModifier.cnvprl2pst(c1);
-          cnfModifier.perturb(c1);
-
-          map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
-                                                            name1 + "POSCAR");
-
-          ofstream ofs("log.txt", std::ofstream::app);
-
-          ofs << "config " << i << " end " << k \
-              << " pair: " << pairs[k].first \
-              << " " << pairs[k].second << "\n";
-
-          ofs.close();
-
-          prepVASPFiles(name1, dupFactors, elemName, POT);
-        }
-      }
-    }
+    createRandomUniform(cnfModifier, NConfigs, NBars, POT, LC, \
+                        dupFactors, elems, nums);
   } else if (subMode == "specific") {
-    int quotient = NConfigs / nProcs;
-    int remainder = NConfigs % nProcs;
-    int nCycle = remainder ? (quotient + 1) : quotient;
-    for (int j = 0; j < nCycle; ++j) {
-      for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
-        if ((i % nProcs != me) || (i >= NConfigs)) continue;
-        Config c0 = cnfModifier.getFCCConv(LC, elems[0], dupFactors);
-        cnfModifier.getRandConfUniformDist(c0, rng, elems, nums);
-        Config c0copy = c0; //because write POS will sort c0, hence change index
-
-        string baseDir = "config" + to_string(i) + "/s";
-        string mkBaseDir = "mkdir -p " + baseDir;
-        const char *cmkBaseDir = mkBaseDir.c_str();
-        const int dir_err = std::system(cmkBaseDir);
-        if (-1 == dir_err) {
-          cout << "Error creating directory!\n";
-          exit(1);
-        }
-
-        cnfModifier.writeCfgData(c0, "config" + to_string(i) + \
-                                     "/s/start.cfg");
-
-        // add small perturbation to break perfect fcc symmetry
-        // this method is about to increase the chance
-        // to find lower ground states for VASP software
-        cnfModifier.cnvprl2pst(c0);
-        cnfModifier.perturb(c0);
-
-        map<string, int> elemName = cnfModifier.writePOSCAR(c0, \
-                                        "config" + to_string(i) + "/s/POSCAR");
-        prepVASPFiles(baseDir, dupFactors, elemName, POT);
-        vector<pair<int, int>> pairs = cnfModifier.getPairToSwap(c0copy);
-
-#ifdef DEBUG
-        if (me == 0) {
-          cout << "config " << i << "\n";
-          for (const auto& p : pairs) {
-            cout << p.first << " " << p.second << "\n";
-          }
-        }
-#endif
-
-        // auto rng = std::default_random_engine {};
-        std::shuffle(std::begin(pairs), std::end(pairs), rng);
-
-        int end = MIN(NBars, pairs.size());
-        for (unsigned int k = 0; k < end; ++k) {
-
-          string subDir = "config" + to_string(i) + "/e_" + to_string(k);
-          const char *csubDir = subDir.c_str();
-          const int dir_err = mkdir(csubDir, \
-                                    S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-          if (-1 == dir_err) {
-            cout << "Error creating directory!\n";
-            exit(1);
-          }
-
-          Config c1 = cnfModifier.swapPair(c0copy, pairs[k]);
-          string name1 = "config" + to_string(i) + "/e_" + to_string(k) + "/";
-          cnfModifier.writeCfgData(c1, name1 + "end.cfg");
-
-          // add small perturbation to break perfect fcc symmetry
-          // this method is about to increase the chance
-          // to find lower ground states for VASP software
-          cnfModifier.cnvprl2pst(c1);
-          cnfModifier.perturb(c1);
-
-          map<string, int> elemName = cnfModifier.writePOSCAR(c1, \
-                                                            name1 + "POSCAR");
-
-          ofstream ofs("log.txt", std::ofstream::app);
-
-          ofs << "config " << i << " end " << k \
-              << " pair: " << pairs[k].first \
-              << " " << pairs[k].second << "\n";
-
-          ofs.close();
-
-          prepVASPFiles(name1, dupFactors, elemName, POT);
-        }
-      }
-    }
+    createRandomSpecific(cnfModifier, NConfigs, NBars, POT, LC, \
+                         dupFactors, elems, nums);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (me == 0)
+    std::cout << "done generating.\n";
 }
