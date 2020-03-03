@@ -4,7 +4,7 @@
 
 vector<pair<int, int>> gbCnf::getPairToSwap(Config& cnf) {
   vector<pair<int, int>> res;
-  getNBL(cnf, 3.0);
+  getNBL_serial(cnf, 3.0);
   for (unsigned int i = 0; i < cnf.vacList.size(); ++i) {
     for (unsigned int j = 0; j < cnf.atoms[cnf.vacList[i]].NBL.size(); ++j) {
       if (cnf.atoms[cnf.vacList[i]].NBL[j] == -1)
@@ -72,7 +72,7 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
   TPArr[0] = index;
   --nVac;
 
-  getNBL(cnf, 5.0);
+  getNBL_serial(cnf, 5.0);
 
   int NBLSize = cnf.atoms[0].NBL.size();
   set<int> nblSet;
