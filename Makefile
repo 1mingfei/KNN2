@@ -1,4 +1,4 @@
-include	makefiles/macos.include
+include	makefiles/stampede2.include
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 # source cpp files
@@ -19,7 +19,7 @@ $(OBJ_DIR)/%.o: ${SRC_DIR}/%.cpp
 ${MAKETARGET}:${OBJECTS}
 
 all: ${MAKETARGET}
-	${CC}  -o  ${MAKETARGET}  ${OBJECTS}  ${CDLINK}  ${OPTFLAGS}  ${CPPFLAGS}
+	${CC}  -o  ${MAKETARGET} ${OBJECTS} ${CINCLUDE} ${CDLINK} ${OPTFLAGS} ${CPPFLAGS}
 
 clean:
 	rm -f  ${OBJ_DIR}/*.o
