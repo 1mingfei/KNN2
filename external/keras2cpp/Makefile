@@ -1,5 +1,5 @@
 
-CC_SERIAL = g++
+CC_SERIAL = icpc
 CPPFLAGS = --std=c++17 -I. -I./layers -Wall -Werror -MMD -O3 -mtune=core2
 
 KRSRC =	./baseLayer.cc \
