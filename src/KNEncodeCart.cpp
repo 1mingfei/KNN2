@@ -116,21 +116,20 @@ inline double getDistPrlDirect(double locA, double locB) {
   return dist;
 }
 
-inline mat calculateRotateMatrix(
-    const mat& A, const mat& B) {
+inline mat calculateRotateMatrix(const mat& A, const mat& B) {
   return solve(A, B);
 }
 
-inline vector<double> rotateMatrix(
-    const mat& A, const vector<double>& X) {
+inline vector<double> rotateMatrix(const mat& A, const vector<double>& X) {
   vec Xv(3);
   Xv << X[0] << X[1] << X[2];
   vec B = A.i() * Xv;
   return {B[0], B[1], B[2]};
 }
 
-inline vector<double> rotateMatrix(
-    const mat& A, const vector<double>& X, const vec& center) {
+inline vector<double> rotateMatrix(const mat& A, \
+                                   const vector<double>& X, \
+                                   const vec& center) {
   vec Xv(3);
   Xv << (X[0] - center[0]) << (X[1] - center[1]) << (X[2] - center[2]);
   vec B = A.i() * Xv;
@@ -230,8 +229,7 @@ mat gbCnf::getJumpCoor(const Config& cnf, \
   return arma::normalise(M);
 }
 
-Config gbCnf::rotateConfig(Config& cfgOld, \
-                                   const vector<double>& v2) {
+Config gbCnf::rotateConfig(Config& cfgOld, const vector<double>& v2) {
   Config cfgNew = cfgOld;
   mat R2fold(3, 3);
   R2fold << v2[0] << v2[1] << v2[2] << arma::endr
@@ -491,8 +489,8 @@ vector<vector<string>> gbCnf::encodeConfig(Config& cnf,
 }
 
 Config gbCnf::rotateJumpPair(Config& cnf, \
-                                     const vector<int> pair, \
-                                     const Config& ref) {
+                             const vector<int> pair, \
+                             const Config& ref) {
   int id1 = pair[0], id2 = pair[1];
   vector<double> PC = getPairCenter(ref, id1, id2); // pair center of ref
 
