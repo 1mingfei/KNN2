@@ -94,6 +94,8 @@ void KNHome::readParam() {
       iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("finalNum")) {
       iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("switchLSKMC")) {
+      bparams[segs[0]] = (segs[1] == "false") ? false : true;
     }
   }
   fid.close();

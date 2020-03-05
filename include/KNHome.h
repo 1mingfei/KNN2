@@ -83,6 +83,7 @@ private:
   long long maxIter, iter;
   long long step, trapStep;
   int nTallyConf, nTallyOutput;
+  bool switchLSKMC;
   unordered_map<string, double> embedding;
   unordered_map<string, int> eventListMap;
 
