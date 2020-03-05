@@ -64,6 +64,9 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   temperature = dparams["temperature"];
   srand(iparams["randSeed"]);
   prefix = dparams["prefix"];
+  switchLSKMC = false;
+  switchLSKMC = bparams["switchLSKMC"];
+
   c0 = cnfModifier.readCfg(fname);
 
   /* get initial vacancy position in atomList */

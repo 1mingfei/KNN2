@@ -23,9 +23,9 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              double& timeIn, \
              double& prefixIn, \
              double& ECutoffIn, \
-             long long& iterIn, \
              long long& stepIn, \
-             ofstream& ofsIn)
+             ofstream& ofsIn, \
+             bool& switchLSKMCIn)
   : cnfModifier(cnfModifierIn), \
     c0(c0In), \
     embedding(embeddingIn), \
@@ -39,9 +39,9 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     time(timeIn), \
     prefix(prefixIn), \
     ECutoff(ECutoffIn), \
-    iter(iterIn), \
     step(stepIn), \
-    ofs(ofsIn)
+    ofs(ofsIn),
+    switchLSKMC(switchLSKMCIn)
 {
 
   eventMap.clear();
@@ -115,8 +115,8 @@ void LSKMC::searchStatesDFS() {
     cout << "vac # " << vacList[i] << " absortb size : " \
          << absorbList[vacList[i]].size() << endl;
 #endif
-
   }
+  barrierStats();
 }
 
 void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
@@ -162,7 +162,7 @@ void LSKMC::outputAbsorbCfg(const int& vac, const string& fname) {
 void LSKMC::barrierStats() {
   double sum = std::accumulate(barriers.begin(), barriers.end(), 0.0);
   std::sort(barriers.begin(), barriers.end());
-  ofstream ofs("barrier_stats.txt", std::ofstream::out);
+  ofstream ofs("barrier_stats.txt", std::ofstream::out | std::ofstream::app);
   ofs << "mean: " << (sum / static_cast<double>(barriers.size())) \
       << " min: " << barriers[0] \
       << " 25%: " << barriers[static_cast<int>(barriers.size() / 4.0) - 1] \
@@ -170,6 +170,7 @@ void LSKMC::barrierStats() {
       << " 75%: " << barriers[static_cast<int>(barriers.size() * 0.75) - 1] \
       << " max: " << barriers[barriers.size() - 1] \
       << endl;
+  ofs.close();
 }
 
 void LSKMC::calVVD_M(const int& vac) {
@@ -409,19 +410,21 @@ void LSKMC::selectAndExecute(const int& vac) {
 
   if (exitTime > 4.0)
     cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
-                                 + to_string(iter) + "_0.cfg");
+                                 + to_string(step) + "_0.cfg");
 
   lsevent.exeEvent(c0, RCut);
 
   if (exitTime > 4.0)
     cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
-                                 + to_string(iter) + "_1.cfg");
+                                 + to_string(step) + "_1.cfg");
 
   updateTime();
   ofs << "# LSKMC " << step << " " << time << " ave exit time : " \
        << exitTime << endl;
 
-  cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(iter) + ".cfg");
+  if (switchLSKMC) {
+    cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(step) + ".cfg");
+  }
 
 #ifdef DEBUG_SELECT_TRAP
   for (int i = 0; i < probAccu.size(); ++i)
@@ -453,9 +456,9 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   time, \
                   prefix, \
                   ECutoff, \
-                  iter, \
                   step, \
-                  ofs);
+                  ofs, \
+                  switchLSKMC);
 
 #ifdef DEBUG_TRAP
   for (const auto& i : vacList) {
@@ -528,9 +531,9 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                         time, \
                         prefix, \
                         ECutoff, \
-                        iter, \
                         step, \
-                        ofs);
+                        ofs,\
+                        switchLSKMC);
         for (const auto& i : vacList) {
           lskmc.selectAndExecute(i);
         }
