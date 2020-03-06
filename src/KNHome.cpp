@@ -62,7 +62,11 @@ KNHome::KNHome(int argc, char* argv[]) {
     // LSKMCSimulation(cnfModifier);
 
     /* test mat transfer */
-    LS::LSKMC::test_vvd2mat();
+    // LS::LSKMC::test_vvd2mat();
+    /* test embedding */
+    buildEmbedding();
+
+
   }
 }
 

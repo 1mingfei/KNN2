@@ -32,8 +32,20 @@ inline ForwardIt mylower_bound(ForwardIt first, \
 
 void KNHome::buildEmbedding() {
   vector<string> elems = vsparams["elems"];
-  for (int i = 1; i <= elems.size(); ++i)
-    embedding[elems[i - 1]] = static_cast<double>(i);
+  int base = 0;
+  int j = 1;
+  for (int i = 1; i <= elems.size(); ++i) {
+    if (elems[i - 1] == "Al")
+      base = 1;
+    if (elems[i - 1] == "Xe") // unknown element
+      embedding[elems[i - 1]] = static_cast<double>(base);
+    else
+      embedding[elems[i - 1]] = static_cast<double>(j++);
+  }
+  for (int i = 0; i < elems.size(); ++i) {
+    cout << embedding[elems[i]] << " ";
+  }
+  cout << endl;
 }
 
 void KNHome::getVacList() {

@@ -106,6 +106,7 @@ public:
   unordered_map<string, string> sparams;
   unordered_map<string, vector<string>> vsparams;
   unordered_map<string, vector<int>> viparams;
+  unordered_map<string, vector<double>> vdparams;
 
   KNHome(int argc, char* argv[]);
   ~KNHome();
