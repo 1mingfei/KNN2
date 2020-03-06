@@ -112,7 +112,15 @@ public:
                                    unordered_map<string, double>&, \
                                    Model&, \
                                    Model&, \
-                                   const pair<int, int>&);
+                                   const pair<int, int>&, \
+                                   const bool&, \
+                                   const vector<string>&, \
+                                   const vector<double>&);
+
+  double offsetBarrier(const Config&, \
+                       const vector<string>&, \
+                       const vector<double>&, \
+                       const pair<int, int>&);
 
   /* findClusters.cpp */
 

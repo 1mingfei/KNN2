@@ -31,21 +31,29 @@ inline ForwardIt mylower_bound(ForwardIt first, \
 }
 
 void KNHome::buildEmbedding() {
-  vector<string> elems = vsparams["elems"];
+  elems = vsparams["elems"];
+  switchUnknown = false;
   int base = 0;
   int j = 1;
   for (int i = 1; i <= elems.size(); ++i) {
     if (elems[i - 1] == "Al")
       base = 1;
-    if (elems[i - 1] == "Xe") // unknown element
+    if (elems[i - 1] == "Xe") { // unknown element
       embedding[elems[i - 1]] = static_cast<double>(base);
+      switchUnknown = true;
+    }
     else
       embedding[elems[i - 1]] = static_cast<double>(j++);
   }
+#ifdef DEBUG
   for (int i = 0; i < elems.size(); ++i) {
     cout << embedding[elems[i]] << " ";
   }
   cout << endl;
+#endif
+  if (switchUnknown) {
+    elemsEffectOffset = vdparams["elemsEffectOffset"];
+  }
 }
 
 void KNHome::getVacList() {
@@ -195,7 +203,10 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
                                 embedding, \
                                 k2pModelB, \
                                 k2pModelD, \
-                                make_pair(iFirst, iSecond));
+                                make_pair(iFirst, iSecond), \
+                                switchUnknown, \
+                                elems, \
+                                elemsEffectOffset);
 
       if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
         event.setRate(0.0);
@@ -292,7 +303,10 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
                                 embedding, \
                                 k2pModelB, \
                                 k2pModelD, \
-                                make_pair(iFirst, iSecond));
+                                make_pair(iFirst, iSecond), \
+                                switchUnknown, \
+                                elems, \
+                                elemsEffectOffset);
 
 #ifdef DEBUG_MPI
       cout << "processor #" << me << " iteration: " \
@@ -414,100 +428,6 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
 }
 
-// vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
-//                               const double& T, \
-//                               const double& RCut2, \
-//                               const string& EDiff, \
-//                               unordered_map<string, double>& embedding, \
-//                               Model& k2pModelB, \
-//                               Model& k2pModelD, \
-//                               const pair<int, int>& jumpPair) {
-
-//   int first = jumpPair.first;
-//   int second = jumpPair.second;
-
-//   // if (c0.atoms[first].tp == c0.atoms[second].tp)
-//   //   return {0.0, 0.0};
-
-//   vector<string> codes; // atom location in original atom list
-//   //RCut2 for 2NN encoding needed
-//   vector<vector<string>> encodes = encodeConfig(c0, \
-//                                                 {first, second}, \
-//                                                 RCut2, \
-//                                                 codes, \
-//                                                 {first, second}, \
-//                                                 false);
-//   vector<vector<double>> input(encodes.size(), \
-//                                vector<double>(encodes[0].size(), 0.0));
-
-//   for (int i = 0; i < encodes.size(); ++i)
-//     for (int j = 0; j < encodes[i].size(); ++j)
-//       input[i][j] = embedding[encodes[i][j]];
-
-//   int nRow = input.size(); // encodings for one jump pair considering symmetry
-//   int nCol = nRow ? input[0].size() : 0;
-//   Tensor in{ nRow, nCol };
-
-//   for (int i = 0; i < nRow; ++i)
-//     for (int j = 0; j < nCol; ++j)
-//       in.data_[i * nCol + j] = input[i][j];
-
-//   if (EDiff == "model") {
-//     Tensor outB = k2pModelB(in);
-//     Tensor outD = k2pModelD(in);
-
-//     double deltaE = 0.0;
-//     double tmpEdiff = 0.0;
-
-//     for (int i = 0; i < nRow; ++i) {
-//       deltaE += static_cast<double>(outB(i, 0));
-//       tmpEdiff += static_cast<double>(outD(i, 0));
-//     }
-//     deltaE /= static_cast<double>(nRow);
-//     tmpEdiff /= static_cast<double>(nRow);
-
-//     return {deltaE, tmpEdiff};
-//   }  else if (EDiff == "barrier"){
-//     Tensor outB = k2pModelB(in);
-
-//     double deltaE = 0.0;
-
-//     for (int i = 0; i < nRow; ++i) {
-//       deltaE += static_cast<double>(outB(i, 0));
-//     }
-//     deltaE /= static_cast<double>(nRow);
-
-//     Tensor inBack{ nRow, nCol };
-
-//     for (int i = 0; i < nRow; ++i) {
-//       inBack.data_[i * nCol] = input[i][0];
-//       for (int j = 1; j < nCol; ++j)
-//         inBack.data_[i * nCol + j] = input[i][nCol - j];
-//     }
-//     Tensor outBBack = k2pModelB(inBack);
-
-//     double deltaEBack = 0.0;
-
-//     for (int i = 0; i < nRow; ++i) {
-//       deltaEBack += static_cast<double>(outBBack(i, 0));
-//     }
-//     deltaEBack /= static_cast<double>(nRow);
-
-//     return {deltaE, deltaE - deltaEBack};
-//   } else {
-//     Tensor outB = k2pModelB(in);
-
-//     double deltaE = 0.0;
-
-//     for (int i = 0; i < nRow; ++i) {
-//       deltaE += static_cast<double>(outB(i, 0));
-//     }
-//     deltaE /= static_cast<double>(nRow);
-
-//     return {deltaE, 0.0};
-//   }
-// }
-
 
 vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
                               const double& T, \
@@ -516,7 +436,10 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
                               unordered_map<string, double>& embedding, \
                               Model& k2pModelB, \
                               Model& k2pModelD, \
-                              const pair<int, int>& jumpPair) {
+                              const pair<int, int>& jumpPair, \
+                              const bool& switchUnknown, \
+                              const vector<string>& elems, \
+                              const vector<double>& elemsEffectOffset) {
 
   int first = jumpPair.first;
   int second = jumpPair.second;
@@ -531,8 +454,8 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
   vector<vector<double>> input(encodes.size(), \
                                vector<double>(encodes[0].size(), 0.0));
 
-  double deltaE = 0.0;
-  double deltaEBack = 0.0;
+  double Eactivate = 0.0;
+  double EactivateBack = 0.0;
 
   for (int i = 0; i < encodes.size(); ++i)
     for (int j = 0; j < encodes[i].size(); ++j)
@@ -557,12 +480,40 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
   Tensor outBBack = k2pModelB(inBack);
 
   for (int i = 0; i < nRow; ++i) {
-    deltaE += static_cast<double>(outB(i, 0));
-    deltaEBack += static_cast<double>(outBBack(i, 0));
+    Eactivate += static_cast<double>(outB(i, 0));
+    EactivateBack += static_cast<double>(outBBack(i, 0));
   }
 
-  deltaE /= static_cast<double>(nRow);
-  deltaEBack /= static_cast<double>(nRow);
+  Eactivate /= static_cast<double>(nRow);
+  EactivateBack /= static_cast<double>(nRow);
 
-  return {deltaE, deltaE - deltaEBack};
+  double Ediff = Eactivate - EactivateBack;
+  if (switchUnknown)  {
+    Eactivate += offsetBarrier(c0, elems, elemsEffectOffset, {first, second});
+  }
+  return {Eactivate, Ediff};
+}
+
+double gbCnf::offsetBarrier(const Config& c0, \
+                            const vector<string>& elems, \
+                            const vector<double>& elemsEffectOffset, \
+                            const pair<int, int>& jumpPair) {
+
+  const int iFirst = jumpPair.first;
+  const int iSecond = jumpPair.second;
+  unordered_map<string, int> mp;
+  for (int i = 0; i < NEI_NUMBER; ++i) {
+    int n = c0.atoms[iFirst].FNNL[i];
+    --mp[c0.atoms[n].tp];
+  }
+  for (int i = 0; i < NEI_NUMBER; ++i) {
+    int n = c0.atoms[iSecond].FNNL[i];
+    ++mp[c0.atoms[n].tp];
+  }
+  double res = 0.0;
+  for (int i = 0; i < elems.size(); ++i) {
+    cout << mp[elems[i]] <<  " " << elemsEffectOffset[i] << endl;
+    res += mp[elems[i]] * elemsEffectOffset[i];
+  }
+  return res;
 }

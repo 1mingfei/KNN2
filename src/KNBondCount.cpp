@@ -61,8 +61,8 @@ void KNHome::KNBondCount(gbCnf& cnfModifier) {
 }
 
 map<string, int> gbCnf::countPairs(Config& cnf, \
-                                           const vector<string>& elems, \
-                                           const vector<int>& pair) {
+                                   const vector<string>& elems, \
+                                   const vector<int>& pair) {
   map<string, int> res;
   res["Al-Al"] = 0;
   res["Al-Mg"] = 0;
