@@ -45,15 +45,24 @@ void KNHome::buildEmbedding() {
     else
       embedding[elems[i - 1]] = static_cast<double>(j++);
   }
+
 #ifdef DEBUG
   for (int i = 0; i < elems.size(); ++i) {
     cout << embedding[elems[i]] << " ";
   }
   cout << endl;
 #endif
+
   if (switchUnknown) {
     elemsEffectOffset = vdparams["elemsEffectOffset"];
   }
+
+#ifdef DEBUG
+  for (int i = 0; i < elems.size(); ++i) {
+    cout << elemsEffectOffset[i] << " ";
+  }
+  cout << endl;
+#endif
 }
 
 void KNHome::getVacList() {
@@ -488,7 +497,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
   EactivateBack /= static_cast<double>(nRow);
 
   double Ediff = Eactivate - EactivateBack;
-  if (switchUnknown)  {
+  if (switchUnknown && c0.atoms[second].tp == "Xe")  {
     Eactivate += offsetBarrier(c0, elems, elemsEffectOffset, {first, second});
   }
   return {Eactivate, Ediff};
@@ -512,8 +521,18 @@ double gbCnf::offsetBarrier(const Config& c0, \
   }
   double res = 0.0;
   for (int i = 0; i < elems.size(); ++i) {
-    cout << mp[elems[i]] <<  " " << elemsEffectOffset[i] << endl;
+
+#ifdef DEBUG
+    cout << "#debug here #" << mp[elems[i]] \
+         <<  " " << elemsEffectOffset[i] << endl;
+#endif
+
     res += mp[elems[i]] * elemsEffectOffset[i];
   }
+
+#ifdef DEBUG
+  cout << "#debug here #" << res << endl;
+#endif
+
   return res;
 }

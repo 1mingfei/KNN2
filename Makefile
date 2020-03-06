@@ -1,4 +1,4 @@
-include	makefiles/stampede2.include
+include	makefiles/macos.include
 
 MAKETARGET	=	${TGT_DIR}/kn.exe
 # source cpp files
