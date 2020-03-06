@@ -62,6 +62,9 @@ private:
   long long& step;
   ofstream& ofs;
   bool& switchLSKMC;
+  bool& switchUnknown;
+  vector<string>& elems;
+  vector<double>& elemsEffectOffset;
 
   // lists for trapping locations of each atom
   unordered_map<int, unordered_set<int>> trapList;
@@ -114,7 +117,10 @@ public:
         double& ,\
         long long&, \
         ofstream&, \
-        bool&);
+        bool&, \
+        bool&, \
+        vector<string>&, \
+        vector<double>&);
 
   void testCnfModification();
   static void test_vvd2mat();

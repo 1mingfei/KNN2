@@ -25,7 +25,10 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              double& ECutoffIn, \
              long long& stepIn, \
              ofstream& ofsIn, \
-             bool& switchLSKMCIn)
+             bool& switchLSKMCIn, \
+             bool& switchUnknownIn, \
+             vector<string>& elemsIn, \
+             vector<double>& elemsEffectOffsetIn)
   : cnfModifier(cnfModifierIn), \
     c0(c0In), \
     embedding(embeddingIn), \
@@ -40,8 +43,11 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     prefix(prefixIn), \
     ECutoff(ECutoffIn), \
     step(stepIn), \
-    ofs(ofsIn),
-    switchLSKMC(switchLSKMCIn)
+    ofs(ofsIn), \
+    switchLSKMC(switchLSKMCIn), \
+    switchUnknown(switchUnknownIn), \
+    elems(elemsIn), \
+    elemsEffectOffset(elemsEffectOffsetIn)
 {
 
   eventMap.clear();
@@ -316,7 +322,10 @@ void LSKMC::getOrPutEvent(const int& i, const int& j) {
                                           embedding, \
                                           k2pModelB, \
                                           k2pModelD, \
-                                          make_pair(i, j));
+                                          make_pair(i, j), \
+                                          switchUnknown, \
+                                          elems, \
+                                          elemsEffectOffset);
     LSEvent event(make_pair(i, j));
     event.setBarrier(currBarr[0]);
     event.setRate(prefix * exp(-currBarr[0] * KB_INV / temperature));
@@ -458,7 +467,10 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   ECutoff, \
                   step, \
                   ofs, \
-                  switchLSKMC);
+                  switchLSKMC, \
+                  switchUnknown, \
+                  elems, \
+                  elemsEffectOffset);
 
 #ifdef DEBUG_TRAP
   for (const auto& i : vacList) {
@@ -533,7 +545,10 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                         ECutoff, \
                         step, \
                         ofs,\
-                        switchLSKMC);
+                        switchLSKMC, \
+                        switchUnknown, \
+                        elems, \
+                        elemsEffectOffset);
         for (const auto& i : vacList) {
           lskmc.selectAndExecute(i);
         }
