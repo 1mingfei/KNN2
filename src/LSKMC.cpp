@@ -169,7 +169,8 @@ void LSKMC::barrierStats() {
   double sum = std::accumulate(barriers.begin(), barriers.end(), 0.0);
   std::sort(barriers.begin(), barriers.end());
   ofstream ofs("barrier_stats.txt", std::ofstream::out | std::ofstream::app);
-  ofs << "mean: " << (sum / static_cast<double>(barriers.size())) \
+  ofs << "step " << step \
+      << " mean: " << (sum / static_cast<double>(barriers.size())) \
       << " min: " << barriers[0] \
       << " 25%: " << barriers[static_cast<int>(barriers.size() / 4.0) - 1] \
       << " 50%: " << barriers[static_cast<int>(barriers.size() / 2.0) - 1] \
