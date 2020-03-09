@@ -491,6 +491,8 @@ bool KNHome::isTrapped(const double& oneStepTime) {
   double oneTrapTimeCriteria = dparams["oneTrapTimeCriteria"];
   if (oneStepTime < oneTrapTimeCriteria)
     ++trapStep;
+  else
+    trapStep = 0;
   if (trapStep < trapStepCriteria)
     return false;
   else {
