@@ -14,7 +14,7 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["Rcut"] = 3.0; //kmc
   iparams["randSeed"] = 1234567; //kmc
 
-  LRUSize = (iparams["LRUSize"] == 0) ? 0 : iparams["LRUSize"];
+  LRUSize = iparams["LRUSize"];
   gbCnf cnfModifier(me, nProcs);
   lru = new LRUCache(LRUSize);
 

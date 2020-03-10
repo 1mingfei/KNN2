@@ -78,7 +78,7 @@ void KNHome::getVacList() {
 
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
-  lru->setSize(500000);
+  // lru->setSize(500000);
   buildEmbedding();
   if (me == 0)
     ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
