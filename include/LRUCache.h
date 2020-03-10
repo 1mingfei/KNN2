@@ -21,6 +21,7 @@ class gbCnf;
 using std::list;
 
 class LRUCache {
+  long long ct;
   // store keys of cache
   list<pair<string, double>> dq;
 
@@ -34,12 +35,13 @@ public:
   void setSize(const int&);
   void add(const pair<vector<int>, double>&);
   void add(const pair<string, double>&);
-  bool check(const string&) const;
-  bool check(const vector<int>&) const;
+  bool check(const string&);
+  bool check(const vector<int>&);
   double getBarrier(const string&);
   double getBarrier(const vector<int>&);
   int getSize() const;
   void display() const;
+  long long getCt() const;
 };
 // } // end namespace LR
 #endif
