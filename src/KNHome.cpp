@@ -14,8 +14,9 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["Rcut"] = 3.0; //kmc
   iparams["randSeed"] = 1234567; //kmc
 
+  LRUSize = (iparams["LRUSize"] == 0) ? 0 : iparams["LRUSize"];
   gbCnf cnfModifier(me, nProcs);
-  lru = new LRUCache(50000);
+  lru = new LRUCache(LRUSize);
 
   if (!strcmp(argv[1], "POSCAR") && (me == 0)) {
 

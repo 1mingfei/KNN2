@@ -210,18 +210,34 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
 
       KMCEvent event(make_pair(iFirst, iSecond));
 
-      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff_LRU(c0, \
-                                temperature, \
-                                RCut2, \
-                                EDiff, \
-                                embedding, \
-                                k2pModelB, \
-                                k2pModelD, \
-                                make_pair(iFirst, iSecond), \
-                                switchUnknown, \
-                                elems, \
-                                elemsEffectOffset, \
-                                lru);
+      vector<double> currBarrier;
+
+      if (LRUSize) {
+        currBarrier = cnfModifier.calBarrierAndEdiff_LRU(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset, \
+                                  lru);
+      } else {
+        currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset);
+      }
 
       if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
         event.setRate(0.0);

@@ -1,5 +1,6 @@
 ============example1================
 mode kmc
+LRUSize 100
 kerasModelBarrier /home/mingfei/software/KNN2/external/keras.model.weighted.1
 EDiff barrier
 initconfig 0.cfg
@@ -11,4 +12,10 @@ temperature 300
 prefix 1e13
 randSeed 1234
 elems Al Mg Zn X
+
+#below is the setup for "new" pseudo atoms "Xe", and how other elements affect its diffusion barrier
+#elems  Al    Mg    Zn    X    Xe
+#elemsEffectOffset -0.05  0.00 0.00  0.00 0.00
+
+switchLSKMC false
 ====================================
