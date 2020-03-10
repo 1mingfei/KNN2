@@ -1,5 +1,9 @@
-#include "gbCnf.h"
 #include "KNHome.h"
+#include "LRUCache.h"
+#include "gbCnf.h"
+
+#include <chrono>
+using namespace std::chrono;
 
 #define KB 8.6173303e-5
 #define KB_INV 11604.5221105
@@ -74,6 +78,7 @@ void KNHome::getVacList() {
 
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
+  // lru->setSize(500000);
   buildEmbedding();
   if (me == 0)
     ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
@@ -205,17 +210,34 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
 
       KMCEvent event(make_pair(iFirst, iSecond));
 
-      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-                                temperature, \
-                                RCut2, \
-                                EDiff, \
-                                embedding, \
-                                k2pModelB, \
-                                k2pModelD, \
-                                make_pair(iFirst, iSecond), \
-                                switchUnknown, \
-                                elems, \
-                                elemsEffectOffset);
+      vector<double> currBarrier;
+
+      if (LRUSize) {
+        currBarrier = cnfModifier.calBarrierAndEdiff_LRU(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset, \
+                                  lru);
+      } else {
+        currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset);
+      }
 
       if (c0.atoms[iFirst].tp == c0.atoms[iSecond].tp) {
         event.setRate(0.0);
@@ -495,6 +517,98 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
 
   Eactivate /= static_cast<double>(nRow);
   EactivateBack /= static_cast<double>(nRow);
+
+  double Ediff = Eactivate - EactivateBack;
+  if (switchUnknown && c0.atoms[second].tp == "Xe")  {
+    Eactivate += offsetBarrier(c0, elems, elemsEffectOffset, {first, second});
+  }
+  return {Eactivate, Ediff};
+}
+
+vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
+                              const double& T, \
+                              const double& RCut2, \
+                              const string& EDiff, \
+                              unordered_map<string, double>& embedding, \
+                              Model& k2pModelB, \
+                              Model& k2pModelD, \
+                              const pair<int, int>& jumpPair, \
+                              const bool& switchUnknown, \
+                              const vector<string>& elems, \
+                              const vector<double>& elemsEffectOffset, \
+                              LRUCache* lru) {
+
+  int first = jumpPair.first;
+  int second = jumpPair.second;
+
+  vector<string> codes; // atom location in original atom list
+  vector<vector<string>> encodes = encodeConfig(c0, \
+                                                {first, second}, \
+                                                RCut2, \
+                                                codes, \
+                                                {first, second}, \
+                                                false);
+
+
+  vector<vector<int>> input;
+  vector<vector<int>> inputBack;
+
+  double Eactivate = 0.0;
+  double EactivateBack = 0.0;
+
+  int nRow = encodes.size();
+  int nCol = nRow ? encodes[0].size() : 0;
+
+  for (int i = 0; i < nRow; ++i) {
+
+    vector<int> tmpVec;
+    vector<int> tmpVecBack;
+    tmpVecBack.push_back(embedding[encodes[i][0]]);
+
+    for (int j = 0; j < nCol; ++j) {
+      tmpVec.push_back(embedding[encodes[i][j]]);
+      if (j == 0) continue;
+      tmpVecBack.push_back(embedding[encodes[i][nCol - j]]);
+    }
+    if (lru->check(tmpVec)) {
+      Eactivate += lru->getBarrier(tmpVec);
+      EactivateBack += lru->getBarrier(tmpVecBack);
+    } else {
+      input.push_back(tmpVec);
+      inputBack.push_back(tmpVecBack);
+    }
+  }
+
+  nRow = input.size(); // encodings for one jump pair considering symmetry
+  nCol = nRow ? input[0].size() : 0;
+
+  if (nRow) {
+
+    Tensor in{ nRow, nCol };
+    Tensor inBack{ nRow, nCol };
+    for (int i = 0; i < nRow; ++i) {
+      for (int j = 0; j < nCol; ++j) {
+        in.data_[i * nCol + j] = input[i][j];
+        inBack.data_[i * nCol + j] = inputBack[i][j];
+      }
+    }
+
+    Tensor outB = k2pModelB(in);
+    Tensor outBBack = k2pModelB(inBack);
+
+    for (int i = 0; i < nRow; ++i) {
+      double tmpEa = static_cast<double>(outB(i, 0));
+      double tmpEaBack = static_cast<double>(outBBack(i, 0));
+      Eactivate += tmpEa;
+      EactivateBack += tmpEaBack;
+      lru->add(make_pair(input[i], tmpEa));
+      lru->add(make_pair(inputBack[i], tmpEaBack));
+    }
+
+  }
+
+  Eactivate /= static_cast<double>(encodes.size());
+  EactivateBack /= static_cast<double>(encodes.size());
 
   double Ediff = Eactivate - EactivateBack;
   if (switchUnknown && c0.atoms[second].tp == "Xe")  {

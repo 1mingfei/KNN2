@@ -6,7 +6,12 @@ typedef std::chrono::high_resolution_clock Clock;
 int main(int argc, char* argv[]) {
   MPI_Init(&argc, &argv);
   int me;
+  int nProcs;
+  MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
+  if (me == 0) {
+    cout << "Using " << nProcs << " processors." << endl;
+  }
   auto t1 = Clock::now();
   KNHome* kn = new KNHome(argc, argv);
   if (kn) delete kn;

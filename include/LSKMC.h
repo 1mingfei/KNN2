@@ -22,6 +22,7 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #include "KNUtility.h"
+#include "LRUCache.h"
 
 using std::unordered_map;
 using std::unordered_set;
