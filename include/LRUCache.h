@@ -13,7 +13,7 @@
 //   (iterator) to each key in a hash map.
 
 #include "KNHome.h"
-
+#define NB 27
 class gbCnf;
 
 // namespace LR {
