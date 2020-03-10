@@ -3,6 +3,7 @@
 
 #include "armadillo"
 #include "KNHome.h"
+#include "LRUCache.h"
 #include "OrderedStruct.h"
 #include <math.h>
 
@@ -15,6 +16,8 @@ using std::unordered_multimap;
 
 using keras2cpp::Model;
 using keras2cpp::Tensor;
+
+class LRUCache;
 
 class gbCnf {
 
@@ -106,16 +109,30 @@ public:
 
   /* KMCSimulation.cpp */
   vector<double> calBarrierAndEdiff(Config&, \
-                                   const double&, \
-                                   const double&, \
-                                   const string&, \
-                                   unordered_map<string, double>&, \
-                                   Model&, \
-                                   Model&, \
-                                   const pair<int, int>&, \
-                                   const bool&, \
-                                   const vector<string>&, \
-                                   const vector<double>&);
+                                    const double&, \
+                                    const double&, \
+                                    const string&, \
+                                    unordered_map<string, double>&, \
+                                    Model&, \
+                                    Model&, \
+                                    const pair<int, int>&, \
+                                    const bool&, \
+                                    const vector<string>&, \
+                                    const vector<double>&);
+
+  vector<double> calBarrierAndEdiff_LRU(Config&, \
+                                        const double&, \
+                                        const double&, \
+                                        const string&, \
+                                        unordered_map<string, double>&, \
+                                        Model&, \
+                                        Model&, \
+                                        const pair<int, int>&, \
+                                        const bool&, \
+                                        const vector<string>&, \
+                                        const vector<double>&, \
+                                        LRUCache*);
+
 
   double offsetBarrier(const Config&, \
                        const vector<string>&, \

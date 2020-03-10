@@ -47,8 +47,7 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
     switchLSKMC(switchLSKMCIn), \
     switchUnknown(switchUnknownIn), \
     elems(elemsIn), \
-    elemsEffectOffset(elemsEffectOffsetIn)
-{
+    elemsEffectOffset(elemsEffectOffsetIn) {
 
   eventMap.clear();
   // watch out
