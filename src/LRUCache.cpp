@@ -53,6 +53,7 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
   int i = 0;
   for (const auto& digit : x.first)
     xCStr[i++] = '0' + digit;
+  xCStr[i] = '\0';
   this->add(make_pair(string(xCStr), x.second));
 }
 
@@ -69,6 +70,7 @@ bool LRUCache::check(const vector<int>& x) const {
   int i = 0;
   for (const auto& digit : x)
     xCStr[i++] = '0' + digit;
+  xCStr[i] = '\0';
   return check(string(xCStr));
 }
 
@@ -82,6 +84,7 @@ double LRUCache::getBarrier(const vector<int>& x) {
   int i = 0;
   for (const auto& digit : x)
     xCStr[i++] = '0' + digit;
+  xCStr[i] = '\0';
   return ma[string(xCStr)]->second;
 }
 
