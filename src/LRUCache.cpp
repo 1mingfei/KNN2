@@ -18,7 +18,7 @@ LRUCache::LRUCache() : ct(0) {
 
 // Declare the size
 LRUCache::LRUCache(const int& cSizeIn)
-  : cSize(cSizeIn), ct(0) {
+  : ct(0), cSize(cSizeIn)  {
 }
 
 void LRUCache::setSize(const int& cSizeIn) {
@@ -55,16 +55,15 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
   this->add(make_pair(xStr, x.second));
 }
 
-bool LRUCache::check(const string& x) {
+bool LRUCache::check(const string& x) const {
   if (ma.find(x) != ma.end()) {
-    ++ct;
     return true;
   }
   else
     return false;
 }
 
-bool LRUCache::check(const vector<int>& x) {
+bool LRUCache::check(const vector<int>& x) const {
   string xStr;
   for (const auto& i : x)
     xStr += to_string(i);
@@ -72,6 +71,7 @@ bool LRUCache::check(const vector<int>& x) {
 }
 
 double LRUCache::getBarrier(const string& x) {
+  ++ct;
   return ma[x]->second;
 }
 
@@ -79,7 +79,7 @@ double LRUCache::getBarrier(const vector<int>& x) {
   string xStr;
   for (const auto& i : x)
     xStr += to_string(i);
-  return ma[xStr]->second;
+  return getBarrier(xStr);
 }
 
 int LRUCache::getSize() const {

@@ -35,8 +35,8 @@ public:
   void setSize(const int&);
   void add(const pair<vector<int>, double>&);
   void add(const pair<string, double>&);
-  bool check(const string&);
-  bool check(const vector<int>&);
+  bool check(const string&) const;
+  bool check(const vector<int>&) const;
   double getBarrier(const string&);
   double getBarrier(const vector<int>&);
   int getSize() const;
