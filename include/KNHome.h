@@ -113,7 +113,7 @@ public:
   unordered_map<string, vector<int>> viparams;
   unordered_map<string, vector<double>> vdparams;
 
-  int LRUSize;
+  long long LRUSize;
   LRUCache* lru;
 
   KNHome(int argc, char* argv[]);

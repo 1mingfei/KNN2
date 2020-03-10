@@ -14,9 +14,7 @@ KNHome::KNHome(int argc, char* argv[]) {
   dparams["Rcut"] = 3.0; //kmc
   iparams["randSeed"] = 1234567; //kmc
 
-  LRUSize = iparams["LRUSize"];
   gbCnf cnfModifier(me, nProcs);
-  lru = new LRUCache(LRUSize);
 
   if (!strcmp(argv[1], "POSCAR") && (me == 0)) {
 
@@ -37,6 +35,12 @@ KNHome::KNHome(int argc, char* argv[]) {
 
   parseArgs(argc, argv);
   initParam();
+  if (me == 0) {
+    LRUSize = iparams["LRUSize"];
+    cout << "LRUSize set to : " << LRUSize << endl;
+    cout << "LRUCache will " << (LRUSize ? "" : "not ") << "be used." << endl;
+  }
+  lru = new LRUCache(LRUSize);
 
   if ((sparams["mode"]) == "generate") {
     srand(iparams["randSeed"] + me);

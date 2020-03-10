@@ -83,7 +83,7 @@ double LRUCache::getBarrier(const vector<int>& x) {
 }
 
 int LRUCache::getSize() const {
-  return dq.size();
+  return cSize;
 }
 
 // Function to display contents of cache
