@@ -20,10 +20,10 @@
 #include <array>
 #include <vector>
 #include <queue>
+#include <list>
 #include <algorithm>
 #include "armadillo"
 #include "gbDef.h"
-// #include "gbCnf.h"
 #include "KMCEvent.h"
 #include "LSEvent.h"
 #include "gbUtl.h"
@@ -31,6 +31,7 @@
 #include "LSKMC.h"
 #include "KNUtility.h"
 #include "OrderedStruct.h"
+#include "LRUCache.h"
 
 using std::cerr;
 using std::cout;
@@ -50,6 +51,7 @@ using std::unordered_map;
 using std::vector;
 using std::set;
 using std::pair;
+using std::list;
 using std::min;
 using std::distance;
 using std::replace;
@@ -63,6 +65,7 @@ using keras2cpp::Model;
 using keras2cpp::Tensor;
 
 class gbCnf;
+class LRUCache;
 
 class KNHome {
 private:
@@ -109,6 +112,8 @@ public:
   unordered_map<string, vector<string>> vsparams;
   unordered_map<string, vector<int>> viparams;
   unordered_map<string, vector<double>> vdparams;
+
+  LRUCache* lru;
 
   KNHome(int argc, char* argv[]);
   ~KNHome();

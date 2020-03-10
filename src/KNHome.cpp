@@ -1,6 +1,7 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #include "LSKMC.h"
+#include "LRUCache.h"
 
 KNHome::KNHome(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
@@ -14,7 +15,7 @@ KNHome::KNHome(int argc, char* argv[]) {
   iparams["randSeed"] = 1234567; //kmc
 
   gbCnf cnfModifier(me, nProcs);
-
+  lru = new LRUCache(50000);
 
   if (!strcmp(argv[1], "POSCAR") && (me == 0)) {
 
@@ -70,4 +71,6 @@ KNHome::KNHome(int argc, char* argv[]) {
   }
 }
 
-KNHome::~KNHome() {}
+KNHome::~KNHome() {
+  delete lru;
+}
