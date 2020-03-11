@@ -152,7 +152,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   }
   if (me == 0)
-    ofs << "#step     time     Ediff\n";
+    ofs << "#step     time     Ediff     cachTimes\n";
 
 }
 
@@ -450,7 +450,7 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     if (me == 0) {
       if (step % nTallyOutput == 0)
         ofs << std::setprecision(7) << step << " " << time << " " \
-            << E_tot << " " << endl;
+            << E_tot << " " << lru->getCt() <<endl;
 
       if (step % nTallyConf == 0)
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
