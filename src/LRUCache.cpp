@@ -49,12 +49,10 @@ void LRUCache::add(const pair<string, double>& x) {
 }
 
 void LRUCache::add(const pair<vector<int>, double>& x) {
-  char xCStr[NB];
-  int i = 0;
-  for (const auto& digit : x.first)
-    xCStr[i++] = '0' + digit;
-  xCStr[i] = '\0';
-  this->add(make_pair(string(xCStr), x.second));
+  string xStr;
+  for (const auto& i : x.first)
+    xStr += to_string(i);
+  this->add(make_pair(xStr, x.second));
 }
 
 bool LRUCache::check(const string& x) const {
@@ -66,12 +64,10 @@ bool LRUCache::check(const string& x) const {
 }
 
 bool LRUCache::check(const vector<int>& x) const {
-  char xCStr[NB];
-  int i = 0;
-  for (const auto& digit : x)
-    xCStr[i++] = '0' + digit;
-  xCStr[i] = '\0';
-  return check(string(xCStr));
+  string xStr;
+  for (const auto& i : x)
+    xStr += to_string(i);
+  return check(xStr);
 }
 
 double LRUCache::getBarrier(const string& x) {
@@ -80,12 +76,10 @@ double LRUCache::getBarrier(const string& x) {
 }
 
 double LRUCache::getBarrier(const vector<int>& x) {
-  char xCStr[NB];
-  int i = 0;
-  for (const auto& digit : x)
-    xCStr[i++] = '0' + digit;
-  xCStr[i] = '\0';
-  return ma[string(xCStr)]->second;
+  string xStr;
+  for (const auto& i : x)
+    xStr += to_string(i);
+  return getBarrier(xStr);
 }
 
 int LRUCache::getSize() const {
