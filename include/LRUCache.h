@@ -13,7 +13,7 @@
 //   (iterator) to each key in a hash map.
 
 #include "KNHome.h"
-
+#define NB 28
 class gbCnf;
 
 // namespace LR {
@@ -21,6 +21,7 @@ class gbCnf;
 using std::list;
 
 class LRUCache {
+  long long ct;
   // store keys of cache
   list<pair<string, double>> dq;
 
@@ -40,6 +41,7 @@ public:
   double getBarrier(const vector<int>&);
   int getSize() const;
   void display() const;
+  long long getCt() const;
 };
 // } // end namespace LR
 #endif

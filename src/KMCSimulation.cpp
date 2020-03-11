@@ -78,7 +78,7 @@ void KNHome::getVacList() {
 
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
-  // lru->setSize(500000);
+  // lru->setSize(LRUSize);
   buildEmbedding();
   if (me == 0)
     ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
@@ -212,7 +212,7 @@ void KNHome::buildEventList_serial(gbCnf& cnfModifier) {
 
       vector<double> currBarrier;
 
-      if (LRUSize) {
+      if (lru->getSize()) {
         currBarrier = cnfModifier.calBarrierAndEdiff_LRU(c0, \
                                   temperature, \
                                   RCut2, \
@@ -406,10 +406,11 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
 
   while (iter < maxIter) {
 
-    if (nProcs == 1)
+    if (nProcs == 1) {
       buildEventList_serial(cnfModifier);
-    else
+    } else {
       buildEventList(cnfModifier);
+    }
 
 #ifdef DEBUG_MPI
     cout << "built event list processor #" << me << " iteration: "
@@ -454,6 +455,9 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
       if (step % nTallyConf == 0)
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
     }
+  }
+  if (me == 0) {
+    cout << "#LRU called " << lru->getCt() << " times." << endl;
   }
   MPI_Barrier(MPI_COMM_WORLD);
 
