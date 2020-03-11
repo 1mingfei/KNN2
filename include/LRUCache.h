@@ -26,10 +26,10 @@ struct hash<vector<T> > {
   size_t N = KEY_SIZE;
 
   result_type operator()(const argument_type& a) const {
-    hash<T> hasher;
-    result_type h = 0;
-    for (result_type i = 0; i < N; ++i) {
-        h = h * 31 + hasher(a[i]);
+    result_type h = a[0];
+    for (result_type i = 1; i < N; ++i) {
+      h <<= 2;
+      h += a[i];
     }
     return h;
   }
