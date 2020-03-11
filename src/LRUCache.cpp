@@ -84,7 +84,7 @@ double LRUCache::getBarrier(const vector<int>& x) {
   for (const auto& digit : x)
     xCStr[i++] = '0' + digit;
   xCStr[i] = '\0';
-  return getBarrier(xCStr);;
+  return getBarrier(xCStr);
 }
 
 int LRUCache::getSize() const {
