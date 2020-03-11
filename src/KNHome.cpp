@@ -35,8 +35,8 @@ KNHome::KNHome(int argc, char* argv[]) {
 
   parseArgs(argc, argv);
   initParam();
+  LRUSize = iparams["LRUSize"];
   if (me == 0) {
-    LRUSize = iparams["LRUSize"];
     cout << "LRUSize set to : " << LRUSize << endl;
     cout << "LRUCache will " << (LRUSize ? "" : "not ") << "be used." << endl;
   }
