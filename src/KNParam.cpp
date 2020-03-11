@@ -103,7 +103,7 @@ void KNHome::readParam() {
     } else if (!segs[0].compare("switchLSKMC")) {
       bparams[segs[0]] = (segs[1] == "false") ? false : true;
     } else if (!segs[0].compare("LRUSize")) {
-      iparams[segs[0]] = stoi(segs[1]);
+      iparams[segs[0]] = stoll(segs[1]);
     }
   }
   fid.close();

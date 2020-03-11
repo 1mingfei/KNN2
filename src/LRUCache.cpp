@@ -13,12 +13,12 @@
 #include "LRUCache.h"
 
 // namespace LR {
-LRUCache::LRUCache() {
+LRUCache::LRUCache() : ct(0) {
 }
 
 // Declare the size
 LRUCache::LRUCache(const int& cSizeIn)
-  : cSize(cSizeIn) {
+  : ct(0), cSize(cSizeIn)  {
 }
 
 void LRUCache::setSize(const int& cSizeIn) {
@@ -56,7 +56,7 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
 }
 
 bool LRUCache::check(const string& x) const {
-  if (ma.find(x) != ma.end())
+  if (ma.find(x) != ma.end()) 
     return true;
   else
     return false;
@@ -70,6 +70,7 @@ bool LRUCache::check(const vector<int>& x) const {
 }
 
 double LRUCache::getBarrier(const string& x) {
+  ++ct;
   return ma[x]->second;
 }
 
@@ -77,11 +78,11 @@ double LRUCache::getBarrier(const vector<int>& x) {
   string xStr;
   for (const auto& i : x)
     xStr += to_string(i);
-  return ma[xStr]->second;
+  return getBarrier(xStr);
 }
 
 int LRUCache::getSize() const {
-  return dq.size();
+  return cSize;
 }
 
 // Function to display contents of cache
@@ -91,5 +92,9 @@ void LRUCache::display() const{
   // all the elements in it
   for (auto it = dq.begin(); it != dq.end(); it++)
     cout << (*it).first << " " << (*it).second << endl;
+}
+
+long long LRUCache::getCt() const {
+  return ct;
 }
 // } // end namespace LR
