@@ -572,41 +572,48 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
       if (j == 0) continue;
       tmpVecBack.push_back(embedding[encodes[i][nCol - j]]);
     }
-    if (lru->check(tmpVec)) {
+    if (lru->check(tmpVec))
       Eactivate += lru->getBarrier(tmpVec);
+    else input.push_back(tmpVec);
+
+    if (lru->check(tmpVecBack))
       EactivateBack += lru->getBarrier(tmpVecBack);
-    } else {
-      input.push_back(tmpVec);
-      inputBack.push_back(tmpVecBack);
-    }
+    else inputBack.push_back(tmpVecBack);
   }
 
   nRow = input.size(); // encodings for one jump pair considering symmetry
   nCol = nRow ? input[0].size() : 0;
+  int nRowBack = inputBack.size();
 
   if (nRow) {
-
-    Tensor in{ nRow, nCol };
-    Tensor inBack{ nRow, nCol };
+    Tensor in{nRow, nCol};
     for (int i = 0; i < nRow; ++i) {
       for (int j = 0; j < nCol; ++j) {
         in.data_[i * nCol + j] = input[i][j];
-        inBack.data_[i * nCol + j] = inputBack[i][j];
       }
     }
 
     Tensor outB = k2pModelB(in);
-    Tensor outBBack = k2pModelB(inBack);
 
     for (int i = 0; i < nRow; ++i) {
       double tmpEa = static_cast<double>(outB(i, 0));
-      double tmpEaBack = static_cast<double>(outBBack(i, 0));
       Eactivate += tmpEa;
-      EactivateBack += tmpEaBack;
       lru->add(make_pair(input[i], tmpEa));
+    }
+  }
+  if (nRowBack) {
+    Tensor inBack{nRowBack, nCol};
+    for (int i = 0; i < nRowBack; ++i) {
+      for (int j = 0; j < nCol; ++j) {
+        inBack.data_[i * nCol + j] = inputBack[i][j];
+      }
+    }
+    Tensor outBBack = k2pModelB(inBack);
+    for (int i = 0; i < nRowBack; ++i) {
+      double tmpEaBack = static_cast<double>(outBBack(i, 0));
+      EactivateBack += tmpEaBack;
       lru->add(make_pair(inputBack[i], tmpEaBack));
     }
-
   }
 
   Eactivate /= static_cast<double>(encodes.size());
