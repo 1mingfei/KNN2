@@ -56,9 +56,8 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
 }
 
 bool LRUCache::check(const string& x) const {
-  if (ma.find(x) != ma.end()) {
+  if (ma.find(x) != ma.end()) 
     return true;
-  }
   else
     return false;
 }
