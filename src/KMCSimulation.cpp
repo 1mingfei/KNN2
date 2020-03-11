@@ -473,7 +473,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
                               Model& k2pModelD, \
                               const pair<int, int>& jumpPair, \
                               const bool& switchUnknown, \
-                              const vector<string>& elems, \
+                              vector<string>& elems, \
                               const vector<double>& elemsEffectOffset) {
 
   int first = jumpPair.first;
@@ -523,7 +523,7 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
   EactivateBack /= static_cast<double>(nRow);
 
   double Ediff = Eactivate - EactivateBack;
-  if (switchUnknown && c0.atoms[second].tp == "Xe")  {
+  if (switchUnknown)  {
     Eactivate += offsetBarrier(c0, elems, elemsEffectOffset, {first, second});
   }
   return {Eactivate, Ediff};
@@ -538,7 +538,7 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
                               Model& k2pModelD, \
                               const pair<int, int>& jumpPair, \
                               const bool& switchUnknown, \
-                              const vector<string>& elems, \
+                              vector<string>& elems, \
                               const vector<double>& elemsEffectOffset, \
                               LRUCache* lru) {
 
@@ -615,40 +615,71 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
   EactivateBack /= static_cast<double>(encodes.size());
 
   double Ediff = Eactivate - EactivateBack;
-  if (switchUnknown && c0.atoms[second].tp == "Xe")  {
+  if (switchUnknown)  {
     Eactivate += offsetBarrier(c0, elems, elemsEffectOffset, {first, second});
   }
   return {Eactivate, Ediff};
 }
 
 double gbCnf::offsetBarrier(const Config& c0, \
-                            const vector<string>& elems, \
+                            vector<string>& elems, \
                             const vector<double>& elemsEffectOffset, \
                             const pair<int, int>& jumpPair) {
 
   const int iFirst = jumpPair.first;
   const int iSecond = jumpPair.second;
-  unordered_map<string, int> mp;
-  for (int i = 0; i < NEI_NUMBER; ++i) {
-    int n = c0.atoms[iFirst].FNNL[i];
-    --mp[c0.atoms[n].tp];
-  }
-  for (int i = 0; i < NEI_NUMBER; ++i) {
-    int n = c0.atoms[iSecond].FNNL[i];
-    ++mp[c0.atoms[n].tp];
-  }
-  double res = 0.0;
-  for (int i = 0; i < elems.size(); ++i) {
 
-#ifdef DEBUG
-    cout << "#debug here #" << mp[elems[i]] \
-         <<  " " << elemsEffectOffset[i] << endl;
+  double res = 0.0;
+
+  if (c0.atoms[iSecond].tp == "Xe") {
+    // This map should be the bonding numbers of X-Al, X-Mg, X-Zn,
+    // key is Al, Mg or Zn
+    unordered_map<string, int> mp;
+    for (int i = 0; i < NEI_NUMBER; ++i) {
+      int n = c0.atoms[iFirst].FNNL[i];
+      ++mp[c0.atoms[n].tp];
+
+      int m = c0.atoms[iSecond].FNNL[i];
+      --mp[c0.atoms[m].tp];
+    }
+
+#ifdef DEBUG_OFFSET
+    cout << "jump element is pseudo\n";
 #endif
 
-    res += mp[elems[i]] * elemsEffectOffset[i];
+    for (int i = 0; i < elems.size(); ++i) {
+#ifdef DEBUG_OFFSET
+      cout << "#debug here #" << mp[elems[i]] \
+           <<  " " << elemsEffectOffset[i] << endl;
+#endif
+      res += (static_cast<double>(mp[elems[i]]) * elemsEffectOffset[i]);
+    }
+  } else {
+    // This map should be the bonding numbers of Al-X or Mg-X or Zn-X
+    // then only need to count how many ?-X bond change before and after
+    int count = 0;
+    for (int i = 0; i < NEI_NUMBER; ++i) {
+      int n = c0.atoms[iFirst].FNNL[i];
+      if (c0.atoms[n].tp == "Xe")
+        ++count;
+
+      int m = c0.atoms[iSecond].FNNL[i];
+      if (c0.atoms[m].tp == "Xe")
+        --count;
+    }
+    vector<string>::iterator it = std::find(elems.begin(), elems.end(), \
+                                            c0.atoms[iSecond].tp);
+    int index = std::distance(elems.begin(), it);
+
+    res += (static_cast<double>(count) * elemsEffectOffset[index]);
+#ifdef DEBUG_OFFSET
+    cout << "jump element is pseudo\n";
+    cout << "#debug here #" << count \
+         <<  " " << elemsEffectOffset[index] << endl;
+#endif
   }
 
-#ifdef DEBUG
+#ifdef DEBUG_OFFSET
   cout << "#debug here #" << res << endl;
 #endif
 
