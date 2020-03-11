@@ -117,7 +117,7 @@ public:
                                     Model&, \
                                     const pair<int, int>&, \
                                     const bool&, \
-                                    const vector<string>&, \
+                                    vector<string>&, \
                                     const vector<double>&);
 
   vector<double> calBarrierAndEdiff_LRU(Config&, \
@@ -129,13 +129,13 @@ public:
                                         Model&, \
                                         const pair<int, int>&, \
                                         const bool&, \
-                                        const vector<string>&, \
+                                        vector<string>&, \
                                         const vector<double>&, \
                                         LRUCache*);
 
 
   double offsetBarrier(const Config&, \
-                       const vector<string>&, \
+                       vector<string>&, \
                        const vector<double>&, \
                        const pair<int, int>&);
 
