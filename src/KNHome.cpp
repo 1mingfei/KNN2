@@ -1,6 +1,7 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #include "LSKMC.h"
+#include "LRUCache.h"
 
 KNHome::KNHome(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
@@ -14,7 +15,6 @@ KNHome::KNHome(int argc, char* argv[]) {
   iparams["randSeed"] = 1234567; //kmc
 
   gbCnf cnfModifier(me, nProcs);
-
 
   if (!strcmp(argv[1], "POSCAR") && (me == 0)) {
 
@@ -35,6 +35,12 @@ KNHome::KNHome(int argc, char* argv[]) {
 
   parseArgs(argc, argv);
   initParam();
+  LRUSize = iparams["LRUSize"];
+  if (me == 0) {
+    cout << "LRUSize set to : " << LRUSize << endl;
+    cout << "LRUCache will " << (LRUSize ? "" : "not ") << "be used." << endl;
+  }
+  lru = new LRUCache(LRUSize);
 
   if ((sparams["mode"]) == "generate") {
     srand(iparams["randSeed"] + me);
@@ -62,8 +68,14 @@ KNHome::KNHome(int argc, char* argv[]) {
     // LSKMCSimulation(cnfModifier);
 
     /* test mat transfer */
-    LS::LSKMC::test_vvd2mat();
+    // LS::LSKMC::test_vvd2mat();
+    /* test embedding */
+    buildEmbedding();
+
+
   }
 }
 
-KNHome::~KNHome() {}
+KNHome::~KNHome() {
+  delete lru;
+}

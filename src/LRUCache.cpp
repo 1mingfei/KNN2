@@ -1,0 +1,80 @@
+
+// modified from geeksforgeeks.com, originally contributed by Satish Srinivas
+
+
+// We can use stl container list as a double
+// ended queue to store the cache keys, with
+// the descending time of reference from front
+// to back and a set container to check presence
+// of a key. But to fetch the address of the key
+// in the list using find(), it takes O(N) time.
+// This can be optimized by storing a reference
+//   (iterator) to each key in a hash map.
+#include "LRUCache.h"
+
+// namespace LR {
+LRUCache::LRUCache() : ct(0) {
+}
+
+// Declare the size
+LRUCache::LRUCache(const int& cSizeIn)
+  : ct(0), cSize(cSizeIn)  {
+}
+
+void LRUCache::setSize(const int& cSizeIn) {
+  cSize = cSizeIn;
+}
+
+// Refers key x with in the LRU cache
+void LRUCache::add(const pair<vector<int>, double>& x) {
+  // not present in cache
+  if (m.find(x.first) == m.end()) {
+    // cache is full
+    if (dq.size() == cSize) {
+      // delete least recently used element
+      auto last = dq.back().first;
+
+      // Pops the last elmeent
+      dq.pop_back();
+
+      // Erase the last
+      m.erase(last);
+    }
+  } else {// present in cache
+    dq.erase(m[x.first]);
+  }
+
+  // update reference
+  dq.push_front(x);
+  m[x.first] = dq.begin();
+}
+
+bool LRUCache::check(const vector<int>& x) const {
+  if (m.find(x) != m.end())
+    return true;
+  else
+    return false;
+}
+
+double LRUCache::getBarrier(const vector<int>& x) {
+  ++ct;
+  return m[x]->second;
+}
+
+int LRUCache::getSize() const {
+  return cSize;
+}
+
+// Function to display contents of cache
+// void LRUCache::display() {
+
+//   // Iterate in the deque and print
+//   // all the elements in it
+//   for (auto it = dq.begin(); it != dq.end(); it++)
+//     cout << (*it).first << " " << (*it).second << endl;
+// }
+
+long long LRUCache::getCt() const {
+  return ct;
+}
+// } // end namespace LR

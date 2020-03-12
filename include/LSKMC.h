@@ -22,6 +22,7 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 #include "KNUtility.h"
+#include "LRUCache.h"
 
 using std::unordered_map;
 using std::unordered_set;
@@ -59,9 +60,12 @@ private:
   double& prefix;
   double& ECutoff;
   double exitTime;
-  long long& iter;
   long long& step;
   ofstream& ofs;
+  bool& switchLSKMC;
+  bool& switchUnknown;
+  vector<string>& elems;
+  vector<double>& elemsEffectOffset;
 
   // lists for trapping locations of each atom
   unordered_map<int, unordered_set<int>> trapList;
@@ -113,8 +117,11 @@ public:
         double&, \
         double& ,\
         long long&, \
-        long long&, \
-        ofstream&);
+        ofstream&, \
+        bool&, \
+        bool&, \
+        vector<string>&, \
+        vector<double>&);
 
   void testCnfModification();
   static void test_vvd2mat();

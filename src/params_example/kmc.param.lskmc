@@ -1,18 +1,19 @@
 ============example1================
 mode lskmc
-ECutoff 0.35
-trapStepCriteria 50
+initconfig initconfig.cfg
+ECutoff 0.3
 oneTrapTimeCriteria 5e-9
-initconfig Zn.cfg
-kerasModelBarrier ../../../external/keras.model.1
-EDiff barrier   # model off
-#kerasModelEDiff ../../../external/keras.model.2
+trapStepCriteria 50
+EDiff barrier
+kerasModelBarrier /Users/mingfei/Softwares/KNN2/external/keras.model.1
 RCut 3.0
-maxIter 400
-nTallyConf 1
+maxIter 2000
+nTallyConf 100
 nTallyOutput 1
 temperature 300.0
 prefix 1e13
 randSeed 1234
-elems Al Mg Zn X
+elems  Al    Mg    Zn    X    Xe
+elemsEffectOffset -0.05  0.00 0.00  0.00 0.00
+switchLSKMC false
 ====================================

@@ -54,6 +54,12 @@ void KNHome::readParam() {
         tmpVec.push_back(stoi(segs[i]));
       }
       viparams[segs[0]] = tmpVec;
+    } else if (!segs[0].compare("elemsEffectOffset")) {
+      vector<double> tmpVec;
+      for (unsigned int i = 1; i < segs.size(); ++i) {
+        tmpVec.push_back(stod(segs[i]));
+      }
+      vdparams[segs[0]] = tmpVec;
     } else if (!segs[0].compare("NConfigs")) {
       iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("NBarriers")) {
@@ -93,6 +99,10 @@ void KNHome::readParam() {
     } else if (!segs[0].compare("increment")) {
       iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("finalNum")) {
+      iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("switchLSKMC")) {
+      bparams[segs[0]] = (segs[1] == "false") ? false : true;
+    } else if (!segs[0].compare("LRUSize")) {
       iparams[segs[0]] = stoll(segs[1]);
     }
   }
