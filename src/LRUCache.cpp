@@ -24,29 +24,31 @@ LRUCache::LRUCache(const int& cSizeIn)
 void LRUCache::setSize(const int& cSizeIn) {
   cSize = cSizeIn;
 }
+
 // Refers key x with in the LRU cache
-void LRUCache::add(const pair<string, double>& x) {
+void LRUCache::add(const pair<vector<int>, double>& x) {
   // not present in cache
-  if (ma.find(x.first) == ma.end()) {
+  if (m.find(x.first) == m.end()) {
     // cache is full
     if (dq.size() == cSize) {
       // delete least recently used element
-      string last = dq.back().first;
+      auto last = dq.back().first;
 
       // Pops the last elmeent
       dq.pop_back();
 
       // Erase the last
-      ma.erase(last);
+      m.erase(last);
     }
   } else {// present in cache
-    dq.erase(ma[x.first]);
+    dq.erase(m[x.first]);
   }
 
   // update reference
   dq.push_front(x);
-  ma[x.first] = dq.begin();
+  m[x.first] = dq.begin();
 }
+
 
 void LRUCache::add(const pair<vector<int>, double>& x) {
   char xCStr[NB];
@@ -58,10 +60,7 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
 }
 
 bool LRUCache::check(const string& x) const {
-  if (ma.find(x) != ma.end())
-    return true;
-  else
-    return false;
+  return (ma.find(x) != ma.end());
 }
 
 bool LRUCache::check(const vector<int>& x) const {
@@ -92,13 +91,13 @@ int LRUCache::getSize() const {
 }
 
 // Function to display contents of cache
-void LRUCache::display() const{
+// void LRUCache::display() {
 
-  // Iterate in the deque and print
-  // all the elements in it
-  for (auto it = dq.begin(); it != dq.end(); it++)
-    cout << (*it).first << " " << (*it).second << endl;
-}
+//   // Iterate in the deque and print
+//   // all the elements in it
+//   for (auto it = dq.begin(); it != dq.end(); it++)
+//     cout << (*it).first << " " << (*it).second << endl;
+// }
 
 long long LRUCache::getCt() const {
   return ct;
