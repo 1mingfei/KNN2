@@ -572,17 +572,13 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
       if (j == 0) continue;
       tmpVecBack.push_back(embedding[encodes[i][nCol - j]]);
     }
-    if (lru->check(tmpVec)) {
+    if (lru->check(tmpVec))
       Eactivate += lru->getBarrier(tmpVec);
-    } else {
-      input.push_back(tmpVec);
-    }
+    else input.push_back(tmpVec);
 
-    if (lru->check(tmpVecBack)) {
+    if (lru->check(tmpVecBack))
       EactivateBack += lru->getBarrier(tmpVecBack);
-    } else {
-      inputBack.push_back(tmpVecBack);
-    }
+    else inputBack.push_back(tmpVecBack);
   }
 
   nRow = input.size(); // encodings for one jump pair considering symmetry
