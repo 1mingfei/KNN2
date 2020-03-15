@@ -58,7 +58,7 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
 }
 
 bool LRUCache::check(const string& x) const {
-  return (m.find(x) != m.end());
+  return (ma.find(x) != ma.end());
 }
 
 bool LRUCache::check(const vector<int>& x) const {
@@ -72,7 +72,7 @@ bool LRUCache::check(const vector<int>& x) const {
 
 double LRUCache::getBarrier(const string& x) {
   ++ct;
-  return m[x]->second;
+  return ma[x]->second;
 }
 
 double LRUCache::getBarrier(const vector<int>& x) {
