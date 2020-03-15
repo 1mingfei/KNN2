@@ -456,7 +456,9 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
     }
   }
-
+  if (me == 0) {	
+    cout << "#LRU called " << lru->getCt() << " times." << endl;	
+  }
   MPI_Barrier(MPI_COMM_WORLD);
 
 }
