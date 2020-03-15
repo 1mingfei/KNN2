@@ -77,5 +77,8 @@ KNHome::KNHome(int argc, char* argv[]) {
 }
 
 KNHome::~KNHome() {
+  if (me == 0) {
+    cout << "#LRU called " << lru->getCt() << " times." << endl;
+  }
   delete lru;
 }

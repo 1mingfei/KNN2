@@ -14,27 +14,7 @@
 
 #include "KNHome.h"
 #define NB 28
-#define KEY_SIZE 27
 class gbCnf;
-
-namespace std
-{
-template<typename T>
-struct hash<vector<T> > {
-  typedef vector<T> argument_type;
-  typedef size_t result_type;
-  size_t N = KEY_SIZE;
-
-  result_type operator()(const argument_type& a) const {
-    result_type h = a[0];
-    for (result_type i = 1; i < N; ++i) {
-      h <<= 2;
-      h += a[i];
-    }
-    return h;
-  }
-};
-}
 
 // namespace LR {
 
@@ -43,10 +23,10 @@ using std::list;
 class LRUCache {
   long long ct;
   // store keys of cache
-  list<pair<vector<int>, double>> dq;
+  list<pair<string, double>> dq;
 
   // store references of key in cache
-  unordered_map<vector<int>, list<pair<vector<int>, double>>::iterator> m;
+  unordered_map<string, list<pair<string, double>>::iterator> ma;
   int cSize; // maximum capacity of cache
 
 public:
@@ -54,10 +34,13 @@ public:
   LRUCache(const int&);
   void setSize(const int&);
   void add(const pair<vector<int>, double>&);
+  void add(const pair<string, double>&);
+  bool check(const string&) const;
   bool check(const vector<int>&) const;
+  double getBarrier(const string&);
   double getBarrier(const vector<int>&);
   int getSize() const;
-  void display();
+  void display() const;
   long long getCt() const;
 };
 // } // end namespace LR

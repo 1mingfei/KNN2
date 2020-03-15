@@ -152,7 +152,7 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   }
   if (me == 0)
-    ofs << "#step     time     Ediff\n";
+    ofs << "#step     time     Ediff     cachTimes\n";
 
 }
 
@@ -450,15 +450,13 @@ void KNHome::KMCSimulation(gbCnf& cnfModifier) {
     if (me == 0) {
       if (step % nTallyOutput == 0)
         ofs << std::setprecision(7) << step << " " << time << " " \
-            << E_tot << " " << endl;
+            << E_tot << " " << lru->getCt() <<endl;
 
       if (step % nTallyConf == 0)
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
     }
   }
-  if (me == 0) {
-    cout << "#LRU called " << lru->getCt() << " times." << endl;
-  }
+
   MPI_Barrier(MPI_COMM_WORLD);
 
 }
@@ -574,17 +572,13 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
       if (j == 0) continue;
       tmpVecBack.push_back(embedding[encodes[i][nCol - j]]);
     }
-    if (lru->check(tmpVec)) {
+    if (lru->check(tmpVec))
       Eactivate += lru->getBarrier(tmpVec);
-    } else {
-      input.push_back(tmpVec);
-    }
+    else input.push_back(tmpVec);
 
-    if (lru->check(tmpVecBack)) {
+    if (lru->check(tmpVecBack))
       EactivateBack += lru->getBarrier(tmpVecBack);
-    } else {
-      inputBack.push_back(tmpVecBack);
-    }
+    else inputBack.push_back(tmpVecBack);
   }
 
   nRow = input.size(); // encodings for one jump pair considering symmetry
@@ -592,7 +586,7 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
   int nRowBack = inputBack.size();
 
   if (nRow) {
-    Tensor in{ nRow, nCol };
+    Tensor in{nRow, nCol};
     for (int i = 0; i < nRow; ++i) {
       for (int j = 0; j < nCol; ++j) {
         in.data_[i * nCol + j] = input[i][j];
