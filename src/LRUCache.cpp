@@ -26,7 +26,7 @@ void LRUCache::setSize(const int& cSizeIn) {
 }
 
 // Refers key x with in the LRU cache
-void LRUCache::add(const pair<vector<int>, double>& x) {
+void LRUCache::add(const pair<string, double>& x) {
   // not present in cache
   if (m.find(x.first) == m.end()) {
     // cache is full
@@ -60,7 +60,7 @@ void LRUCache::add(const pair<vector<int>, double>& x) {
 }
 
 bool LRUCache::check(const string& x) const {
-  return (ma.find(x) != ma.end());
+  return (m.find(x) != m.end());
 }
 
 bool LRUCache::check(const vector<int>& x) const {
@@ -74,7 +74,7 @@ bool LRUCache::check(const vector<int>& x) const {
 
 double LRUCache::getBarrier(const string& x) {
   ++ct;
-  return ma[x]->second;
+  return m[x]->second;
 }
 
 double LRUCache::getBarrier(const vector<int>& x) {

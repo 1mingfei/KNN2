@@ -43,10 +43,10 @@ using std::list;
 class LRUCache {
   long long ct;
   // store keys of cache
-  list<pair<vector<int>, double>> dq;
+  list<pair<string, double>> dq;
 
   // store references of key in cache
-  unordered_map<vector<int>, list<pair<vector<int>, double>>::iterator> m;
+  unordered_map<string, list<pair<string, double>>::iterator> m;
   int cSize; // maximum capacity of cache
 
 public:
@@ -54,8 +54,11 @@ public:
   LRUCache(const int&);
   void setSize(const int&);
   void add(const pair<vector<int>, double>&);
+  void add(const pair<string, double>&);
   bool check(const vector<int>&) const;
+  bool check(const string&) const;
   double getBarrier(const vector<int>&);
+  double getBarrier(const string&);
   int getSize() const;
   void display();
   long long getCt() const;
