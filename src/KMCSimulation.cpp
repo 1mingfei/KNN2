@@ -28,8 +28,9 @@ inline ForwardIt mylower_bound(ForwardIt first, \
       first = ++it;
       count -= step + 1;
     }
-    else
+    else {
       count = step;
+    }
   }
   return first;
 }
@@ -46,8 +47,9 @@ void KNHome::buildEmbedding() {
       embedding[elems[i - 1]] = static_cast<double>(base);
       switchUnknown = true;
     }
-    else
+    else {
       embedding[elems[i - 1]] = static_cast<double>(j++);
+    }
   }
 
 #ifdef DEBUG
@@ -109,10 +111,11 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   /* get neibour list of atoms */
   cnfModifier.wrapAtomPrl(c0);
 
-  if (nProcs == 1)
+  if (nProcs == 1) {
     cnfModifier.getNBL_serial(c0, RCut2);
-  else
+  } else {
     cnfModifier.getNBL(c0, RCut2);
+  }
 
 #ifdef DEBUG
   if (me == 0)
@@ -327,17 +330,34 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
            << iFirst << " " << iSecond << " " << c0.atoms[iSecond].tp << "\n";
 #endif
 
-      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-                                temperature, \
-                                RCut2, \
-                                EDiff, \
-                                embedding, \
-                                k2pModelB, \
-                                k2pModelD, \
-                                make_pair(iFirst, iSecond), \
-                                switchUnknown, \
-                                elems, \
-                                elemsEffectOffset);
+      vector<double> currBarrier;
+
+      if (lru->getSize()) {
+        currBarrier = cnfModifier.calBarrierAndEdiff_LRU(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset, \
+                                  lru);
+      } else {
+        currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset);
+      }
 
 #ifdef DEBUG_MPI
       cout << "processor #" << me << " iteration: " \
@@ -572,13 +592,17 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
       if (j == 0) continue;
       tmpVecBack.push_back(embedding[encodes[i][nCol - j]]);
     }
-    if (lru->check(tmpVec))
+    if (lru->check(tmpVec)) {
       Eactivate += lru->getBarrier(tmpVec);
-    else input.push_back(tmpVec);
+    } else {
+      input.push_back(tmpVec);
+    }
 
-    if (lru->check(tmpVecBack))
+    if (lru->check(tmpVecBack)) {
       EactivateBack += lru->getBarrier(tmpVecBack);
-    else inputBack.push_back(tmpVecBack);
+    } else {
+      inputBack.push_back(tmpVecBack);
+    }
   }
 
   nRow = input.size(); // encodings for one jump pair considering symmetry
