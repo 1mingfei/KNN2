@@ -558,7 +558,7 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
 
       if (step % nTallyOutput == 0)
       ofs << std::setprecision(7) << step << " " << time << " " \
-          << E_tot << " " << endl;
+          << E_tot << " " << lru->getCt() << endl;
 
       if (step % nTallyConf == 0)
         cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
