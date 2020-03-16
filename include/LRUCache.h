@@ -14,6 +14,7 @@
 
 #include "KNHome.h"
 #define NB 28
+#define KEY_SIZE 27
 class gbCnf;
 
 // namespace LR {
@@ -33,12 +34,12 @@ public:
   LRUCache();
   LRUCache(const int&);
   void setSize(const int&);
-  void add(const pair<vector<int>, double>&);
+  void add(const pair<array<int, KEY_SIZE>, double>&);
   void add(const pair<string, double>&);
   bool check(const string&) const;
-  bool check(const vector<int>&) const;
+  bool check(const array<int, KEY_SIZE>&) const;
   double getBarrier(const string&);
-  double getBarrier(const vector<int>&);
+  double getBarrier(const array<int, KEY_SIZE>&);
   int getSize() const;
   void display() const;
   long long getCt() const;

@@ -8,6 +8,7 @@ using namespace std::chrono;
 #define KB 8.6173303e-5
 #define KB_INV 11604.5221105
 #define NEI_NUMBER 12
+#define KEY_SIZE 27
 
 /*  first element in the range [first, last)
  *  that is not less than (i.e. greater or equal to) value */
@@ -552,8 +553,8 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
                                                 false);
 
 
-  vector<vector<int>> input;
-  vector<vector<int>> inputBack;
+  vector<array<int, KEY_SIZE>> input;
+  vector<array<int, KEY_SIZE>> inputBack;
 
   double Eactivate = 0.0;
   double EactivateBack = 0.0;
@@ -563,14 +564,14 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
 
   for (int i = 0; i < nRow; ++i) {
 
-    vector<int> tmpVec;
-    vector<int> tmpVecBack;
-    tmpVecBack.push_back(embedding[encodes[i][0]]);
+    array<int, KEY_SIZE> tmpVec;
+    array<int, KEY_SIZE> tmpVecBack;
+    tmpVecBack[0] = embedding[encodes[i][0]];
 
     for (int j = 0; j < nCol; ++j) {
-      tmpVec.push_back(embedding[encodes[i][j]]);
+      tmpVec[j] = embedding[encodes[i][j]];
       if (j == 0) continue;
-      tmpVecBack.push_back(embedding[encodes[i][nCol - j]]);
+      tmpVecBack[j] = embedding[encodes[i][nCol - j]];
     }
     if (lru->check(tmpVec))
       Eactivate += lru->getBarrier(tmpVec);
