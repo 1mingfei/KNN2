@@ -48,9 +48,9 @@ inline void prepKPOINTS(const string& path, const vector<int>& dupFac) {
 inline void prepSUBMIT(const string& path) {
   string fnm = path + "/submit.sh";
   ofstream ofs(fnm, std::ofstream::out);
-  ofs << "/data/submit/unix/submit vasp ver=5.3.5 ncpu=48 spool_files=yes \
-    queue=nahpc_matls_lg  proj=VASP  input_dir=`pwd` \
-    jid=Al_job output_dir=`pwd`";
+  ofs << "/data/submit/unix/submit vasp ver=5.3.5 ncpu=64 spool_files=yes \
+    queue=nahpc_matls_lg cluster=NAHPC_WRN proj=VASP input_dir=`pwd` \
+    jid=neb_init_rlx output_dir=`pwd`";
 }
 
 inline void prepSUBMITCORI(const string& path) {
