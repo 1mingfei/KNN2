@@ -643,10 +643,10 @@ double gbCnf::offsetBarrier(const Config& c0, \
     unordered_map<string, int> mp;
     for (int i = 0; i < NEI_NUMBER; ++i) {
       int n = c0.atoms[iFirst].FNNL[i];
-      ++mp[c0.atoms[n].tp];
+      --mp[c0.atoms[n].tp];
 
       int m = c0.atoms[iSecond].FNNL[i];
-      --mp[c0.atoms[m].tp];
+      ++mp[c0.atoms[m].tp];
     }
 
 #ifdef DEBUG_OFFSET
@@ -667,11 +667,11 @@ double gbCnf::offsetBarrier(const Config& c0, \
     for (int i = 0; i < NEI_NUMBER; ++i) {
       int n = c0.atoms[iFirst].FNNL[i];
       if (c0.atoms[n].tp == "Xe")
-        ++count;
+        --count;
 
       int m = c0.atoms[iSecond].FNNL[i];
       if (c0.atoms[m].tp == "Xe")
-        --count;
+        ++count;
     }
     vector<string>::iterator it = std::find(elems.begin(), elems.end(), \
                                             c0.atoms[iSecond].tp);
