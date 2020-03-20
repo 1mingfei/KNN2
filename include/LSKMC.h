@@ -44,6 +44,8 @@ typedef vector<vector<double>> vvd;
 
 class LSKMC {
 private:
+  int& me;
+  int& nProcs;
   gbCnf& cnfModifier;
   Config& c0;
   // unordered_map<int, vector<int>>& jumpList;
@@ -103,7 +105,9 @@ private:
   bool validTrap(const int&);
 
 public:
-  LSKMC(gbCnf&, \
+  LSKMC(int&, \
+        int&, \
+        gbCnf&, \
         Config&, \
         unordered_map<string, double>&, \
         vector<int>&, \
@@ -138,7 +142,8 @@ public:
   void barrierStats();
 
   void calExitTimePi(const int&);
-  void selectAndExecute(const int&);
+  int selectEventLSKMC(const int&);
+  void executeEvent(const int&, const int&);
 
 };
 

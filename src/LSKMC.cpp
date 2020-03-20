@@ -10,7 +10,9 @@
 
 namespace LS {
 
-LSKMC::LSKMC(gbCnf& cnfModifierIn, \
+LSKMC::LSKMC(int& meIn, \
+             int& nProcsIn, \
+             gbCnf& cnfModifierIn, \
              Config& c0In, \
              unordered_map<string, double>& embeddingIn, \
              vector<int>& vacListIn, \
@@ -29,7 +31,9 @@ LSKMC::LSKMC(gbCnf& cnfModifierIn, \
              bool& switchUnknownIn, \
              vector<string>& elemsIn, \
              vector<double>& elemsEffectOffsetIn)
-  : cnfModifier(cnfModifierIn), \
+  : me(meIn), \
+    nProcs(nProcsIn), \
+    cnfModifier(cnfModifierIn), \
     c0(c0In), \
     embedding(embeddingIn), \
     vacList(vacListIn), \
@@ -121,7 +125,8 @@ void LSKMC::searchStatesDFS() {
          << absorbList[vacList[i]].size() << endl;
 #endif
   }
-  barrierStats();
+  if (me == 0)
+    barrierStats();
 }
 
 void LSKMC::outputTrapCfg(const int& vac, const string& fname) {
@@ -388,10 +393,10 @@ bool LSKMC::validTrap(const int& vac) {
   return true;
 }
 
-void LSKMC::selectAndExecute(const int& vac) {
+int LSKMC::selectEventLSKMC(const int& vac) {
 
   if (!validTrap(vac))
-    return;
+    return -1;
 
   double randVal = (double) rand() / (RAND_MAX);
   vd prob = mat2vd(Arm_Pi);
@@ -412,37 +417,37 @@ void LSKMC::selectAndExecute(const int& vac) {
   }
 
   dist = distance(probAccu.begin(), it);
+
+  return dist;
+
+}
+
+void LSKMC::executeEvent(const int& vac, const int& dist) {
+  if (dist == -1)
+    return;
+
   int iFirst = vac;
   // starting from absorbing state, no offset needed
   int iSecond = mapMatID2AtomID[dist];
   LSEvent lsevent(make_pair(iFirst, iSecond));
 
-  if (exitTime > 4.0)
-    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
-                                 + to_string(step) + "_0.cfg");
+  // if (me == 0 && exitTime > 4.0)
+  //   cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
+  //                                + to_string(step) + "_0.cfg");
 
   lsevent.exeEvent(c0, RCut);
 
-  if (exitTime > 4.0)
-    cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
-                                 + to_string(step) + "_1.cfg");
+  // if (me == 0 && exitTime > 4.0)
+  //   cnfModifier.writeCfgData(c0, "long_lskmc_iter_" \
+  //                                + to_string(step) + "_1.cfg");
 
-  updateTime();
-  ofs << "# LSKMC " << step << " " << time << " ave exit time : " \
-       << exitTime << endl;
-
-  if (switchLSKMC) {
-    cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(step) + ".cfg");
+  if (me == 0) {
+    updateTime();
+    ofs << "# LSKMC " << step << " " << time << " ave exit time : " \
+        << exitTime << endl;
+    if (switchLSKMC)
+      cnfModifier.writeCfgData(c0, "lskmc_iter_" + to_string(step) + ".cfg");
   }
-
-#ifdef DEBUG_SELECT_TRAP
-  for (int i = 0; i < probAccu.size(); ++i)
-    cout << i << " " << probAccu[i] << endl;
-  cout << "random number : " << randVal << endl;
-  cout << dist << endl;
-#endif
-
-
 }
 
 } // end namespace LS
@@ -452,7 +457,9 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
 
   KMCInit(cnfModifier);
   buildEventList(cnfModifier);
-  LS::LSKMC lskmc(cnfModifier, \
+  LS::LSKMC lskmc(me, \
+                  nProcs, \
+                  cnfModifier, \
                   c0, \
                   embedding, \
                   vacList, \
@@ -478,7 +485,7 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
     lskmc.outputTrapCfg(i, "debug_trap_" + to_string(i) + ".cfg");
     lskmc.barrierStats();
     if (validTrap()) {
-      lskmc.selectAndExecute(i);
+      int temp = lskmc.selectEventLSKMC(i);
     }
   }
 #endif
@@ -530,31 +537,41 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
     ++step;
     ++iter;
 
-    if (me == 0) {
-      if (isTrapped(oneStepTime)) {
-        LS::LSKMC lskmc(cnfModifier, \
-                        c0, \
-                        embedding, \
-                        vacList, \
-                        EDiff, \
-                        k2pModelB, \
-                        k2pModelD, \
-                        RCut, \
-                        RCut2, \
-                        temperature, \
-                        time, \
-                        prefix, \
-                        ECutoff, \
-                        step, \
-                        ofs,\
-                        switchLSKMC, \
-                        switchUnknown, \
-                        elems, \
-                        elemsEffectOffset);
+    if (isTrapped(oneStepTime)) {
+      LS::LSKMC lskmc(me, \
+                      nProcs, \
+                      cnfModifier, \
+                      c0, \
+                      embedding, \
+                      vacList, \
+                      EDiff, \
+                      k2pModelB, \
+                      k2pModelD, \
+                      RCut, \
+                      RCut2, \
+                      temperature, \
+                      time, \
+                      prefix, \
+                      ECutoff, \
+                      step, \
+                      ofs,\
+                      switchLSKMC, \
+                      switchUnknown, \
+                      elems, \
+                      elemsEffectOffset);
+
+      int dist = 0;
+      int vac = 0;
+      if (me == 0) {
         for (const auto& i : vacList) {
-          lskmc.selectAndExecute(i);
+          vac = i;
+          dist = lskmc.selectEventLSKMC(vac);
         }
       }
+      MPI_Bcast(&vac, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&dist, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+      lskmc.executeEvent(vac, dist);
 
       if (step % nTallyOutput == 0)
       ofs << std::setprecision(7) << step << " " << time << " " \
