@@ -575,11 +575,11 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
 
     }
 
-    if (me == 0 & step % nTallyOutput == 0)
+    if ((me == 0) && (step % nTallyOutput == 0))
     ofs << std::setprecision(7) << step << " " << time << " " \
         << E_tot << endl;
 
-    if (me == 0 & step % nTallyConf == 0)
+    if ((me == 0) && (step % nTallyConf == 0))
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   }
   MPI_Barrier(MPI_COMM_WORLD);
