@@ -150,7 +150,7 @@ void gbCnf::getRandConfUniformDist(Config& cnf,\
 void KNHome::createPreNEB(gbCnf& cnfModifier) {
   vector<int> dupFactors = viparams["factors"];
   double LC = dparams["LC"];
-  vector<string> elems = vsparams["elems"];
+  this->elems= vsparams["elems"];
   vector<int> nums = viparams["nums"];
   int NConfigs = iparams["NConfigs"];
   int NBars = iparams["NBarriers"];
