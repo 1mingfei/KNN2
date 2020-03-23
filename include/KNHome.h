@@ -134,7 +134,6 @@ public:
                     const string&, \
                     const double&, \
                     const vector<int>&, \
-                    const vector<string>&, \
                     const vector<int>&);
 
   void createRandomUniform(gbCnf&, \
@@ -143,7 +142,6 @@ public:
                            const string&, \
                            const double&, \
                            const vector<int>&, \
-                           vector<string>&, \
                            const vector<int>&);
 
   void createRandomSpecific(gbCnf&, \
@@ -152,7 +150,6 @@ public:
                             const string&, \
                             const double&, \
                             const vector<int>&, \
-                            vector<string>&, \
                             const vector<int>&);
 
   /* KNOrdered.cpp */

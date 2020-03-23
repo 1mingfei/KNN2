@@ -8,7 +8,6 @@ void KNHome::createRandom(gbCnf& cnfModifier, \
                           const string& POT, \
                           const double& LC, \
                           const vector<int>& dupFactors, \
-                          const vector<string>& elems, \
                           const vector<int>& nums) {
 
   int quotient = NConfigs / nProcs;
@@ -94,7 +93,6 @@ void KNHome::createRandomUniform(gbCnf& cnfModifier, \
                                  const string& POT, \
                                  const double& LC, \
                                  const vector<int>& dupFactors, \
-                                 vector<string>& elems, \
                                  const vector<int>& nums) {
 
   /*
@@ -203,7 +201,6 @@ void KNHome::createRandomSpecific(gbCnf& cnfModifier, \
                                   const string& POT, \
                                   const double& LC, \
                                   const vector<int>& dupFactors, \
-                                  vector<string>& elems, \
                                   const vector<int>& nums) {
 
   int quotient = NConfigs / nProcs;

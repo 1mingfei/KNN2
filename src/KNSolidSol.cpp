@@ -175,13 +175,13 @@ void KNHome::createPreNEB(gbCnf& cnfModifier) {
                          POT, iparams["numDataset"]);
   } else if (subMode == "random") {
     createRandom(cnfModifier, NConfigs, NBars, POT, LC, \
-                 dupFactors, elems, nums);
+                 dupFactors, nums);
   } else if (subMode == "uniform") {
     createRandomUniform(cnfModifier, NConfigs, NBars, POT, LC, \
-                        dupFactors, elems, nums);
+                        dupFactors, nums);
   } else if (subMode == "specific") {
     createRandomSpecific(cnfModifier, NConfigs, NBars, POT, LC, \
-                         dupFactors, elems, nums);
+                         dupFactors, nums);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
