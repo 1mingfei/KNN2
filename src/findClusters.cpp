@@ -124,7 +124,100 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
   }
 }
 
-void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
+map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf,
+                                        const string& solventAtomType, \
+                                        int& numAtomsLeft) {
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (nProcs == 1)
+    getNBL_serial(inCnf, 3.5);
+  else
+    getNBL(inCnf, 3.5);
+
+
+  unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);
+  unordered_multimap<int, int> clt2Atm;
+  map<int, int> atm2Clt;
+  int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
+  getLargestClts(numClustersFound, numClustersKept, clt2Atm, atm2Clt);
+  helperAddFNNs(inCnf, clt2Atm, atm2Clt);
+  return atm2Clt;
+}
+
+void KNHome::findClts(gbCnf& inGbCnf, \
+                      const string& fname, \
+                      const string& mode) {
+  Config inCnf = inGbCnf.readCfg(fname);
+  map<int, int> atm2Clt;
+
+  int numAtomsLeft = inCnf.natoms;
+
+  if (mode == "clusterCount") {
+    atm2Clt = inGbCnf.findAtm2Clts(inCnf, \
+                                   iparams["numClustersKept"], \
+                                   sparams["solventAtomType"]);
+  } else if (mode == "clusterCountRemoveMatrix") {
+    atm2Clt = inGbCnf.findAtm2CltsRmMtrx(inCnf, \
+                                         sparams["solventAtomType"], \
+                                         numAtomsLeft);
+  }
+
+  if (me == 0) {
+    Config outCnf;
+    outCnf.cell = inCnf.cell;
+    outCnf.length = inCnf.length;
+    outCnf.bvx = inCnf.bvx;
+    outCnf.tvx = inCnf.tvx;
+    outCnf.bvy = inCnf.bvy;
+    outCnf.tvy = inCnf.tvy;
+    outCnf.bvz = inCnf.bvz;
+    outCnf.tvz = inCnf.tvz;
+    outCnf.vacList = inCnf.vacList;
+    outCnf.natoms = atm2Clt.size();
+
+    vector<int> cltId;
+    for (const auto& item : atm2Clt) {
+      outCnf.atoms.push_back(inCnf.atoms[item.first]);
+      cltId.push_back(item.second);
+    }
+
+    vector<string> str;
+    split(fname, ".", str);
+    string oFName;
+    oFName = str[0] + "_cluster.cfg";
+    inGbCnf.writeCfgAux(outCnf, cltId, oFName);
+
+    ofs.open("clusters_info.txt", std::ofstream::out | std::ofstream::app);
+    std::map<string, int> names;
+    vector<string> elems = vsparams["elems"];
+    for (const auto& elem :elems) {
+      names.insert(make_pair(elem, 0));
+    }
+    for (const auto& atm : outCnf.atoms) {
+      ++names[atm.tp];
+    }
+    ofs << str[0] << " ";
+    for (auto& name : names) {
+      if (name.first == "X") continue;
+      ofs << name.second << " ";
+    }
+    ofs << endl;
+    ofs.close();
+  }
+}
+
+void KNHome::loopConfig(gbCnf& inGbCnf, const string& mode) {
+  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
+  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
+  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
+  for (long long i = initNum; i <= finalNum; i += increment) {
+    string fname = to_string(i) + ".cfg";
+    findClts(inGbCnf, fname, mode);
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+}
+
+void KNHome::findCltsRmMtrx(gbCnf& inGbCnf, const string& fname) {
   Config inCnf = inGbCnf.readCfg(fname);
   map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
                                                iparams["numClustersKept"],
@@ -170,16 +263,5 @@ void KNHome::findClts(gbCnf& inGbCnf, const string& fname) {
     }
     ofs << endl;
     ofs.close();
-  }
-}
-
-void KNHome::loopConfig(gbCnf& inGbCnf) {
-  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
-  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
-  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
-  for (long long i = initNum; i <= finalNum; i += increment) {
-    string fname = to_string(i) + ".cfg";
-    findClts(inGbCnf, fname);
-    MPI_Barrier(MPI_COMM_WORLD);
   }
 }

@@ -162,6 +162,9 @@ public:
   // This function returns X largest clusters with FNBs
   map<int, int> findAtm2Clts(Config&, const int&, const string&);
 
+  // This function returns X everything left after remove "matrix" elements
+  map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int& numAtomsLeft);
+
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \
                       const pair<string, string>&, \
