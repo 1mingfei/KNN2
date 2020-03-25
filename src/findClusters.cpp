@@ -48,6 +48,42 @@ int gbCnf::helperBFS(const Config& inCnf,
   return cltID;
 }
 
+int gbCnf::helperBFSRmMtrx(const Config& inCnf,
+                           const unordered_set<int>& soluteAtomID,
+                           unordered_multimap<int, int>& clt2Atm,
+                           map<int, int>& atm2Clt) {
+  unordered_set<int> unvisited = soluteAtomID;
+  queue<int> visitQueue;
+
+  int cltID = 0;
+  while (!unvisited.empty()) {
+    // Find the next element
+    auto it = unvisited.begin();
+    int atmID = *it;
+    visitQueue.push(atmID);
+    unvisited.erase(it);
+
+    while (!visitQueue.empty()) {
+      atmID = visitQueue.front();
+      visitQueue.pop();
+      // Add to maps
+      clt2Atm.insert(pair<int, int>(cltID, atmID));
+      atm2Clt.insert(pair<int, int>(atmID, cltID));
+
+      for (int fnnID : inCnf.atoms[atmID].FNNL) {
+        // if inFNN in the unvisited set
+        it = unvisited.find(fnnID);
+        if (it != unvisited.end()) {
+          unvisited.erase(it);
+          visitQueue.push(fnnID);
+        }
+      }
+    }
+    ++cltID;
+  }
+  return cltID;
+}
+
 void gbCnf::getLargestClts(const int& numClustersFound,
                            const int& numClustersKept,
                            unordered_multimap<int, int>& clt2Atm,
@@ -82,6 +118,7 @@ void gbCnf::getLargestClts(const int& numClustersFound,
   atm2Clt.clear();
   atm2Clt = atm2Clt2;
 }
+
 // add FNNs back
 void gbCnf::helperAddFNNs(const Config& cnfReference,
                           unordered_multimap<int, int>& clt2Atm,
@@ -136,11 +173,19 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf,
 
 
   unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);
+  vector<int> soluteAtomID_v;
+  for (const auto& elem : soluteAtomID) {
+    soluteAtomID_v.push_back(elem);
+  }
   unordered_multimap<int, int> clt2Atm;
   map<int, int> atm2Clt;
-  int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
-  getLargestClts(numClustersFound, numClustersKept, clt2Atm, atm2Clt);
-  helperAddFNNs(inCnf, clt2Atm, atm2Clt);
+  int index = nProcs < soluteAtomID_v.size() ? me : soluteAtomID_v.size();
+  int numClustersFound = helperBFSRmMtrx(inCnf, \
+                                         soluteAtomID, \
+                                         clt2Atm, \
+                                         atm2Clt, \
+                                         soluteAtomID_v[index]);
+
   return atm2Clt;
 }
 

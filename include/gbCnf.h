@@ -151,6 +151,12 @@ public:
                 unordered_multimap<int, int>&, \
                 map<int, int>&);
 
+  int helperBFSRmMtrx(const Config&, \
+                      const unordered_set<int>&, \
+                      unordered_multimap<int, int>&, \
+                      map<int, int>&, \
+                      const int&);
+
   void getLargestClts(const int&, \
                       const int&, \
                       unordered_multimap<int, int>&, \
