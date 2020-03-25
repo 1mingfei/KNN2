@@ -142,7 +142,8 @@ public:
   /* findClusters.cpp */
 
   // This function give a set which contains all the solute atoms ID
-  unordered_set<int> findSoluteAtoms(const Config&, const string&);
+  pair<unordered_set<int>, unordered_set<int>> findSoluteAtoms(const Config&, \
+                                                               const string&);
 
   // This is a helper function which is to find X clusters after
   // removing a certain element and returns X.
@@ -152,10 +153,11 @@ public:
                 map<int, int>&);
 
   int helperBFSRmMtrx(const Config&, \
-                      const unordered_set<int>&, \
                       unordered_multimap<int, int>&, \
                       map<int, int>&, \
-                      const int&);
+                      const int&, \
+                      const string&, \
+                      int&);
 
   void getLargestClts(const int&, \
                       const int&, \
@@ -169,7 +171,7 @@ public:
   map<int, int> findAtm2Clts(Config&, const int&, const string&);
 
   // This function returns X everything left after remove "matrix" elements
-  map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int& numAtomsLeft);
+  map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int&);
 
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \

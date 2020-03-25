@@ -231,6 +231,9 @@ public:
   void findClts(gbCnf&, const string&, const string&);
   void loopConfig(gbCnf&, const string&);
 
+  /* KNMPI */
+  void bcastConfig();
+
 };
 
 

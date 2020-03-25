@@ -1,20 +1,24 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 
-unordered_set<int> gbCnf::findSoluteAtoms(const Config& inCnf,
+pair<unordered_set<int>, unordered_set<int>> gbCnf::findSoluteAtoms( \
+                                          const Config& inCnf, \
                                           const string& solventAtomType) {
   unordered_set<int> soluteAtomID;
+  unordered_set<int> solventAtomID;
   for (const auto& atm : inCnf.atoms) {
-    if (atm.tp != solventAtomType) {
+    if (atm.tp == solventAtomType || atm.tp == "Xe") { // Xe always like this
+      solventAtomID.insert(atm.id);
+    } else {
       soluteAtomID.insert(atm.id);
     }
   }
-  return soluteAtomID;
+  return make_pair(soluteAtomID, solventAtomID);
 }
 
-int gbCnf::helperBFS(const Config& inCnf,
-                     const unordered_set<int>& soluteAtomID,
-                     unordered_multimap<int, int>& clt2Atm,
+int gbCnf::helperBFS(const Config& inCnf, \
+                     const unordered_set<int>& soluteAtomID, \
+                     unordered_multimap<int, int>& clt2Atm, \
                      map<int, int>& atm2Clt) {
   unordered_set<int> unvisited = soluteAtomID;
   queue<int> visitQueue;
@@ -48,14 +52,44 @@ int gbCnf::helperBFS(const Config& inCnf,
   return cltID;
 }
 
-int gbCnf::helperBFSRmMtrx(const Config& inCnf,
-                           const unordered_set<int>& soluteAtomID,
-                           unordered_multimap<int, int>& clt2Atm,
-                           map<int, int>& atm2Clt) {
-  unordered_set<int> unvisited = soluteAtomID;
-  queue<int> visitQueue;
+int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
+                           unordered_multimap<int, int>& clt2Atm, \
+                           map<int, int>& atm2Clt, \
+                           const int& index, \
+                           const string& solventAtomType, \
+                           int& numAtomsLeft) {
+
+  unordered_set<int> visited;
+  queue<int> Q;
+
+  Q.push(index);
+  // search for connected solvent elements
+  while (!Q.empty()) {
+    auto atmID = Q.front();
+    Q.pop();
+    for (int fnnID : inCnf.atoms[atmID].FNNL) {
+      if ((visited.find(fnnID) != visited.end()) \
+          && (inCnf.atoms[fnnID].tp != "Xe") \
+          && (inCnf.atoms[fnnID].tp != solventAtomType)) {
+
+        visited.insert(fnnID);
+        Q.push(fnnID);
+
+      }
+    }
+  }
+
+  numAtomsLeft -= visited.size();
 
   int cltID = 0;
+  unordered_set<int> unvisited;
+  queue<int> visitQueue;
+
+  for (const auto& atm : inCnf.atoms) {
+    if (visited.find(atm.id) != visited.end())
+      unvisited.insert(atm.id);
+  }
+
   while (!unvisited.empty()) {
     // Find the next element
     auto it = unvisited.begin();
@@ -104,7 +138,9 @@ void gbCnf::getLargestClts(const int& numClustersFound,
 
   unordered_multimap<int, int> clt2Atm2;
   map<int, int> atm2Clt2;
-  for (int i = 0; i < numClustersKept; ++i) {
+  int safeNumCluster = numClustersKept < numClustersFound \
+                        ? numClustersKept : numClustersFound;
+  for (int i = 0; i < safeNumCluster; ++i) {
     int key = keyValueNumMat[i][0];
     auto beg = clt2Atm.equal_range(key).first;
     auto end = clt2Atm.equal_range(key).second;
@@ -120,8 +156,8 @@ void gbCnf::getLargestClts(const int& numClustersFound,
 }
 
 // add FNNs back
-void gbCnf::helperAddFNNs(const Config& cnfReference,
-                          unordered_multimap<int, int>& clt2Atm,
+void gbCnf::helperAddFNNs(const Config& cnfReference, \
+                          unordered_multimap<int, int>& clt2Atm, \
                           map<int, int>& atm2Clt) {
   for (pair<int, int> i : atm2Clt) {
     int atom = i.first;
@@ -139,8 +175,8 @@ void gbCnf::helperAddFNNs(const Config& cnfReference,
   }
 }
 
-map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
-                                  const int& numClustersKept,
+map<int, int> gbCnf::findAtm2Clts(Config& inCnf, \
+                                  const int& numClustersKept, \
                                   const string& solventAtomType) {
   MPI_Barrier(MPI_COMM_WORLD);
   if (nProcs == 1)
@@ -149,7 +185,7 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
     getNBL(inCnf, 3.5);
 
   if (me == 0) {
-    unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);
+    auto soluteAtomID = findSoluteAtoms(inCnf, solventAtomType).first;
     unordered_multimap<int, int> clt2Atm;
     map<int, int> atm2Clt;
     int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
@@ -161,7 +197,7 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf,
   }
 }
 
-map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf,
+map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
                                         const string& solventAtomType, \
                                         int& numAtomsLeft) {
   MPI_Barrier(MPI_COMM_WORLD);
@@ -171,20 +207,27 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf,
   else
     getNBL(inCnf, 3.5);
 
+  auto ssID = findSoluteAtoms(inCnf, solventAtomType);
+  auto soluteAtomID = ssID.first;
+  auto solventAtomID = ssID.second;
 
-  unordered_set<int> soluteAtomID = findSoluteAtoms(inCnf, solventAtomType);
-  vector<int> soluteAtomID_v;
-  for (const auto& elem : soluteAtomID) {
-    soluteAtomID_v.push_back(elem);
+  vector<int> solventAtomID_v;
+  for (const auto& elem : solventAtomID) {
+    solventAtomID_v.push_back(elem);
   }
   unordered_multimap<int, int> clt2Atm;
   map<int, int> atm2Clt;
-  int index = nProcs < soluteAtomID_v.size() ? me : soluteAtomID_v.size();
+
+  int index = (rand() + me) / (solventAtomID_v.size());
+
   int numClustersFound = helperBFSRmMtrx(inCnf, \
-                                         soluteAtomID, \
                                          clt2Atm, \
                                          atm2Clt, \
-                                         soluteAtomID_v[index]);
+                                         solventAtomID_v[index], \
+                                         solventAtomType, \
+                                         numAtomsLeft);
+
+  getLargestClts(numClustersFound, 108000, clt2Atm, atm2Clt);
 
   return atm2Clt;
 }
@@ -207,7 +250,25 @@ void KNHome::findClts(gbCnf& inGbCnf, \
                                          numAtomsLeft);
   }
 
-  if (me == 0) {
+  int pick = 0, maxVal = -1;
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (nProcs > 1) {
+    int* buffData = new int [nProcs];
+    assert(buffData != NULL);
+    MPI_Allgather(&numAtomsLeft, 1, MPI_INT, buffData, 1, MPI_INT, \
+                  MPI_COMM_WORLD);
+
+    for (int i = 0; i < nProcs; ++i) {
+      if (buffData[i] > maxVal) {
+        pick = i;
+        maxVal = buffData[i];
+      }
+    }
+
+    delete[] buffData;
+  }
+
+  if (me == pick) {
     Config outCnf;
     outCnf.cell = inCnf.cell;
     outCnf.length = inCnf.length;
@@ -259,54 +320,5 @@ void KNHome::loopConfig(gbCnf& inGbCnf, const string& mode) {
     string fname = to_string(i) + ".cfg";
     findClts(inGbCnf, fname, mode);
     MPI_Barrier(MPI_COMM_WORLD);
-  }
-}
-
-void KNHome::findCltsRmMtrx(gbCnf& inGbCnf, const string& fname) {
-  Config inCnf = inGbCnf.readCfg(fname);
-  map<int, int> atm2Clt = inGbCnf.findAtm2Clts(inCnf,
-                                               iparams["numClustersKept"],
-                                               sparams["solventAtomType"]);
-  if (me == 0) {
-    Config outCnf;
-    outCnf.cell = inCnf.cell;
-    outCnf.length = inCnf.length;
-    outCnf.bvx = inCnf.bvx;
-    outCnf.tvx = inCnf.tvx;
-    outCnf.bvy = inCnf.bvy;
-    outCnf.tvy = inCnf.tvy;
-    outCnf.bvz = inCnf.bvz;
-    outCnf.tvz = inCnf.tvz;
-    outCnf.vacList = inCnf.vacList;
-    outCnf.natoms = atm2Clt.size();
-
-    vector<int> cltId;
-    for (const auto& item : atm2Clt) {
-      outCnf.atoms.push_back(inCnf.atoms[item.first]);
-      cltId.push_back(item.second);
-    }
-
-    vector<string> str;
-    split(fname, ".", str);
-    string oFName;
-    oFName = str[0] + "_cluster.cfg";
-    inGbCnf.writeCfgAux(outCnf, cltId, oFName);
-
-    ofs.open("clusters_info.txt", std::ofstream::out | std::ofstream::app);
-    std::map<string, int> names;
-    vector<string> elems = vsparams["elems"];
-    for (const auto& elem :elems) {
-      names.insert(make_pair(elem, 0));
-    }
-    for (const auto& atm : outCnf.atoms) {
-      ++names[atm.tp];
-    }
-    ofs << str[0] << " ";
-    for (auto& name : names) {
-      if (name.first == "X") continue;
-      ofs << name.second << " ";
-    }
-    ofs << endl;
-    ofs.close();
   }
 }
