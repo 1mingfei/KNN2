@@ -65,16 +65,20 @@ int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
   Q.push(index);
   // search for connected solvent elements
   while (!Q.empty()) {
-    auto atmID = Q.front();
-    Q.pop();
-    for (int fnnID : inCnf.atoms[atmID].FNNL) {
-      if ((visited.find(fnnID) != visited.end()) \
-          && (inCnf.atoms[fnnID].tp != "Xe") \
-          && (inCnf.atoms[fnnID].tp != solventAtomType)) {
+    int size = Q.size();
+    for (int i = 0; i < size; ++i) {
 
-        visited.insert(fnnID);
-        Q.push(fnnID);
+      auto atmID = Q.front();
+      Q.pop();
+      if (visited.find(atmID) != visited.end())
+        continue;
+      visited.insert(atmID);
 
+      for (int fnnID : inCnf.atoms[atmID].FNNL) {
+        if ((inCnf.atoms[fnnID].tp == "Xe") \
+            || (inCnf.atoms[fnnID].tp == solventAtomType)) {
+          Q.push(fnnID);
+        }
       }
     }
   }
@@ -86,7 +90,7 @@ int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
   queue<int> visitQueue;
 
   for (const auto& atm : inCnf.atoms) {
-    if (visited.find(atm.id) != visited.end())
+    if (visited.find(atm.id) == visited.end())
       unvisited.insert(atm.id);
   }
 
@@ -207,6 +211,12 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
   else
     getNBL(inCnf, 3.5);
 
+  if (me == 0)
+  for (int i = 0; i < 12; ++i) {
+    cout << inCnf.atoms[0].FNNL[i] << " " << inCnf.atoms[0].tp << endl;
+  }
+  cout << endl;
+
   auto ssID = findSoluteAtoms(inCnf, solventAtomType);
   auto soluteAtomID = ssID.first;
   auto solventAtomID = ssID.second;
@@ -218,7 +228,7 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
   unordered_multimap<int, int> clt2Atm;
   map<int, int> atm2Clt;
 
-  int index = (rand() + me) / (solventAtomID_v.size());
+  int index = (rand() + me) % solventAtomID_v.size();
 
   int numClustersFound = helperBFSRmMtrx(inCnf, \
                                          clt2Atm, \
@@ -226,6 +236,10 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
                                          solventAtomID_v[index], \
                                          solventAtomType, \
                                          numAtomsLeft);
+
+  cout << "# " << me << " " << solventAtomID_v[index] << " " \
+       << numClustersFound << " " << numAtomsLeft << " " \
+       << atm2Clt.size() << endl;
 
   getLargestClts(numClustersFound, 108000, clt2Atm, atm2Clt);
 
@@ -254,7 +268,6 @@ void KNHome::findClts(gbCnf& inGbCnf, \
   MPI_Barrier(MPI_COMM_WORLD);
   if (nProcs > 1) {
     int* buffData = new int [nProcs];
-    assert(buffData != NULL);
     MPI_Allgather(&numAtomsLeft, 1, MPI_INT, buffData, 1, MPI_INT, \
                   MPI_COMM_WORLD);
 
