@@ -327,8 +327,8 @@ void KNHome::loopConfigCluster(gbCnf& inGbCnf, const string& mode) {
   long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
   for (long long i = initNum; i <= finalNum; i += increment) {
     string fname = to_string(i) + ".cfg";
-    // findClts(inGbCnf, fname, mode);
     calSRO(inGbCnf, fname);
+    findClts(inGbCnf, fname, mode);
     MPI_Barrier(MPI_COMM_WORLD);
   }
 }
@@ -370,7 +370,9 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
       }
     }
 
-    ofs << "   ";
+    vector<string> str;
+    split(fname, ".", str);
+    ofs << str[0] << " ";
     for (int i = 0; i < elems.size(); ++i) {
       for (int j = i; j < elems.size(); ++j) {
         if (i != j) {
