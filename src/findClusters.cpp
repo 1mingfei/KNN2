@@ -384,6 +384,14 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
     for (int i = 0; i < elems.size(); ++i) {
       for (int j = i; j < elems.size(); ++j) {
         if (i != j) {
+          ofs << "SRO(" << elems[i] << "-" << elems[j] << ")      ";
+          h_bond[elems[i] + "-" + elems[j]] = 0;
+        }
+      }
+    }
+    for (int i = 0; i < elems.size(); ++i) {
+      for (int j = i; j < elems.size(); ++j) {
+        if (i != j) {
           ofs << elems[i] << "-" << elems[j] << "      ";
           h_bond[elems[i] + "-" + elems[j]] = 0;
         }
@@ -413,6 +421,13 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
           double res = zeta * static_cast<double>(h_elem[elems[i]]) \
                              * static_cast<double>(h_elem[elems[j]]) / sizeSq;
           ofs << setprecision(9) << (1.0 - res) << " ";
+        }
+      }
+    }
+    for (int i = 0; i < elems.size(); ++i) {
+      for (int j = i; j < elems.size(); ++j) {
+        if (i != j) {
+          ofs << h_bond[elems[i] + "-" + elems[j]]  << "  ";
         }
       }
     }
