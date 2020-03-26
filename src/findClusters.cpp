@@ -1,6 +1,8 @@
 #include "gbCnf.h"
 #include "KNHome.h"
 
+#define Z 12.0
+
 pair<unordered_set<int>, unordered_set<int>> gbCnf::findSoluteAtoms( \
                                           const Config& inCnf, \
                                           const string& solventAtomType) {
@@ -211,12 +213,6 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
   else
     getNBL(inCnf, 3.5);
 
-  if (me == 0)
-  for (int i = 0; i < 12; ++i) {
-    cout << inCnf.atoms[0].FNNL[i] << " " << inCnf.atoms[0].tp << endl;
-  }
-  cout << endl;
-
   auto ssID = findSoluteAtoms(inCnf, solventAtomType);
   auto soluteAtomID = ssID.first;
   auto solventAtomID = ssID.second;
@@ -237,9 +233,9 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
                                          solventAtomType, \
                                          numAtomsLeft);
 
-  cout << "# " << me << " " << solventAtomID_v[index] << " " \
-       << numClustersFound << " " << numAtomsLeft << " " \
-       << atm2Clt.size() << endl;
+  // cout << "# " << me << " " << solventAtomID_v[index] << " " \
+  //      << numClustersFound << " " << numAtomsLeft << " " \
+  //      << atm2Clt.size() << endl;
 
   getLargestClts(numClustersFound, 108000, clt2Atm, atm2Clt);
 
@@ -325,13 +321,69 @@ void KNHome::findClts(gbCnf& inGbCnf, \
   }
 }
 
-void KNHome::loopConfig(gbCnf& inGbCnf, const string& mode) {
+void KNHome::loopConfigCluster(gbCnf& inGbCnf, const string& mode) {
   long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
   long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
   long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
   for (long long i = initNum; i <= finalNum; i += increment) {
     string fname = to_string(i) + ".cfg";
-    findClts(inGbCnf, fname, mode);
+    // findClts(inGbCnf, fname, mode);
+    calSRO(inGbCnf, fname);
     MPI_Barrier(MPI_COMM_WORLD);
+  }
+}
+
+void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
+  Config inCnf = inGbCnf.readCfg(fname);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (nProcs == 1)
+    inGbCnf.getNBL_serial(inCnf, 3.5);
+  else
+    inGbCnf.getNBL(inCnf, 3.5);
+  if (me == 0) {
+    ofs.open("clusters_SRO.txt", std::ofstream::out | std::ofstream::app);
+
+    vector<string> elems = vsparams["elems"];
+    unordered_map<string, int> h_bond;
+    unordered_map<string, int> h_elem;
+
+    ofs << "#SRO ";
+    for (int i = 0; i < elems.size(); ++i) {
+      for (int j = i; j < elems.size(); ++j) {
+        if (i != j) {
+          ofs << elems[i] << "-" << elems[j] << "      ";
+          h_bond[elems[i] + "-" + elems[j]] = 0;
+        }
+      }
+    }
+    ofs << "\n";
+
+    int size = inCnf.natoms;
+    double sizeSq = static_cast<double>(size) * static_cast<double>(size);
+    for (int i = 0; i < size; ++i) {
+      auto&& atm = inCnf.atoms[i];
+      ++h_elem[atm.tp];
+      for (int fnnID : inCnf.atoms[atm.id].FNNL) {
+        auto&& fnn = inCnf.atoms[fnnID];
+        ++h_bond[atm.tp + "-" + fnn.tp];
+      }
+    }
+
+    ofs << "   ";
+    for (int i = 0; i < elems.size(); ++i) {
+      for (int j = i; j < elems.size(); ++j) {
+        if (i != j) {
+          double zeta = static_cast<double>(h_bond[elems[i] + "-" + elems[j]])
+                        / Z / static_cast<double>(size);
+          double res = zeta * static_cast<double>(h_elem[elems[i]]) \
+                             * static_cast<double>(h_elem[elems[j]]) / sizeSq;
+          ofs << setprecision(9) << (1.0 - res) << " ";
+        }
+      }
+    }
+    ofs << "\n";
+
+    ofs.close();
   }
 }

@@ -229,7 +229,8 @@ public:
 
   /* findClusters */
   void findClts(gbCnf&, const string&, const string&);
-  void loopConfig(gbCnf&, const string&);
+  void loopConfigCluster(gbCnf&, const string&);
+  void calSRO(gbCnf&, const string&);
 
   /* KNMPI */
   void bcastConfig();
