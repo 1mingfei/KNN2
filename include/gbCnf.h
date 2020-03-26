@@ -162,16 +162,29 @@ public:
   void getLargestClts(const int&, \
                       const int&, \
                       unordered_multimap<int, int>&, \
-                      map<int, int>&);
+                      map<int, int>&, \
+                      const int&);
 
   void helperAddFNNs(const Config&, \
                      unordered_multimap<int, int>&, \
-                     map<int, int>&);
+                     map<int, int>&, \
+                     const string&, \
+                     const int&);
+
+  bool validSolventCluster(const Config&, \
+                           const int&, \
+                           const string&, \
+                           const int&);
+
   // This function returns X largest clusters with FNBs
-  map<int, int> findAtm2Clts(Config&, const int&, const string&);
+  map<int, int> findAtm2Clts(Config&, \
+                             const int&, \
+                             const string&, \
+                             const int&, \
+                             const int&);
 
   // This function returns X everything left after remove "matrix" elements
-  map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int&);
+  map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int&, const int&);
 
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \
