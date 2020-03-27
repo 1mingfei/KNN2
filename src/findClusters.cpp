@@ -124,10 +124,11 @@ int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
   return cltID;
 }
 
-void gbCnf::getLargestClts(const int& numClustersFound,
-                           const int& numClustersKept,
-                           unordered_multimap<int, int>& clt2Atm,
-                           map<int, int>& atm2Clt) {
+void gbCnf::getLargestClts(const int& numClustersFound, \
+                           const int& numClustersKept, \
+                           unordered_multimap<int, int>& clt2Atm, \
+                           map<int, int>& atm2Clt, \
+                           const int& smallest_cluster) {
   vector<vector<int>> keyValueNumMat;
   keyValueNumMat.resize(numClustersFound);
   for (int i = 0; i < numClustersFound; ++i) {
@@ -150,9 +151,11 @@ void gbCnf::getLargestClts(const int& numClustersFound,
     int key = keyValueNumMat[i][0];
     auto beg = clt2Atm.equal_range(key).first;
     auto end = clt2Atm.equal_range(key).second;
-    for (auto m = beg; m != end; ++m) {
-      clt2Atm2.insert(pair<int, int>(i, m->second));
-      atm2Clt2.insert(pair<int, int>(m->second, i));
+    if (distance(beg, end) > smallest_cluster) {
+      for (auto m = beg; m != end; ++m) {
+        clt2Atm2.insert(pair<int, int>(i, m->second));
+        atm2Clt2.insert(pair<int, int>(m->second, i));
+      }
     }
   }
   clt2Atm.clear();
@@ -161,15 +164,40 @@ void gbCnf::getLargestClts(const int& numClustersFound,
   atm2Clt = atm2Clt2;
 }
 
+bool gbCnf::validSolventCluster(const Config& cnf, \
+                                const int& i, \
+                                const string& solventAtomType, \
+                                const int& solventBoudCriteria, \
+                                const unordered_set<int>& atm_other) {
+  int count = 0;
+  for (int j : cnf.atoms[i].FNNL) {
+    if ((cnf.atoms[j].tp != solventAtomType) \
+        && (cnf.atoms[j].tp != "Xe") \
+        && (cnf.atoms[j].tp != "X") \
+        && (atm_other.find(j) != atm_other.end()))
+      ++count;
+  }
+  return (count >= solventBoudCriteria);
+}
+
 // add FNNs back
 void gbCnf::helperAddFNNs(const Config& cnfReference, \
                           unordered_multimap<int, int>& clt2Atm, \
-                          map<int, int>& atm2Clt) {
+                          map<int, int>& atm2Clt, \
+                          const string& solventAtomType, \
+                          const int& solventBoudCriteria) {
+  unordered_set<int> atm_other;
+  for (pair<int, int> i : atm2Clt) {
+    atm_other.insert(i.first);
+  }
   for (pair<int, int> i : atm2Clt) {
     int atom = i.first;
     int cluster = i.second;
     for (int j : cnfReference.atoms[atom].FNNL) {
-      atm2Clt.insert(pair<int, int>(j, cluster));
+      if (validSolventCluster(cnfReference, j, solventAtomType, \
+                              solventBoudCriteria, atm_other)) {
+        atm2Clt.insert(pair<int, int>(j, cluster));
+      }
     }
   }
 
@@ -183,7 +211,9 @@ void gbCnf::helperAddFNNs(const Config& cnfReference, \
 
 map<int, int> gbCnf::findAtm2Clts(Config& inCnf, \
                                   const int& numClustersKept, \
-                                  const string& solventAtomType) {
+                                  const string& solventAtomType, \
+                                  const int& solventBoudCriteria, \
+                                  const int& smallest_cluster) {
   MPI_Barrier(MPI_COMM_WORLD);
   if (nProcs == 1)
     getNBL_serial(inCnf, 3.5);
@@ -195,8 +225,10 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf, \
     unordered_multimap<int, int> clt2Atm;
     map<int, int> atm2Clt;
     int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
-    getLargestClts(numClustersFound, numClustersKept, clt2Atm, atm2Clt);
-    helperAddFNNs(inCnf, clt2Atm, atm2Clt);
+    getLargestClts(numClustersFound, numClustersKept, clt2Atm, \
+                   atm2Clt, smallest_cluster);
+    helperAddFNNs(inCnf, clt2Atm, atm2Clt, \
+                  solventAtomType, solventBoudCriteria);
     return atm2Clt;
   } else {
     return map<int, int>{};
@@ -205,7 +237,8 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf, \
 
 map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
                                         const string& solventAtomType, \
-                                        int& numAtomsLeft) {
+                                        int& numAtomsLeft, \
+                                        const int& smallest_cluster) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   if (nProcs == 1)
@@ -237,7 +270,7 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
   //      << numClustersFound << " " << numAtomsLeft << " " \
   //      << atm2Clt.size() << endl;
 
-  getLargestClts(numClustersFound, 108000, clt2Atm, atm2Clt);
+  getLargestClts(numClustersFound, 108000, clt2Atm, atm2Clt, smallest_cluster);
 
   return atm2Clt;
 }
@@ -250,14 +283,20 @@ void KNHome::findClts(gbCnf& inGbCnf, \
 
   int numAtomsLeft = inCnf.natoms;
 
+  int smallest_cluster = (iparams["smallestClusterCriteria"] == 0) \
+                          ? 3 : iparams["smallestClusterCriteria"];
+
   if (mode == "clusterCount") {
     atm2Clt = inGbCnf.findAtm2Clts(inCnf, \
                                    iparams["numClustersKept"], \
-                                   sparams["solventAtomType"]);
+                                   sparams["solventAtomType"],
+                                   iparams["solventBoudCriteria"], \
+                                   smallest_cluster);
   } else if (mode == "clusterCountRemoveMatrix") {
     atm2Clt = inGbCnf.findAtm2CltsRmMtrx(inCnf, \
                                          sparams["solventAtomType"], \
-                                         numAtomsLeft);
+                                         numAtomsLeft, \
+                                         smallest_cluster);
   }
 
   int pick = 0, maxVal = -1;
@@ -352,6 +391,14 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
     for (int i = 0; i < elems.size(); ++i) {
       for (int j = i; j < elems.size(); ++j) {
         if (i != j) {
+          ofs << "SRO(" << elems[i] << "-" << elems[j] << ")      ";
+          h_bond[elems[i] + "-" + elems[j]] = 0;
+        }
+      }
+    }
+    for (int i = 0; i < elems.size(); ++i) {
+      for (int j = i; j < elems.size(); ++j) {
+        if (i != j) {
           ofs << elems[i] << "-" << elems[j] << "      ";
           h_bond[elems[i] + "-" + elems[j]] = 0;
         }
@@ -381,6 +428,13 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
           double res = zeta * static_cast<double>(h_elem[elems[i]]) \
                              * static_cast<double>(h_elem[elems[j]]) / sizeSq;
           ofs << setprecision(9) << (1.0 - res) << " ";
+        }
+      }
+    }
+    for (int i = 0; i < elems.size(); ++i) {
+      for (int j = i; j < elems.size(); ++j) {
+        if (i != j) {
+          ofs << h_bond[elems[i] + "-" + elems[j]]  << "  ";
         }
       }
     }

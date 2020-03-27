@@ -104,6 +104,10 @@ void KNHome::readParam() {
       bparams[segs[0]] = (segs[1] == "false") ? false : true;
     } else if (!segs[0].compare("LRUSize")) {
       iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("solventBoudCriteria")) {
+      iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("smallestClusterCriteria")) {
+      iparams[segs[0]] = stoll(segs[1]);
     }
   }
   fid.close();
