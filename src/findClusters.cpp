@@ -167,11 +167,14 @@ void gbCnf::getLargestClts(const int& numClustersFound, \
 bool gbCnf::validSolventCluster(const Config& cnf, \
                                 const int& i, \
                                 const string& solventAtomType, \
-                                const int& solventBoudCriteria) {
+                                const int& solventBoudCriteria, \
+                                const unordered_set<int>& atm_other) {
   int count = 0;
   for (int j : cnf.atoms[i].FNNL) {
-    if (cnf.atoms[j].tp != solventAtomType
-        && cnf.atoms[j].tp != "Xe")
+    if ((cnf.atoms[j].tp != solventAtomType) \
+        && (cnf.atoms[j].tp != "Xe") \
+        && (cnf.atoms[j].tp != "X") \
+        && (atm_other.find(j) != atm_other.end()))
       ++count;
   }
   return (count >= solventBoudCriteria);
@@ -183,12 +186,16 @@ void gbCnf::helperAddFNNs(const Config& cnfReference, \
                           map<int, int>& atm2Clt, \
                           const string& solventAtomType, \
                           const int& solventBoudCriteria) {
+  unordered_set<int> atm_other;
+  for (pair<int, int> i : atm2Clt) {
+    atm_other.insert(i.first);
+  }
   for (pair<int, int> i : atm2Clt) {
     int atom = i.first;
     int cluster = i.second;
     for (int j : cnfReference.atoms[atom].FNNL) {
-      if (validSolventCluster(cnfReference, j, \
-                              solventAtomType, solventBoudCriteria)) {
+      if (validSolventCluster(cnfReference, j, solventAtomType, \
+                              solventBoudCriteria, atm_other)) {
         atm2Clt.insert(pair<int, int>(j, cluster));
       }
     }

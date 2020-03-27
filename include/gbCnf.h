@@ -174,7 +174,8 @@ public:
   bool validSolventCluster(const Config&, \
                            const int&, \
                            const string&, \
-                           const int&);
+                           const int&, \
+                           const unordered_set<int>&);
 
   // This function returns X largest clusters with FNBs
   map<int, int> findAtm2Clts(Config&, \
