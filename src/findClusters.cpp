@@ -41,6 +41,8 @@ int gbCnf::helperBFS(const Config& inCnf, \
       atm2Clt.insert(pair<int, int>(atmID, cltID));
 
       for (int fnnID : inCnf.atoms[atmID].FNNL) {
+        if (fnnID == -1)
+          continue;
         // if inFNN in the unvisited set
         it = unvisited.find(fnnID);
         if (it != unvisited.end()) {
@@ -77,6 +79,8 @@ int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
       visited.insert(atmID);
 
       for (int fnnID : inCnf.atoms[atmID].FNNL) {
+        if (fnnID == -1)
+          continue;
         if ((inCnf.atoms[fnnID].tp == "Xe") \
             || (inCnf.atoms[fnnID].tp == solventAtomType)) {
           Q.push(fnnID);
@@ -111,6 +115,8 @@ int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
       atm2Clt.insert(pair<int, int>(atmID, cltID));
 
       for (int fnnID : inCnf.atoms[atmID].FNNL) {
+        if (fnnID == -1)
+          continue;
         // if inFNN in the unvisited set
         it = unvisited.find(fnnID);
         if (it != unvisited.end()) {
@@ -171,6 +177,8 @@ bool gbCnf::validSolventCluster(const Config& cnf, \
                                 const unordered_set<int>& atm_other) {
   int count = 0;
   for (int j : cnf.atoms[i].FNNL) {
+    if (j == -1)
+      continue;
     if ((cnf.atoms[j].tp != solventAtomType) \
         && (cnf.atoms[j].tp != "Xe") \
         && (cnf.atoms[j].tp != "X") \
@@ -194,6 +202,8 @@ void gbCnf::helperAddFNNs(const Config& cnfReference, \
     int atom = i.first;
     int cluster = i.second;
     for (int j : cnfReference.atoms[atom].FNNL) {
+      if (j == -1)
+        continue;
       if (validSolventCluster(cnfReference, j, solventAtomType, \
                               solventBoudCriteria, atm_other)) {
         atm2Clt.insert(pair<int, int>(j, cluster));
@@ -344,7 +354,7 @@ void KNHome::findClts(gbCnf& inGbCnf, \
     ofs.open("clusters_info.txt", std::ofstream::out | std::ofstream::app);
     std::map<string, int> names;
     vector<string> elems = vsparams["elems"];
-    for (const auto& elem :elems) {
+    for (const auto& elem : elems) {
       names.insert(make_pair(elem, 0));
     }
     for (const auto& atm : outCnf.atoms) {
@@ -372,6 +382,17 @@ void KNHome::loopConfigCluster(gbCnf& inGbCnf, const string& mode) {
   }
 }
 
+void KNHome::loopConfigSRO(gbCnf& inGbCnf) {
+  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
+  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
+  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
+  for (long long i = initNum; i <= finalNum; i += increment) {
+    string fname = to_string(i) + ".cfg";
+    calSRO(inGbCnf, fname);
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+}
+
 void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
   Config inCnf = inGbCnf.readCfg(fname);
   MPI_Barrier(MPI_COMM_WORLD);
@@ -387,24 +408,26 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
     unordered_map<string, int> h_bond;
     unordered_map<string, int> h_elem;
 
+    if (fname == "0.cfg") {
     ofs << "#SRO ";
-    for (int i = 0; i < elems.size(); ++i) {
-      for (int j = i; j < elems.size(); ++j) {
-        if (i != j) {
-          ofs << "SRO(" << elems[i] << "-" << elems[j] << ")      ";
-          h_bond[elems[i] + "-" + elems[j]] = 0;
+      for (int i = 0; i < elems.size(); ++i) {
+        for (int j = i; j < elems.size(); ++j) {
+          if (i != j) {
+            ofs << "SRO(" << elems[i] << "-" << elems[j] << ")      ";
+            h_bond[elems[i] + "-" + elems[j]] = 0;
+          }
         }
       }
-    }
-    for (int i = 0; i < elems.size(); ++i) {
-      for (int j = i; j < elems.size(); ++j) {
-        if (i != j) {
-          ofs << elems[i] << "-" << elems[j] << "      ";
-          h_bond[elems[i] + "-" + elems[j]] = 0;
+      for (int i = 0; i < elems.size(); ++i) {
+        for (int j = i; j < elems.size(); ++j) {
+          if (i != j) {
+            ofs << elems[i] << "-" << elems[j] << "      ";
+            h_bond[elems[i] + "-" + elems[j]] = 0;
+          }
         }
       }
+      ofs << "\n";
     }
-    ofs << "\n";
 
     int size = inCnf.natoms;
     double sizeSq = static_cast<double>(size) * static_cast<double>(size);
@@ -412,6 +435,8 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
       auto&& atm = inCnf.atoms[i];
       ++h_elem[atm.tp];
       for (int fnnID : inCnf.atoms[atm.id].FNNL) {
+        if (fnnID == -1)
+          continue;
         auto&& fnn = inCnf.atoms[fnnID];
         ++h_bond[atm.tp + "-" + fnn.tp];
       }
