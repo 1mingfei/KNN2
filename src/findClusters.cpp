@@ -130,11 +130,12 @@ int gbCnf::helperBFSRmMtrx(const Config& inCnf, \
   return cltID;
 }
 
-void gbCnf::getLargestClts(const int& numClustersFound, \
-                           const int& numClustersKept, \
-                           unordered_multimap<int, int>& clt2Atm, \
-                           map<int, int>& atm2Clt, \
-                           const int& smallest_cluster) {
+int gbCnf::getLargestClts(const int& numClustersFound, \
+                          const int& numClustersKept, \
+                          unordered_multimap<int, int>& clt2Atm, \
+                          map<int, int>& atm2Clt, \
+                          const int& smallest_cluster) {
+
   vector<vector<int>> keyValueNumMat;
   keyValueNumMat.resize(numClustersFound);
   for (int i = 0; i < numClustersFound; ++i) {
@@ -157,7 +158,8 @@ void gbCnf::getLargestClts(const int& numClustersFound, \
     int key = keyValueNumMat[i][0];
     auto beg = clt2Atm.equal_range(key).first;
     auto end = clt2Atm.equal_range(key).second;
-    if (distance(beg, end) > smallest_cluster) {
+    int dist = distance(beg, end);
+    if (dist > smallest_cluster) {
       for (auto m = beg; m != end; ++m) {
         clt2Atm2.insert(pair<int, int>(i, m->second));
         atm2Clt2.insert(pair<int, int>(m->second, i));
@@ -168,6 +170,8 @@ void gbCnf::getLargestClts(const int& numClustersFound, \
   clt2Atm = clt2Atm2;
   atm2Clt.clear();
   atm2Clt = atm2Clt2;
+
+  return safeNumCluster;
 }
 
 bool gbCnf::validSolventCluster(const Config& cnf, \
@@ -193,7 +197,8 @@ void gbCnf::helperAddFNNs(const Config& cnfReference, \
                           unordered_multimap<int, int>& clt2Atm, \
                           map<int, int>& atm2Clt, \
                           const string& solventAtomType, \
-                          const int& solventBoudCriteria) {
+                          const int& solventBoudCriteria, \
+                          const int& numClustersFound) {
   unordered_set<int> atm_other;
   for (pair<int, int> i : atm2Clt) {
     atm_other.insert(i.first);
@@ -217,6 +222,36 @@ void gbCnf::helperAddFNNs(const Config& cnfReference, \
     int cluster = i.second;
     clt2Atm.insert(pair<int, int>(cluster, atom));
   }
+
+#ifdef OUTPUT_CLT_DISTRI
+  vector<vector<int>> keyValueNumMat;
+  keyValueNumMat.resize(numClustersFound);
+  for (int i = 0; i < numClustersFound; ++i) {
+    keyValueNumMat[i].push_back(i);
+    keyValueNumMat[i].push_back(clt2Atm.count(i));
+  }
+
+  int col = 1;
+  sort(keyValueNumMat.begin(),
+       keyValueNumMat.end(),
+       [col](const vector<int>& lhs, const vector<int>& rhs) -> bool {
+         return lhs[col] > rhs[col];
+       });
+
+
+  map<int, int> mp;
+  for (int i = 0; i < numClustersFound; ++i) {
+    int key = keyValueNumMat[i][0];
+    auto beg = clt2Atm.equal_range(key).first;
+    auto end = clt2Atm.equal_range(key).second;
+    int dist = distance(beg, end);
+    ++mp[dist];
+  }
+  for (const auto& it : mp) {
+    cout << it.first << " " << it.second << "\n";
+  }
+  cout << "\n";
+#endif
 }
 
 map<int, int> gbCnf::findAtm2Clts(Config& inCnf, \
@@ -235,10 +270,10 @@ map<int, int> gbCnf::findAtm2Clts(Config& inCnf, \
     unordered_multimap<int, int> clt2Atm;
     map<int, int> atm2Clt;
     int numClustersFound = helperBFS(inCnf, soluteAtomID, clt2Atm, atm2Clt);
-    getLargestClts(numClustersFound, numClustersKept, clt2Atm, \
-                   atm2Clt, smallest_cluster);
+    int safe = getLargestClts(numClustersFound, numClustersKept, clt2Atm, \
+                              atm2Clt, smallest_cluster);
     helperAddFNNs(inCnf, clt2Atm, atm2Clt, \
-                  solventAtomType, solventBoudCriteria);
+                  solventAtomType, solventBoudCriteria, safe);
     return atm2Clt;
   } else {
     return map<int, int>{};
@@ -280,7 +315,8 @@ map<int, int> gbCnf::findAtm2CltsRmMtrx(Config& inCnf, \
   //      << numClustersFound << " " << numAtomsLeft << " " \
   //      << atm2Clt.size() << endl;
 
-  getLargestClts(numClustersFound, 108000, clt2Atm, atm2Clt, smallest_cluster);
+  int tmp = getLargestClts(numClustersFound, 108000, \
+                           clt2Atm, atm2Clt, smallest_cluster);
 
   return atm2Clt;
 }
