@@ -159,16 +159,17 @@ public:
                       const string&, \
                       int&);
 
-  void getLargestClts(const int&, \
-                      const int&, \
-                      unordered_multimap<int, int>&, \
-                      map<int, int>&, \
-                      const int&);
+  int getLargestClts(const int&, \
+                     const int&, \
+                     unordered_multimap<int, int>&, \
+                     map<int, int>&, \
+                     const int&);
 
   void helperAddFNNs(const Config&, \
                      unordered_multimap<int, int>&, \
                      map<int, int>&, \
                      const string&, \
+                     const int&, \
                      const int&);
 
   bool validSolventCluster(const Config&, \
