@@ -230,6 +230,7 @@ public:
   /* findClusters */
   void findClts(gbCnf&, const string&, const string&);
   void loopConfigCluster(gbCnf&, const string&);
+  void loopConfigSRO(gbCnf&);
   void calSRO(gbCnf&, const string&);
 
   /* KNMPI */
