@@ -34,6 +34,8 @@ using keras2cpp::Model;
 using keras2cpp::Tensor;
 
 class gbCnf;
+class LRUCache;
+
 // FPKMC first passage KMC algorithm to speed up
 namespace LS {
 
@@ -68,6 +70,7 @@ private:
   bool& switchUnknown;
   vector<string>& elems;
   vector<double>& elemsEffectOffset;
+  LRUCache* lru;
 
   // lists for trapping locations of each atom
   unordered_map<int, unordered_set<int>> trapList;
@@ -125,7 +128,8 @@ public:
         bool&, \
         bool&, \
         vector<string>&, \
-        vector<double>&);
+        vector<double>&, \
+        LRUCache*);
 
   void testCnfModification();
   static void test_vvd2mat();
