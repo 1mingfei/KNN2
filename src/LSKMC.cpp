@@ -30,7 +30,8 @@ LSKMC::LSKMC(int& meIn, \
              bool& switchLSKMCIn, \
              bool& switchUnknownIn, \
              vector<string>& elemsIn, \
-             vector<double>& elemsEffectOffsetIn)
+             vector<double>& elemsEffectOffsetIn, \
+             LRUCache* lruIn)
   : me(meIn), \
     nProcs(nProcsIn), \
     cnfModifier(cnfModifierIn), \
@@ -51,7 +52,8 @@ LSKMC::LSKMC(int& meIn, \
     switchLSKMC(switchLSKMCIn), \
     switchUnknown(switchUnknownIn), \
     elems(elemsIn), \
-    elemsEffectOffset(elemsEffectOffsetIn) {
+    elemsEffectOffset(elemsEffectOffsetIn), \
+    lru(lruIn) {
 
   eventMap.clear();
   // watch out
@@ -320,17 +322,34 @@ void LSKMC::calVVD_T(const int& vac) {
 void LSKMC::getOrPutEvent(const int& i, const int& j) {
   string tmpHash = to_string(i) + "_" + to_string(j);
   if (eventMap.find(tmpHash) == eventMap.end()) {
-    vector<double> currBarr = cnfModifier.calBarrierAndEdiff(c0, \
-                                          temperature, \
-                                          RCut2, \
-                                          EDiff, \
-                                          embedding, \
-                                          k2pModelB, \
-                                          k2pModelD, \
-                                          make_pair(i, j), \
-                                          switchUnknown, \
-                                          elems, \
-                                          elemsEffectOffset);
+    vector<double> currBarr;
+    if (lru->getSize()) {
+      currBarr = cnfModifier.calBarrierAndEdiff_LRU(c0, \
+                                            temperature, \
+                                            RCut2, \
+                                            EDiff, \
+                                            embedding, \
+                                            k2pModelB, \
+                                            k2pModelD, \
+                                            make_pair(i, j), \
+                                            switchUnknown, \
+                                            elems, \
+                                            elemsEffectOffset, \
+                                            lru);
+    } else {
+      currBarr = cnfModifier.calBarrierAndEdiff(c0, \
+                                            temperature, \
+                                            RCut2, \
+                                            EDiff, \
+                                            embedding, \
+                                            k2pModelB, \
+                                            k2pModelD, \
+                                            make_pair(i, j), \
+                                            switchUnknown, \
+                                            elems, \
+                                            elemsEffectOffset);
+    }
+
     LSEvent event(make_pair(i, j));
     event.setBarrier(currBarr[0]);
     event.setRate(prefix * exp(-currBarr[0] * KB_INV / temperature));
@@ -477,7 +496,8 @@ void KNHome::LSKMCOneRun(gbCnf& cnfModifier) {
                   switchLSKMC, \
                   switchUnknown, \
                   elems, \
-                  elemsEffectOffset);
+                  elemsEffectOffset, \
+                  lru);
 
 #ifdef DEBUG_TRAP
   for (const auto& i : vacList) {
@@ -558,7 +578,8 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
                       switchLSKMC, \
                       switchUnknown, \
                       elems, \
-                      elemsEffectOffset);
+                      elemsEffectOffset, \
+                      lru);
 
       int dist = 0;
       int vac = 0;
@@ -575,9 +596,21 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
 
     }
 
+    // MPI_Barrier(MPI_COMM_WORLD);
+    long long* buff_Ct = new long long [nProcs];
+    int LRUCount = lru->getCt();
+    MPI_Gather(&LRUCount, 1, MPI_LONG_LONG, buff_Ct, 1, \
+               MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+    int sum_LRU_count = 0;
+    for (int i = 0; i < nProcs; ++i) {
+      sum_LRU_count += buff_Ct[i];
+    }
+    delete [] buff_Ct;
+
+
     if ((me == 0) && (step % nTallyOutput == 0))
-    ofs << std::setprecision(7) << step << " " << time << " " \
-        << E_tot << endl;
+      ofs << std::setprecision(7) << step << " " << time << " " \
+          << E_tot << " " << (sum_LRU_count / nProcs) <<endl;
 
     if ((me == 0) && (step % nTallyConf == 0))
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");

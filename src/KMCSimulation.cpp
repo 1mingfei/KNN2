@@ -29,8 +29,9 @@ inline ForwardIt mylower_bound(ForwardIt first, \
       first = ++it;
       count -= step + 1;
     }
-    else
+    else {
       count = step;
+    }
   }
   return first;
 }
@@ -47,8 +48,9 @@ void KNHome::buildEmbedding() {
       embedding[elems[i - 1]] = static_cast<double>(base);
       switchUnknown = true;
     }
-    else
+    else {
       embedding[elems[i - 1]] = static_cast<double>(j++);
+    }
   }
 
 #ifdef DEBUG
@@ -79,7 +81,6 @@ void KNHome::getVacList() {
 
 void KNHome::KMCInit(gbCnf& cnfModifier) {
 
-  // lru->setSize(LRUSize);
   buildEmbedding();
   if (me == 0)
     ofs.open("log.txt", std::ofstream::out | std::ofstream::app);
@@ -110,10 +111,11 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
   /* get neibour list of atoms */
   cnfModifier.wrapAtomPrl(c0);
 
-  if (nProcs == 1)
+  if (nProcs == 1) {
     cnfModifier.getNBL_serial(c0, RCut2);
-  else
+  } else {
     cnfModifier.getNBL(c0, RCut2);
+  }
 
 #ifdef DEBUG
   if (me == 0)
@@ -328,17 +330,34 @@ void KNHome::buildEventList(gbCnf& cnfModifier) {
            << iFirst << " " << iSecond << " " << c0.atoms[iSecond].tp << "\n";
 #endif
 
-      vector<double> currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
-                                temperature, \
-                                RCut2, \
-                                EDiff, \
-                                embedding, \
-                                k2pModelB, \
-                                k2pModelD, \
-                                make_pair(iFirst, iSecond), \
-                                switchUnknown, \
-                                elems, \
-                                elemsEffectOffset);
+      vector<double> currBarrier;
+
+      if (lru->getSize()) {
+        currBarrier = cnfModifier.calBarrierAndEdiff_LRU(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset, \
+                                  lru);
+      } else {
+        currBarrier = cnfModifier.calBarrierAndEdiff(c0, \
+                                  temperature, \
+                                  RCut2, \
+                                  EDiff, \
+                                  embedding, \
+                                  k2pModelB, \
+                                  k2pModelD, \
+                                  make_pair(iFirst, iSecond), \
+                                  switchUnknown, \
+                                  elems, \
+                                  elemsEffectOffset);
+      }
 
 #ifdef DEBUG_MPI
       cout << "processor #" << me << " iteration: " \
@@ -496,17 +515,16 @@ vector<double> gbCnf::calBarrierAndEdiff(Config& c0, \
       input[i][j] = embedding[encodes[i][j]];
 
   int nRow = input.size(); // encodings for one jump pair considering symmetry
-  int nCol = nRow ? input[0].size() : 0;
-  Tensor in{ nRow, nCol };
-  Tensor inBack{ nRow, nCol };
+  Tensor in{ nRow, KEY_SIZE };
+  Tensor inBack{ nRow, KEY_SIZE };
 
   for (int i = 0; i < nRow; ++i) {
-    inBack.data_[i * nCol] = input[i][0];
-    for (int j = 0; j < nCol; ++j) {
-      in.data_[i * nCol + j] = input[i][j];
+    inBack.data_[i * KEY_SIZE] = input[i][0];
+    for (int j = 0; j < KEY_SIZE; ++j) {
+      in.data_[i * KEY_SIZE + j] = input[i][j];
       if (j == 0)
         continue;
-      inBack.data_[i * nCol + j] = input[i][nCol - j];
+      inBack.data_[i * KEY_SIZE + j] = input[i][KEY_SIZE - j];
     }
   }
 
@@ -560,7 +578,6 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
   double EactivateBack = 0.0;
 
   int nRow = encodes.size();
-  int nCol = nRow ? encodes[0].size() : 0;
 
   for (int i = 0; i < nRow; ++i) {
 
@@ -568,29 +585,32 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
     array<int, KEY_SIZE> tmpVecBack;
     tmpVecBack[0] = embedding[encodes[i][0]];
 
-    for (int j = 0; j < nCol; ++j) {
+    for (int j = 0; j < KEY_SIZE; ++j) {
       tmpVec[j] = embedding[encodes[i][j]];
       if (j == 0) continue;
-      tmpVecBack[j] = embedding[encodes[i][nCol - j]];
+      tmpVecBack[j] = embedding[encodes[i][KEY_SIZE - j]];
     }
-    if (lru->check(tmpVec))
+    if (lru->check(tmpVec)) {
       Eactivate += lru->getBarrier(tmpVec);
-    else input.push_back(tmpVec);
+    } else {
+      input.push_back(tmpVec);
+    }
 
-    if (lru->check(tmpVecBack))
+    if (lru->check(tmpVecBack)) {
       EactivateBack += lru->getBarrier(tmpVecBack);
-    else inputBack.push_back(tmpVecBack);
+    } else {
+      inputBack.push_back(tmpVecBack);
+    }
   }
 
   nRow = input.size(); // encodings for one jump pair considering symmetry
-  nCol = nRow ? input[0].size() : 0;
   int nRowBack = inputBack.size();
 
   if (nRow) {
-    Tensor in{nRow, nCol};
+    Tensor in{nRow, KEY_SIZE};
     for (int i = 0; i < nRow; ++i) {
-      for (int j = 0; j < nCol; ++j) {
-        in.data_[i * nCol + j] = input[i][j];
+      for (int j = 0; j < KEY_SIZE; ++j) {
+        in.data_[i * KEY_SIZE + j] = input[i][j];
       }
     }
 
@@ -603,10 +623,10 @@ vector<double> gbCnf::calBarrierAndEdiff_LRU(Config& c0, \
     }
   }
   if (nRowBack) {
-    Tensor inBack{nRowBack, nCol};
+    Tensor inBack{nRowBack, KEY_SIZE};
     for (int i = 0; i < nRowBack; ++i) {
-      for (int j = 0; j < nCol; ++j) {
-        inBack.data_[i * nCol + j] = inputBack[i][j];
+      for (int j = 0; j < KEY_SIZE; ++j) {
+        inBack.data_[i * KEY_SIZE + j] = inputBack[i][j];
       }
     }
     Tensor outBBack = k2pModelB(inBack);
