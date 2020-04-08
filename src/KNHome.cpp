@@ -56,7 +56,9 @@ KNHome::KNHome(int argc, char* argv[]) {
   } else if (sparams["mode"] == "lskmc") {
     LSKMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "clusterCount") {
-    loopConfig(cnfModifier);
+    loopConfigCluster(cnfModifier, "clusterCount");
+  } else if (sparams["mode"] == "SRO") {
+    loopConfigSRO(cnfModifier);
   } else if (sparams["mode"] == "test") {
     // testK2P();
     /* test encoding */

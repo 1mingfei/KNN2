@@ -142,7 +142,8 @@ public:
   /* findClusters.cpp */
 
   // This function give a set which contains all the solute atoms ID
-  unordered_set<int> findSoluteAtoms(const Config&, const string&);
+  pair<unordered_set<int>, unordered_set<int>> findSoluteAtoms(const Config&, \
+                                                               const string&);
 
   // This is a helper function which is to find X clusters after
   // removing a certain element and returns X.
@@ -151,16 +152,41 @@ public:
                 unordered_multimap<int, int>&, \
                 map<int, int>&);
 
-  void getLargestClts(const int&, \
-                      const int&, \
+  int helperBFSRmMtrx(const Config&, \
                       unordered_multimap<int, int>&, \
-                      map<int, int>&);
+                      map<int, int>&, \
+                      const int&, \
+                      const string&, \
+                      int&);
+
+  int getLargestClts(const int&, \
+                     const int&, \
+                     unordered_multimap<int, int>&, \
+                     map<int, int>&, \
+                     const int&);
 
   void helperAddFNNs(const Config&, \
                      unordered_multimap<int, int>&, \
-                     map<int, int>&);
+                     map<int, int>&, \
+                     const string&, \
+                     const int&, \
+                     const int&);
+
+  bool validSolventCluster(const Config&, \
+                           const int&, \
+                           const string&, \
+                           const int&, \
+                           const unordered_set<int>&);
+
   // This function returns X largest clusters with FNBs
-  map<int, int> findAtm2Clts(Config&, const int&, const string&);
+  map<int, int> findAtm2Clts(Config&, \
+                             const int&, \
+                             const string&, \
+                             const int&, \
+                             const int&);
+
+  // This function returns X everything left after remove "matrix" elements
+  map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int&, const int&);
 
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \

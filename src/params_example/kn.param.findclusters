@@ -1,9 +1,11 @@
 ============example1================
 mode clusterCount
-initNum 0
-increment 5000
-finalNum 20000
+initNum  403000000
+increment  1000000
+finalNum 403000000
 solventAtomType Al
 elems Al Mg Zn
-numClustersKept 1
+numClustersKept 10000000
+smallestClusterCriteria 3
+solventBoudCriteria 3
 ====================================

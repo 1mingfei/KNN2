@@ -48,7 +48,7 @@ void LRUCache::add(const pair<string, double>& x) {
   ma[x.first] = dq.begin();
 }
 
-void LRUCache::add(const pair<vector<int>, double>& x) {
+void LRUCache::add(const pair<array<int, KEY_SIZE>, double>& x) {
   char xCStr[NB];
   int i = 0;
   for (const auto& digit : x.first)
@@ -61,7 +61,7 @@ bool LRUCache::check(const string& x) const {
   return (ma.find(x) != ma.end());
 }
 
-bool LRUCache::check(const vector<int>& x) const {
+bool LRUCache::check(const array<int, KEY_SIZE>& x) const {
   char xCStr[NB];
   int i = 0;
   for (const auto& digit : x)
@@ -75,7 +75,7 @@ double LRUCache::getBarrier(const string& x) {
   return ma[x]->second;
 }
 
-double LRUCache::getBarrier(const vector<int>& x) {
+double LRUCache::getBarrier(const array<int, KEY_SIZE>& x) {
   char xCStr[NB];
   int i = 0;
   for (const auto& digit : x)

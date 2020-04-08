@@ -228,8 +228,13 @@ public:
   void LSKMCSimulation(gbCnf&);
 
   /* findClusters */
-  void findClts(gbCnf&, const string&);
-  void loopConfig(gbCnf&);
+  void findClts(gbCnf&, const string&, const string&);
+  void loopConfigCluster(gbCnf&, const string&);
+  void loopConfigSRO(gbCnf&);
+  void calSRO(gbCnf&, const string&);
+
+  /* KNMPI */
+  void bcastConfig();
 
 };
 
