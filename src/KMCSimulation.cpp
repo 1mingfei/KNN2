@@ -155,7 +155,8 @@ void KNHome::KMCInit(gbCnf& cnfModifier) {
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
   }
   if (me == 0)
-    ofs << "#step     time     Ediff     cachTimes\n";
+    ofs << "#step     time     Ediff\n";
+    // ofs << "#step     time     Ediff     cachTimes\n";
 
 }
 

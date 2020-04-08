@@ -597,20 +597,22 @@ void KNHome::LSKMCSimulation(gbCnf& cnfModifier) {
     }
 
     // MPI_Barrier(MPI_COMM_WORLD);
-    long long* buff_Ct = new long long [nProcs];
-    int LRUCount = lru->getCt();
-    MPI_Gather(&LRUCount, 1, MPI_LONG_LONG, buff_Ct, 1, \
-               MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-    int sum_LRU_count = 0;
-    for (int i = 0; i < nProcs; ++i) {
-      sum_LRU_count += buff_Ct[i];
-    }
-    delete [] buff_Ct;
+    // long long* buff_Ct = new long long [nProcs];
+    // int LRUCount = lru->getCt();
+    // MPI_Gather(&LRUCount, 1, MPI_LONG_LONG, buff_Ct, 1, \
+    //            MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+    // int sum_LRU_count = 0;
+    // for (int i = 0; i < nProcs; ++i) {
+    //   sum_LRU_count += buff_Ct[i];
+    // }
+    // delete [] buff_Ct;
 
 
     if ((me == 0) && (step % nTallyOutput == 0))
       ofs << std::setprecision(7) << step << " " << time << " " \
-          << E_tot << " " << (sum_LRU_count / nProcs) <<endl;
+          // << E_tot << " " << (sum_LRU_count / nProcs) <<endl;
+          << E_tot << " " << endl;
+
 
     if ((me == 0) && (step % nTallyConf == 0))
       cnfModifier.writeCfgData(c0, to_string(step) + ".cfg");
