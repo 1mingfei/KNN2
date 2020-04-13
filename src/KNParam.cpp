@@ -20,6 +20,8 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("initconfig")) {
       sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("bondName")) {
+      sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("PairFile")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("kerasModelBarrier")) {
@@ -54,7 +56,25 @@ void KNHome::readParam() {
         tmpVec.push_back(stoi(segs[i]));
       }
       viparams[segs[0]] = tmpVec;
+    } else if (!segs[0].compare("plane")) {
+      vector<int> tmpVec;
+      for (unsigned int i = 1; i < segs.size(); ++i) {
+        tmpVec.push_back(stoi(segs[i]));
+      }
+      viparams[segs[0]] = tmpVec;
     } else if (!segs[0].compare("elemsEffectOffset")) {
+      vector<double> tmpVec;
+      for (unsigned int i = 1; i < segs.size(); ++i) {
+        tmpVec.push_back(stod(segs[i]));
+      }
+      vdparams[segs[0]] = tmpVec;
+    } else if (!segs[0].compare("direction")) {
+      vector<double> tmpVec;
+      for (unsigned int i = 1; i < segs.size(); ++i) {
+        tmpVec.push_back(stod(segs[i]));
+      }
+      vdparams[segs[0]] = tmpVec;
+    } else if (!segs[0].compare("bondEnergy")) {
       vector<double> tmpVec;
       for (unsigned int i = 1; i < segs.size(); ++i) {
         tmpVec.push_back(stod(segs[i]));

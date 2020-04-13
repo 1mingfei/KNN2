@@ -59,6 +59,8 @@ KNHome::KNHome(int argc, char* argv[]) {
     loopConfigCluster(cnfModifier, "clusterCount");
   } else if (sparams["mode"] == "SRO") {
     loopConfigSRO(cnfModifier);
+  } else if (sparams["mode"] == "sampleBondsAfterShift") {
+    getBondChange(cnfModifier);
   } else if (sparams["mode"] == "test") {
     // testK2P();
     /* test encoding */

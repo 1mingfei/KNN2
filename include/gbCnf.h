@@ -193,6 +193,10 @@ public:
                       const pair<string, string>&, \
                       const ODS::OrderedStruct&, \
                       const int&);
+
+  /* KNshift.cpp */
+  unordered_map<string, int> bondCountAll(const Config&, \
+                                          const vector<string>&);
 };
 
 #include "Elem.inl"

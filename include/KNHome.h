@@ -236,6 +236,21 @@ public:
   /* KNMPI */
   void bcastConfig();
 
+  /* KNShift */
+  void getBondChange(gbCnf&);
+
+  double getBondChangeSingle(gbCnf&, \
+                      const vector<double>&, \
+                      const vector<int>&,
+                      const double&, \
+                      unordered_map<string, double>&, \
+                      unordered_map<string, int>&, \
+                      Config&, \
+                      std::default_random_engine&, \
+                      std::uniform_int_distribution<int>&, \
+                      const vector<string>&);
+
+
 };
 
 

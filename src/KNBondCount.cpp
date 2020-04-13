@@ -85,7 +85,7 @@ map<string, int> gbCnf::countPairs(Config& cnf, \
     finalAtm = cnf.atoms[pair[0]];
   }
 
-  cout << "init " << initAtm.tp << endl;
+  // cout << "init " << initAtm.tp << endl;
 
   for (const int ii : initAtm.NBL) {
     KNAtom nbAtm = cnf.atoms[ii];
@@ -97,7 +97,7 @@ map<string, int> gbCnf::countPairs(Config& cnf, \
       res[curr] -= 1;
     }
   }
-  cout << " final " << finalAtm.tp << endl;
+  // cout << " final " << finalAtm.tp << endl;
 
   for (const int ii : finalAtm.NBL) {
     cout << ii << endl;
