@@ -241,8 +241,9 @@ public:
 
   double getBondChangeSingle(gbCnf&, \
                       const vector<double>&, \
-                      const vector<int>&,
+                      const vector<double>&,
                       const double&, \
+                      const vector<int>&, \
                       unordered_map<string, double>&, \
                       unordered_map<string, int>&, \
                       Config&, \

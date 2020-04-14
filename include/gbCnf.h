@@ -197,6 +197,7 @@ public:
   /* KNshift.cpp */
   // Make sure int cannot exceed the total number of the atoms
   void shiftAtomToCentral(Config&, const int&);
+  void shiftPst(Config&, const vector<double>&);
   // This function return all kinds of bonds including virtual bonds with vac
   unordered_map<string, int> bondCountAll(const Config&);
 };

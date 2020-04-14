@@ -1,10 +1,10 @@
 #include "gbCnf.h"
 #include "KNHome.h"
-
+#include "gbUtl.h"
 void KNHome::getBondChange(gbCnf& cnfModifier) {
 
   vector<double> direction = vdparams["direction"]; // e.g. 0.5 0.5 0
-  vector<int> plane = viparams["plane"];
+  vector<double> plane = vdparams["plane"];
   double LC = dparams["LC"];
   vector<string> bondName = vsparams["bondName"];
   vector<double> bondEnergyInit = vdparams["bondEnergy"];
@@ -21,6 +21,7 @@ void KNHome::getBondChange(gbCnf& cnfModifier) {
   std::default_random_engine rng(std::random_device{}() + me);
   std::uniform_int_distribution<int> gen(0, cfg.natoms - 1);
   vector<double> res;
+  vector<int> factors = viparams["factors"];
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (nProcs == 1)
@@ -35,6 +36,7 @@ void KNHome::getBondChange(gbCnf& cnfModifier) {
                                       direction, \
                                       plane, \
                                       LC, \
+                                      factors,\
                                       bondEnergy, \
                                       oldBond, \
                                       cfg, \
@@ -51,8 +53,9 @@ void KNHome::getBondChange(gbCnf& cnfModifier) {
 
 double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
                       const vector<double>& direction, \
-                      const vector<int>& plane,
+                      const vector<double>& plane,
                       const double& LC, \
+                      const vector<int>& factors, \
                       unordered_map<string, double>& bondEnergy, \
                       unordered_map<string, int>& oldBond, \
                       Config& cfg, \
@@ -74,9 +77,28 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
   for (auto& number:newDirection) {
     number *= (gen(rng) % 2 == 0) ? 1 : -1;
   }
+  vector<double> moveDistance;
+  moveDistance.reserve(3);
+
+//  Todo:: for better consistancy, it should be calculated in relative distance
+  for (int i = 0; i < 3; ++i) {
+    // 2 here means only move a half distance to make sure atoms not aross
+    // the center
+    moveDistance.push_back(
+        newPlane[i] * LC / vecInnProd33(newPlane, newPlane) / 2);
+  }
+  cnfModifier.shiftPst(cfgNew, newPlane);
+/*
+  Todo::
+  Calculate the planes, there should be three planes, move half of the atoms
+  according to the first plane, calculate bonds change between second and
+  third plane.
+  First should be Ax + By + Cz = 1/2 + 1/2 + 1/2. Second and third should be
+  Ax + By + Cz = 1/2 + 1/2 + 1/2 ± pstToPrl (LC/sqrt(h^2+k^2+l^2) )
+*/
+
   unordered_map<string, int> newBond = cnfModifier.bondCountAll(cfgNew);
-  // 2.860954037
-  // 2.335959189
+
   // calculate difference in bonds
   double res = 0.0;
   for (auto&& i : newBond) {
@@ -119,6 +141,16 @@ void gbCnf::shiftAtomToCentral(Config& cnf, const int& id) {
       atm.prl[i] -= criterionDistance[i];
     }
   }
+  wrapAtomPrl(cnf);
+  cnvprl2pst(cnf);
+}
+void gbCnf::shiftPst(Config& cnf, const vector<double>& distance){
+  for (auto& atm:cnf.atoms) {
+    for (int i = 0; i < 3; ++i) {
+      atm.pst[i] -= distance[i];
+    }
+  }
+  cnvpst2prl(cnf);
   wrapAtomPrl(cnf);
   cnvprl2pst(cnf);
 }
