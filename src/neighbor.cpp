@@ -154,7 +154,7 @@ vector<KNAtom> gbCnf::expandCellZ(const Config& cnf, const int factor) {
 }
 
 /*calculate distance between one atom in configuration and one from ref*/
-double gbCnf::calDist(const vector<double> length, \
+double gbCnf::calDist(const vector<double> &length, \
                       const KNAtom& atm1, \
                       const KNAtom& atm2) {
   double xi = atm1.pst[X];

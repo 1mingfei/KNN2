@@ -52,7 +52,7 @@ public:
   /* neighbor.cpp*/
   int getExpdParam(const Config&, const double);
   vector<KNAtom> expandCellZ(const Config&, const int);
-  double calDist(const vector<double>, const KNAtom&, const KNAtom&);
+  double calDist(const vector<double>&, const KNAtom&, const KNAtom&);
   double calDistPrl(const vector<double>&, const KNAtom&, const KNAtom&);
   void getNBL(Config&, double);
   void getNBL_serial(Config&, double);

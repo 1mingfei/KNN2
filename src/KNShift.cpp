@@ -70,32 +70,106 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
   Config& cfgNew = cfg;
   cnfModifier.shiftAtomToCentral(cfgNew, atomID);
   auto newPlane = plane;
-  auto newDirection = direction;
   for (auto& number:newPlane) {
     number *= (gen(rng) % 2 == 0) ? 1 : -1;
   }
-  for (auto& number:newDirection) {
-    number *= (gen(rng) % 2 == 0) ? 1 : -1;
-  }
-  vector<double> moveDistance;
-  moveDistance.reserve(3);
-
-//  Todo:: for better consistancy, it should be calculated in relative distance
+  vector<double> planeMoveDistance;
+  planeMoveDistance.reserve(3);
+  double newPlaneInner =  vecInnProd33(newPlane, newPlane);
   for (int i = 0; i < 3; ++i) {
     // 2 here means only move a half distance to make sure atoms not aross
     // the center
-    moveDistance.push_back(
-        newPlane[i] * LC / vecInnProd33(newPlane, newPlane) / 2);
+    planeMoveDistance.push_back(
+        newPlane[i] * LC / newPlaneInner / 2);
   }
   cnfModifier.shiftPst(cfgNew, newPlane);
-/*
-  Todo::
-  Calculate the planes, there should be three planes, move half of the atoms
-  according to the first plane, calculate bonds change between second and
-  third plane.
-  First should be Ax + By + Cz = 1/2 + 1/2 + 1/2. Second and third should be
-  Ax + By + Cz = 1/2 + 1/2 + 1/2 ± pstToPrl (LC/sqrt(h^2+k^2+l^2) )
-*/
+
+  // Calculate the planes, there should be three planes, move half of the atoms
+  // according to the first plane, calculate bonds change between second and
+  // third plane.
+  // First should be Ax + By + Cz = D = Lx/2 + Ly/2 + Lx/2. Second and third
+  // should be Ax + By + Cz = D = Lx/2 + Ly/2 + Lx/2 ± LC/sqrt(h^2+k^2+l^2)
+
+  double D1 = 0.5*(cfgNew.bvx[0] + cfgNew.bvy[1] + cfgNew.bvy[2]);
+  double D2 = D1 + LC/sqrt(newPlaneInner);
+  double D3 = D1 - LC/sqrt(newPlaneInner);
+
+  double checkResult;
+  // Store atoms' index between between second plane and third plane.
+  vector<int> nearAtomList;
+  for (const auto& atom:cfgNew.atoms) {
+    checkResult = atom.pst[0] * newPlane[0] + atom.pst[1] * newPlane[1]
+        + atom.pst[2] * newPlane[2];
+    if (checkResult > D2 || checkResult < D3)
+      continue;
+    nearAtomList.push_back(atom.id);
+  }
+  // Calculate original bonds number
+  // Todo: not sure if we are using perodic boundary condition here
+  auto getPosDistance = [](KNAtom atm1, KNAtom atm2) -> double{
+
+  };
+  unordered_map<string, int> bondsCountBefore;
+  string tp1, tp2, bond;
+  for (auto it1 = nearAtomList.begin(); it1 < nearAtomList.end(); ++it1) {
+    tp1 = cfgNew.atoms[*it1].tp;
+    for (auto it2 = nearAtomList.begin(); it2 < it1; ++it2) {
+      tp2 = cfgNew.atoms[*it2].tp;
+
+      if (tp1.compare(tp2) < 0) {
+        bond = tp1;
+        bond += "-";
+        bond += tp2;
+      } else {
+        bond = tp2;
+        bond += "-";
+        bond += tp1;
+      }
+      if (getPosDistance(cfgNew.atoms[*it1], cfgNew.atoms[*it2]) < 3.2)
+        bondsCountBefore[bond]++;
+    }
+  }
+  // move atoms
+  auto newDirection = direction;
+  for (auto& number:newDirection) {
+    number *= (gen(rng) % 2 == 0) ? 1 : -1;
+  }
+  vector<double> atomMoveDistance;
+  atomMoveDistance.reserve(3);
+  for (int i = 0; i < 3; ++i) {
+    atomMoveDistance.push_back(LC*newDirection[i]);
+  }
+  for(const auto &index:nearAtomList){
+    checkResult = cfgNew.atoms[index].pst[0] * newPlane[0]
+        + cfgNew.atoms[index].pst[1] * newPlane[1]
+        + cfgNew.atoms[index].pst[2] * newPlane[2];
+    if (checkResult < D1)
+      continue;
+    for (int i = 0; i < 3; ++i) {
+      cfgNew.atoms[index].pst[i] += atomMoveDistance[i];
+    }
+  }
+  cnfModifier.wrapAtomPos(cfgNew);
+
+  // Calculate bonds number after moving
+  unordered_map<string, int> bondsCountAfter;
+  for (auto it1 = nearAtomList.begin(); it1 < nearAtomList.end(); ++it1) {
+    tp1 = cfgNew.atoms[*it1].tp;
+    for (auto it2 = nearAtomList.begin(); it2 < it1; ++it2) {
+      tp2 = cfgNew.atoms[*it2].tp;
+      if (tp1.compare(tp2) < 0) {
+        bond = tp1;
+        bond += "-";
+        bond += tp2;
+      } else {
+        bond = tp2;
+        bond += "-";
+        bond += tp1;
+      }
+      if (getPosDistance(cfgNew.atoms[*it1], cfgNew.atoms[*it2]) < 3.2)
+        bondsCountAfter[bond]++;
+    }
+  }
 
   unordered_map<string, int> newBond = cnfModifier.bondCountAll(cfgNew);
 
@@ -150,7 +224,6 @@ void gbCnf::shiftPst(Config& cnf, const vector<double>& distance){
       atm.pst[i] -= distance[i];
     }
   }
+  wrapAtomPos(cnf);
   cnvpst2prl(cnf);
-  wrapAtomPrl(cnf);
-  cnvprl2pst(cnf);
 }
