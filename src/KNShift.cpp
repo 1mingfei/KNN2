@@ -38,11 +38,9 @@ void KNHome::getBondChange(gbCnf& cnfModifier) {
                                       LC, \
                                       factors,\
                                       bondEnergy, \
-                                      oldBond, \
                                       cfg, \
                                       rng, \
-                                      gen, \
-                                      elems));
+                                      gen));
   }
 
   // do some statistics here
@@ -57,11 +55,9 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
                       const double& LC, \
                       const vector<int>& factors, \
                       unordered_map<string, double>& bondEnergy, \
-                      unordered_map<string, int>& oldBond, \
                       Config& cfg, \
                       std::default_random_engine& rng, \
-                      std::uniform_int_distribution<int>& gen, \
-                      const vector<string>& elems) {
+                      std::uniform_int_distribution<int>& gen) {
 
   // randomly choose an atom
   int atomID = gen(rng);
@@ -105,10 +101,6 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
     nearAtomList.push_back(atom.id);
   }
   // Calculate original bonds number
-  // Todo: not sure if we are using perodic boundary condition here
-  auto getPosDistance = [](KNAtom atm1, KNAtom atm2) -> double{
-
-  };
   unordered_map<string, int> bondsCountBefore;
   string tp1, tp2, bond;
   for (auto it1 = nearAtomList.begin(); it1 < nearAtomList.end(); ++it1) {
@@ -125,7 +117,9 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
         bond += "-";
         bond += tp1;
       }
-      if (getPosDistance(cfgNew.atoms[*it1], cfgNew.atoms[*it2]) < 3.2)
+      if (cnfModifier.calDist({cfgNew.bvx[0], cfgNew.bvy[1], cfgNew.bvy[2]},
+                              cfgNew.atoms[*it1],
+                              cfgNew.atoms[*it2]) < 3.2)
         bondsCountBefore[bond]++;
     }
   }
@@ -166,18 +160,19 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
         bond += "-";
         bond += tp1;
       }
-      if (getPosDistance(cfgNew.atoms[*it1], cfgNew.atoms[*it2]) < 3.2)
+      if (cnfModifier.calDist({cfgNew.bvx[0], cfgNew.bvy[1], cfgNew.bvy[2]},
+                              cfgNew.atoms[*it1],
+                              cfgNew.atoms[*it2]) < 3.2)
         bondsCountAfter[bond]++;
     }
   }
 
-  unordered_map<string, int> newBond = cnfModifier.bondCountAll(cfgNew);
+  // unordered_map<string, int> newBond = cnfModifier.bondCountAll(cfgNew);
 
   // calculate difference in bonds
   double res = 0.0;
-  for (auto&& i : newBond) {
-    const string key = i.first;
-    res += static_cast<double>(i.second - oldBond[key]) * bondEnergy[key];
+  for (const auto& [key, count] : bondsCountAfter) {
+    res += static_cast<double>(count - bondsCountBefore[key]) * bondEnergy[key];
   }
   return res;
 }

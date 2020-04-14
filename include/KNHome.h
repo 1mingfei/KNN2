@@ -245,11 +245,9 @@ public:
                       const double&, \
                       const vector<int>&, \
                       unordered_map<string, double>&, \
-                      unordered_map<string, int>&, \
                       Config&, \
                       std::default_random_engine&, \
-                      std::uniform_int_distribution<int>&, \
-                      const vector<string>&);
+                      std::uniform_int_distribution<int>&);
 
 
 };
