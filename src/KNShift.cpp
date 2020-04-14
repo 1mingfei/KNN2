@@ -78,7 +78,7 @@ double KNHome::getBondChangeSingle(gbCnf& cnfModifier, \
     planeMoveDistance.push_back(
         newPlane[i] * LC / newPlaneInner / 2);
   }
-  cnfModifier.shiftPst(cfgNew, newPlane);
+  cnfModifier.shiftPst(cfgNew, planeMoveDistance);
 
   // Calculate the planes, there should be three planes, move half of the atoms
   // according to the first plane, calculate bonds change between second and
