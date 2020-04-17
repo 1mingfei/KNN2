@@ -20,6 +20,19 @@ inline void writeHashmap(const string& fname, \
   ofs << endl;
 }
 
+template<class T, class Y>
+inline void writeUnordered_map(const string& fname, \
+                               const int i, \
+                               const int j, \
+                               unordered_map<T, Y>& v, \
+                               vector<string>& seq) {
+  ofstream ofs(fname, std::ofstream::app);
+  ofs << "config " << i << " end " << j << " ";
+  for (auto& val : seq)
+    ofs << std::setw(4) << v[val] << " ";
+  ofs << endl;
+}
+
 void KNHome::KNBondCount(gbCnf& cnfModifier) {
   vector<string> elems = vsparams["elems"];
   double RCut = dparams["RCut"];
@@ -55,7 +68,8 @@ void KNHome::KNBondCount(gbCnf& cnfModifier) {
       cnfModifier.getNBL(cfg, RCut);
       map<string, int> pairCount;
       pairCount = cnfModifier.countPairs(cfg, elems, pair);
-      writeHashmap("bondCount.txt", pairs[i][0], pairs[i][1], pairCount, false);
+      writeHashmap("bondCount.txt", pairs[i][0], pairs[i][1], pairCount, \
+                   false);
     }
   }
 }
@@ -113,5 +127,72 @@ map<string, int> gbCnf::countPairs(Config& cnf, \
   return res;
 }
 
+void KNHome::KNBondCountAll(gbCnf& cnfModifier) {
+  vector<string> elems = vsparams["elems"];
+  double RCut = dparams["RCut"];
+  string fpname = sparams["PairFile"];
+  vector<vector<int>> pairs = readPairs(fpname);
 
+  vector<string> outputSeq = {"Al-Al", "Al-Mg", "Al-Zn", \
+                              "Mg-Mg", "Mg-Zn", "Zn-Zn"};
 
+  ofstream ofsBC("bondCountAll.txt", std::ofstream::app);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (me == 0) {
+    std::cout << "count bondings of the configurations\n";
+    for (const auto& val : outputSeq)
+      ofsBC << std::setw(10) << val << " ";
+    ofsBC << "\n";
+  }
+
+  int quotient = pairs.size() / nProcs;
+  int remainder = pairs.size() % nProcs;
+  int nCycle = remainder ? (quotient + 1) : quotient;
+
+  for (int j = 0; j < nCycle; ++j) {
+    for (int i = (j * nProcs); i < ((j + 1) * nProcs); ++i) {
+      if ((i % nProcs != me) || (i >= pairs.size())) continue;
+      string fname = "config" + to_string(pairs[i][0]) \
+                     + "/f_" + to_string(pairs[i][1]) + "/end.cfg";
+
+      Config cfg = cnfModifier.readCfg(fname);
+
+      cnfModifier.getNBL(cfg, RCut);
+      unordered_map<string, int> pairCount;
+      pairCount = cnfModifier.bondCountAll(cfg);
+      writeUnordered_map("bondCountAll.txt", \
+                         pairs[i][0], pairs[i][1], pairCount, outputSeq);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+}
+
+unordered_map<string, int> gbCnf::bondCountAll(const Config& cfg) {
+  unordered_map<string, int> bondsCount;
+  string tp1, tp2, bond;
+  for (const auto& atom:cfg.atoms) {
+    tp1 = atom.tp;
+    if (tp1 == "X")
+      continue;
+    for (const auto& atom2ID:atom.FNNL) {
+      tp2 = cfg.atoms[atom2ID].tp;
+      if (tp2 == "X")
+        continue;
+      if (tp1.compare(tp2) < 0) {
+        bond = tp1;
+        bond += "-";
+        bond += tp2;
+      } else {
+        bond = tp2;
+        bond += "-";
+        bond += tp1;
+      }
+      bondsCount[bond]++;
+    }
+  }
+  for (auto &[bond, count] : bondsCount) {
+    count /= 2;
+  }
+  return bondsCount;
+}

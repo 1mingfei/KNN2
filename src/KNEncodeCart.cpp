@@ -329,7 +329,7 @@ vector<vector<int>> KNHome::readPairs(const string& fname) {
   while (getline(ifs, buff)) {
     s.clear();
     split(buff, " ", s);
-    if (s[0] == "Delta" || s[0] == "#" ) //for the very last line
+    if (s[0] == "Delta" || s[0] == "#" || s[0] == "generating") //for the very last line
       continue;
     vector<int> tmp;
     //assert(s.size() == 4);
