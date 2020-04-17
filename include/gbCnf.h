@@ -107,6 +107,9 @@ public:
                               const vector<string>&, \
                               const vector<int>& );
 
+
+  unordered_map<string, int> bondCountAll(const Config&);
+
   /* KMCSimulation.cpp */
   vector<double> calBarrierAndEdiff(Config&, \
                                     const double&, \

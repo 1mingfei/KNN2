@@ -199,6 +199,7 @@ public:
 
   /* KNBondCount.cpp */
   void KNBondCount(gbCnf&);
+  void KNBondCountAll(gbCnf&);
 
   /* KMCSimulation.cpp */
   void KMCInit(gbCnf&);

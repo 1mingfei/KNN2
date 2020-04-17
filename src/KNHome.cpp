@@ -48,7 +48,8 @@ KNHome::KNHome(int argc, char* argv[]) {
   } else if (sparams["mode"] == "encode") {
     KNEncode(cnfModifier);
   } else if (sparams["mode"] == "BondCount") {
-    KNBondCount(cnfModifier);
+    // KNBondCount(cnfModifier); // for bond change
+    KNBondCountAll(cnfModifier); // for all bonds
   } else if (sparams["mode"] == "kmc") {
     KMCSimulation(cnfModifier);
   } else if (sparams["mode"] == "lskmc_test") {
