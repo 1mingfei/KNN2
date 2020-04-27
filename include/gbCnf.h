@@ -31,6 +31,7 @@ public:
   /* gbInCnf.cpp */
   Config readLmpData(const string&);
   Config readCfg(const string&);
+  Config readCfgCluster(const string&, vector<unordered_set<int>>&);
   Config readPOSCAR(const string&);
 
   /* output
@@ -190,6 +191,11 @@ public:
 
   // This function returns X everything left after remove "matrix" elements
   map<int, int> findAtm2CltsRmMtrx(Config&, const string&, int&, const int&);
+
+  Config Complete(const Config&, \
+                  const unordered_set<int>& , \
+                  const Config&, \
+                  vector<double>&);
 
   /* KNOrdered.cpp */
   Config embedCluster(const Config&, \

@@ -62,6 +62,10 @@ void KNHome::readParam() {
       vdparams[segs[0]] = tmpVec;
     } else if (!segs[0].compare("NConfigs")) {
       iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("low")) {
+      iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("high")) {
+      iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("NBarriers")) {
       iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("maxIter")) {

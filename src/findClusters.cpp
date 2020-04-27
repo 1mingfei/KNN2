@@ -3,6 +3,59 @@
 
 #define Z 12.0
 
+inline bool sizeMatch(const Config& inCnf, \
+                      const unordered_set<int>& s, \
+                      const Config& refCnf, \
+                      vector<double>& lowerLimits, \
+                      const double& LC) {
+  double Xlimit = refCnf.bvx[0];
+  double Ylimit = refCnf.bvy[1];
+  double Zlimit = refCnf.bvz[2];
+  double xmin = 2.0 * Xlimit, ymin = 2.0 * Ylimit, zmin = 2.0 * Zlimit;
+  double xmax = -10.0, ymax = -10.0, zmax = -10.0;
+  for (const auto& i : s) {
+    KNAtom atm = inCnf.atoms[i];
+    xmin = std::min(atm.pst[0], xmin);
+    ymin = std::min(atm.pst[1], ymin);
+    zmin = std::min(atm.pst[2], zmin);
+    xmax = std::max(atm.pst[0], xmax);
+    ymax = std::max(atm.pst[1], ymax);
+    zmax = std::max(atm.pst[2], zmax);
+  }
+  lowerLimits = {xmin, ymin, zmin};
+
+  if (xmax - xmin - 0.5 * LC >= Xlimit)
+    return false;
+  if (ymax - ymin - 0.5 * LC >= Ylimit)
+    return false;
+  if (zmax - zmin - 0.5 * LC >= Zlimit)
+    return false;
+  return true;
+}
+
+inline vector<unordered_set<int>> filter( \
+                                  const vector<unordered_set<int>>& inMap, \
+                                  const int& low, \
+                                  const int& high) {
+  vector<unordered_set<int>> res = inMap;
+  for (int i = 0; i < inMap.size(); ++i) {
+    if (low > inMap[i].size() || inMap[i].size() > high)
+      res[i].clear();
+  }
+  return res;
+}
+
+inline bool samePos(KNAtom atm1, KNAtom atm2) {
+  if (atm1.pst[0] - atm2.pst[0] > 0.05)
+    return false;
+  if (atm1.pst[1] - atm2.pst[1] > 0.05)
+    return false;
+  if (atm1.pst[2] - atm2.pst[2] > 0.05)
+    return false;
+  return true;
+}
+
+
 pair<unordered_set<int>, unordered_set<int>> gbCnf::findSoluteAtoms( \
                                           const Config& inCnf, \
                                           const string& solventAtomType) {
@@ -503,4 +556,74 @@ void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
 
     ofs.close();
   }
+}
+
+
+void KNHome::resizeCluster(gbCnf& inGbCnf, const string& fname) {
+  vector<unordered_set<int>> oldmap;
+  Config inCnf = inGbCnf.readCfgCluster(fname, oldmap);
+  inGbCnf.cnvprl2pst(inCnf);
+
+  // fliter size
+  int low = iparams["low"] ? iparams["low"] : 12;
+  int high = iparams["high"] ? iparams["high"] : 100;
+  vector<unordered_set<int>> map = filter(oldmap, low, high);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (me == 0) {
+    vector<int> factors = viparams["factors"];
+    double LC = dparams["LC"];
+    Config refCnf = inGbCnf.getFCCConv(LC, "Al", factors);
+    inGbCnf.cnvprl2pst(refCnf);
+    int count = 0;
+    int NConfigs = iparams["NConfigs"] < map.size()
+                  ? iparams["NConfigs"] : map.size();
+    for (int i = 0; i < NConfigs; ++i) {
+      if (map[i].empty())
+        continue;
+      vector<double> lowerLimits = {0.0, 0.0, 0.0};
+      if (sizeMatch(inCnf, map[i], refCnf, lowerLimits, LC)) {
+        Config outCnf = inGbCnf.Complete(inCnf, \
+                                         map[i], \
+                                         refCnf, \
+                                         lowerLimits);
+        string outfname = to_string(count++) + "_" + to_string(i) + ".cfg";
+        inGbCnf.writeCfgData(outCnf, outfname);
+      }
+    }
+  }
+}
+
+Config gbCnf::Complete(const Config& inCnf, \
+                       const unordered_set<int>& s, \
+                       const Config& refCnf, \
+                       vector<double>& lowerLimits) {
+  Config outCnf;
+  outCnf.cell = refCnf.cell;
+  outCnf.length = refCnf.length;
+  outCnf.bvx = refCnf.bvx;
+  outCnf.tvx = refCnf.tvx;
+  outCnf.bvy = refCnf.bvy;
+  outCnf.tvy = refCnf.tvy;
+  outCnf.bvz = refCnf.bvz;
+  outCnf.tvz = refCnf.tvz;
+
+  for (auto i : s) {
+    KNAtom atm = inCnf.atoms[i];
+    for (int j = 0; j < 3; ++j)
+      atm.pst[j] -= lowerLimits[j];
+    outCnf.atoms.push_back(atm);
+  }
+  vector<KNAtom> atomList = outCnf.atoms;
+
+  for (auto&& atmRef : refCnf.atoms)
+    for (auto&& atmIn : atomList)
+      if (!samePos(atmRef, atmIn)) {
+        outCnf.atoms.push_back(atmRef);
+        break;
+      }
+
+  outCnf.natoms = outCnf.atoms.size();
+  cnvpst2prl(outCnf);
+  return outCnf;
 }

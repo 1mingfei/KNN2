@@ -35,6 +35,7 @@ gbCnf::gbCnf(int& meIn, int& nProcsIn)
       : me(meIn), \
         nProcs(nProcsIn), \
         rcut(3.0) {};
+
 /**************************************************
  * convert vector cell to matrix cell
  **************************************************/
@@ -78,58 +79,6 @@ vector<double> gbCnf::cnvVecXY2VecAng(const vector<double>& v) {
   r[5] = std::acos(v[3] / r[1]);
   return r;
 }
-
-/**************************************************
- * read lammps data files
- **************************************************/
-/*
-Config KNHome::gbCnf::readLmpData(const string& fname) {
-  ifstream ifs(fname, std::ifstream::in);
-  string buff;
-  Config cnf;
-  vector<string> s;
-  unordered_map<string, int> mp;
-  getline(ifs, buff);
-  sscanf(buff.c_str(), "# %lf %lf", &cnf.oldEngy, &cnf.engy);
-
-  getline(ifs, buff, ' ');
-  cnf.natoms = stoi(buff);
-  getline(ifs, buff);
-
-  getline(ifs, buff, ' ');  // atom types
-  cnf.ntypes = stoi(buff);
-  getline(ifs, buff);
-
-  vector<double> v(6);
-  for (auto&& i : {0, 1, 2}) {  // lo hi
-    getline(ifs, buff);
-    sscanf(buff.c_str(), "%lf %lf", &cnf.cell[i], &cnf.cell[i + 3]);
-    v[i] = cnf.length[i] = cnf.cell[3 + i] - cnf.cell[i];
-    cnf.center[i] = 0.5 * (cnf.cell[3 + i] + cnf.cell[i]);
-  }
-  getline(ifs, buff);
-  s.clear();
-  split(buff, " ", s);
-  cnf.cell[6] = stof(s[0]), cnf.cell[7] = stof(s[1]), cnf.cell[8] = stof(s[2]);
-  cnvVec2Mat(cnvVecXY2VecAng(v), cnf);
-
-  while (getline(ifs, buff)) {
-    s.clear();
-    split(buff, " ", s);
-    if (s.size() > 3) break;
-  }
-  for (int i = 0; i < cnf.natoms; ++i) {
-    Atom a;
-    sscanf(buff.c_str(), "%d %d %lf %lf %lf", &a.id, &a.tp, &a.pst[0],
-           &a.pst[1], &a.pst[2]);
-    a.id -= 1;  // change from 1 based to 0 based
-    cnf.atoms.push_back(a);
-    getline(ifs, buff);
-  }
-  sort(cnf.atoms.begin(), cnf.atoms.end());  // sort based on atom id
-  return cnf;
-}
-*/
 
 /**************************************************
  * read cfg data files
@@ -251,5 +200,76 @@ Config gbCnf::readPOSCAR(const string& fname) {
     }
     cnvpst2prl(cnf);
   }
+  return cnf;
+}
+
+/**************************************************
+ * read cfg data files with auxiliary
+ **************************************************/
+
+Config gbCnf::readCfgCluster(const string& fname, \
+                             vector<unordered_set<int>>& map) {
+  ifstream ifs(fname, std::ifstream::in);
+  string buff;
+  Config cnf;
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "Number of particles = %i", &cnf.natoms);
+  getline(ifs, buff); // A = 1.0 Angstrom (basic length-scale)
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(1,1) = %lf A", &cnf.bvx[X]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(1,2) = %lf A", &cnf.bvx[Y]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(1,3) = %lf A", &cnf.bvx[Z]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(2,1) = %lf A", &cnf.bvy[X]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(2,2) = %lf A", &cnf.bvy[Y]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(2,3) = %lf A", &cnf.bvy[Z]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(3,1) = %lf A", &cnf.bvz[X]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(3,2) = %lf A", &cnf.bvz[Y]);
+  getline(ifs, buff);
+  sscanf(buff.c_str(), "H0(3,3) = %lf A", &cnf.bvz[Z]);
+  getline(ifs, buff); // .NO_VELOCITY.
+  getline(ifs, buff);
+  int entry = 3;
+  sscanf(buff.c_str(), "entry_count = %i", &entry);
+  for (int i = 0; i < entry - 3; ++i) // skipping line name
+    getline(ifs, buff);
+
+  vector<string> s;
+
+  int maxClusterID = -1;
+  for (int i = 0; i < cnf.natoms; ++i) {
+    KNAtom a;
+    double mass;
+    getline(ifs, buff);
+    sscanf(buff.c_str(), "%lf", &mass);
+    getline(ifs, buff);
+    s.clear();
+    split(buff, " ", s);
+    a.tp = s[0];
+    getline(ifs, buff);
+    sscanf(buff.c_str(), "%lf %lf %lf %i", \
+           &a.prl[0], &a.prl[1], &a.prl[2], &a.clusterID);
+    a.id = i;
+    maxClusterID = std::max(maxClusterID, a.clusterID);
+    cnf.atoms.push_back(a);
+  }
+
+  cnf.length[X] = cnf.bvx[X];
+  cnf.length[Y] = cnf.bvy[Y];
+  cnf.length[Z] = cnf.bvz[Z];
+
+  map.resize(maxClusterID + 1);
+
+  for (int i = 0; i < cnf.natoms; ++i) {
+    int clusterID = cnf.atoms[i].clusterID;
+    map[clusterID].insert(i);
+  }
+
   return cnf;
 }

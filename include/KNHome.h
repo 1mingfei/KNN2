@@ -234,6 +234,8 @@ public:
   void loopConfigSRO(gbCnf&);
   void calSRO(gbCnf&, const string&);
 
+  void resizeCluster(gbCnf&, const string&);
+
   /* KNMPI */
   void bcastConfig();
 
