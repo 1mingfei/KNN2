@@ -33,6 +33,18 @@ inline void writeUnordered_map(const string& fname, \
   ofs << endl;
 }
 
+template<class T, class Y>
+inline void writeUnordered_map(const string& fname, \
+                               const string& fn, \
+                               unordered_map<T, Y>& v, \
+                               vector<string>& seq) {
+  ofstream ofs(fname, std::ofstream::app);
+  ofs << fn << " ";
+  for (auto& val : seq)
+    ofs << std::setw(4) << v[val] << " ";
+  ofs << endl;
+}
+
 void KNHome::KNBondCount(gbCnf& cnfModifier) {
   vector<string> elems = vsparams["elems"];
   double RCut = dparams["RCut"];
@@ -168,15 +180,56 @@ void KNHome::KNBondCountAll(gbCnf& cnfModifier) {
   }
 }
 
+void KNHome::KNBondCountList(gbCnf& cnfModifier) {
+  vector<string> elems = vsparams["elems"];
+
+  double RCut = dparams["RCut"];
+  string fpname = sparams["ListFile"];
+  string format = sparams["format"];
+  vector<string> outputSeq = {"Al-Al", "Al-Mg", "Al-Zn", \
+                              "Mg-Mg", "Mg-Zn", "Zn-Zn"};
+
+  ofstream ofsBC("bondCountAll.txt", std::ofstream::app);
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (me == 0) {
+    std::cout << "count bondings of the configurations\n";
+    for (const auto& val : outputSeq)
+      ofsBC << std::setw(10) << val << " ";
+    ofsBC << "\n";
+    vector<string> FileList;
+    ifstream file(fpname);
+    string str;
+    while (getline(file, str)) {
+      FileList.push_back(str);
+    }
+    for (const auto fn : FileList) {
+      Config cfg;
+      if (format == "vasp")
+        cfg = std::move(cnfModifier.readPOSCAR(fn));
+      else if (format == "cfg")
+        cfg = std::move(cnfModifier.readCfg(fn));
+      cnfModifier.wrapAtomPrl(cfg);
+      cnfModifier.getNBL_serial(cfg, RCut);
+      unordered_map<string, int> pairCount = cnfModifier.bondCountAll(cfg);
+      writeUnordered_map("bondCountAll.txt", fn, pairCount, outputSeq);
+      pairCount.clear();
+    }
+  }
+}
+
 unordered_map<string, int> gbCnf::bondCountAll(const Config& cfg) {
   unordered_map<string, int> bondsCount;
   string tp1, tp2, bond;
-  for (const auto& atom:cfg.atoms) {
+  // int count = 0;
+  for (const auto& atom : cfg.atoms) {
     tp1 = atom.tp;
     if (tp1 == "X")
       continue;
-    for (const auto& atom2ID:atom.FNNL) {
+    for (const auto& atom2ID : atom.NBL) {
+      // if (atom2ID == -1)
+      //   continue;
       tp2 = cfg.atoms[atom2ID].tp;
+      // cout << (++count) << " " << tp1 << " " << tp2 << " ";
       if (tp2 == "X")
         continue;
       if (tp1.compare(tp2) < 0) {
@@ -188,11 +241,20 @@ unordered_map<string, int> gbCnf::bondCountAll(const Config& cfg) {
         bond += "-";
         bond += tp1;
       }
+      // cout << atom.id << " " << atom2ID << " " << bond << " ";
+
       bondsCount[bond]++;
+
+      // for (auto i : bondsCount)
+      //   cout << i.first << " " << i.second << " ";
+      // cout << "\n";
+
     }
   }
   for (auto &[bond, count] : bondsCount) {
     count /= 2;
   }
+
+
   return bondsCount;
 }

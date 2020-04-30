@@ -617,8 +617,11 @@ Config gbCnf::Complete(const Config& inCnf, \
   vector<KNAtom> atomList = outCnf.atoms;
 
   for (auto&& atmRef : refCnf.atoms)
-    for (auto&& atmIn : atomList)
+    for (const auto& atmIn : atomList)
       if (!samePos(atmRef, atmIn)) {
+        cout << atmRef.pst[0] << " " << atmIn.pst[0] << " "
+             << atmRef.pst[1] << " " << atmIn.pst[1] << " "
+             << atmRef.pst[2] << " " << atmIn.pst[2] << endl;
         outCnf.atoms.push_back(atmRef);
         break;
       }

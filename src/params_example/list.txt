@@ -1,0 +1,6 @@
+/Users/mingfei/Work/GOALI/SF_AlMgZn/rand_1/0_0.vasp
+/Users/mingfei/Work/GOALI/SF_AlMgZn/rand_1/0_1.vasp
+/Users/mingfei/Work/GOALI/SF_AlMgZn/rand_1/0_2.vasp
+/Users/mingfei/Work/GOALI/SF_AlMgZn/rand_1/1_0.vasp
+/Users/mingfei/Work/GOALI/SF_AlMgZn/rand_1/1_1.vasp
+/Users/mingfei/Work/GOALI/SF_AlMgZn/rand_1/1_2.vasp

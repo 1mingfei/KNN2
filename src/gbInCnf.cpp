@@ -171,7 +171,6 @@ Config gbCnf::readPOSCAR(const string& fname) {
 
   cnf.natoms = sum;
 
-
   getline(ifs, buff);
   if (buff[0] == 'D' || buff[0] == 'd') {
     int count = 0;
@@ -200,6 +199,9 @@ Config gbCnf::readPOSCAR(const string& fname) {
     }
     cnvpst2prl(cnf);
   }
+  cnf.length[X] = cnf.bvx[X];
+  cnf.length[Y] = cnf.bvy[Y];
+  cnf.length[Z] = cnf.bvz[Z];
   return cnf;
 }
 
