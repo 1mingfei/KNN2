@@ -22,6 +22,10 @@ void KNHome::readParam() {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("PairFile")) {
       sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("ListFile")) {
+      sparams[segs[0]] = segs[1];
+    } else if (!segs[0].compare("format")) {
+      sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("kerasModelBarrier")) {
       sparams[segs[0]] = segs[1];
     } else if (!segs[0].compare("kerasModelEDiff")) {
@@ -61,6 +65,10 @@ void KNHome::readParam() {
       }
       vdparams[segs[0]] = tmpVec;
     } else if (!segs[0].compare("NConfigs")) {
+      iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("low")) {
+      iparams[segs[0]] = stoll(segs[1]);
+    } else if (!segs[0].compare("high")) {
       iparams[segs[0]] = stoll(segs[1]);
     } else if (!segs[0].compare("NBarriers")) {
       iparams[segs[0]] = stoll(segs[1]);

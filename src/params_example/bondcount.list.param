@@ -1,0 +1,8 @@
+============example1================
+mode BondCount
+method list
+elems Al Mg Zn
+RCut 3.2
+ListFile list.txt
+format vasp
+====================================
