@@ -63,6 +63,9 @@ KNHome::KNHome(int argc, char* argv[]) {
     loopConfigCluster(cnfModifier, "clusterCount");
   } else if (sparams["mode"] == "SRO") {
     loopConfigSRO(cnfModifier);
+  } else if (sparams["mode"] == "clusterStat") {
+    if (me == 0)
+      loopClusterStat(cnfModifier);
   } else if (sparams["mode"] == "resizeCluster") {
     resizeCluster(cnfModifier, sparams["initconfig"]);
   } else if (sparams["mode"] == "test") {

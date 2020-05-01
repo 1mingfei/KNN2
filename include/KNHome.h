@@ -234,6 +234,8 @@ public:
   void loopConfigCluster(gbCnf&, const string&);
   void loopConfigSRO(gbCnf&);
   void calSRO(gbCnf&, const string&);
+  void loopClusterStat(gbCnf&);
+  void clusterStat(gbCnf&, const string&);
 
   void resizeCluster(gbCnf&, const string&);
 

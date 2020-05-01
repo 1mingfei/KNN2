@@ -482,6 +482,47 @@ void KNHome::loopConfigSRO(gbCnf& inGbCnf) {
   }
 }
 
+void KNHome::loopClusterStat(gbCnf& inGbCnf) {
+  long long initNum = (iparams["initNum"] == 0) ? 0 : iparams["initNum"];
+  long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
+  long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
+  ofs.open("clusters_size_distr.txt", std::ofstream::app);
+  for (long long i = initNum; i <= finalNum; i += increment) {
+    ofs << i << " ";
+    string fname = to_string(i) + "_cluster.cfg";
+    clusterStat(inGbCnf, fname);
+  }
+}
+
+void KNHome::clusterStat(gbCnf& inGbCnf, const string& fname) {
+  cout << "working on " << fname << "\n";
+  vector<unordered_set<int>> oldmap;
+  Config inCnf = inGbCnf.readCfgCluster(fname, oldmap);
+
+  vector<int> dupFactors = viparams["factors"];
+  map<int, int> mp;
+  for (int i = 0; i < dupFactors.size(); ++i) {
+    mp[dupFactors[i]] = 0;
+  }
+
+  mp[10000] = 0;
+  for (int i = 0; i < oldmap.size(); ++i) {
+    for (auto&& j : mp) {
+      if (oldmap[i].size() < j.first) {
+        ++j.second;
+        break;
+      }
+    }
+  }
+
+  for (auto i : mp) {
+    ofs << i.second << " ";
+    cout << i.second << " ";
+  }
+  ofs << "\n";
+  cout << "\n";
+}
+
 void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
   Config inCnf = inGbCnf.readCfg(fname);
   MPI_Barrier(MPI_COMM_WORLD);
