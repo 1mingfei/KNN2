@@ -1,0 +1,7 @@
+============example1================
+mode clusterStat
+initNum          0
+increment  5000000
+finalNum 225000000
+factors 15 30
+====================================
