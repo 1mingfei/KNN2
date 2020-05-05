@@ -2,37 +2,6 @@
 #include "KNHome.h"
 
 #define Z 12.0
-
-inline bool sizeMatch(const Config& inCnf, \
-                      const unordered_set<int>& s, \
-                      const Config& refCnf, \
-                      vector<double>& lowerLimits, \
-                      const double& LC) {
-  double Xlimit = refCnf.bvx[0];
-  double Ylimit = refCnf.bvy[1];
-  double Zlimit = refCnf.bvz[2];
-  double xmin = 2.0 * Xlimit, ymin = 2.0 * Ylimit, zmin = 2.0 * Zlimit;
-  double xmax = -10.0, ymax = -10.0, zmax = -10.0;
-  for (const auto& i : s) {
-    KNAtom atm = inCnf.atoms[i];
-    xmin = std::min(atm.pst[0], xmin);
-    ymin = std::min(atm.pst[1], ymin);
-    zmin = std::min(atm.pst[2], zmin);
-    xmax = std::max(atm.pst[0], xmax);
-    ymax = std::max(atm.pst[1], ymax);
-    zmax = std::max(atm.pst[2], zmax);
-  }
-  lowerLimits = {xmin, ymin, zmin};
-
-  if (xmax - xmin - 0.5 * LC >= Xlimit)
-    return false;
-  if (ymax - ymin - 0.5 * LC >= Ylimit)
-    return false;
-  if (zmax - zmin - 0.5 * LC >= Zlimit)
-    return false;
-  return true;
-}
-
 inline vector<unordered_set<int>> filter( \
                                   const vector<unordered_set<int>>& inMap, \
                                   const int& low, \
@@ -45,16 +14,50 @@ inline vector<unordered_set<int>> filter( \
   return res;
 }
 
-inline bool samePos(KNAtom atm1, KNAtom atm2) {
-  if (atm1.pst[0] - atm2.pst[0] > 0.05)
+inline void sortAtomLexi(vector<KNAtom>& atmList) {
+  sort(
+    atmList.begin(), atmList.end(),
+    [](const KNAtom& a, const KNAtom& b) -> bool
+      { return (a.prl[0] < b.prl[0]) ||
+               (a.prl[0] == b.prl[0] && a.prl[1] < b.prl[1]) ||
+               (a.prl[0] == b.prl[0] && a.prl[1] == b.prl[1] &&
+                a.prl[2] < b.prl[2]); }
+    );
+}
+
+inline bool sizeMatch(const Config& inCnf, \
+                      const unordered_set<int>& s, \
+                      const Config& refCnf, \
+                      vector<double>& lowerLimits, \
+                      const double& LC) {
+  double Xlimit = refCnf.bvx[0];
+  double Ylimit = refCnf.bvy[1];
+  double Zlimit = refCnf.bvz[2];
+  double xmin = 2.0 * Xlimit, ymin = 2.0 * Ylimit, zmin = 2.0 * Zlimit;
+  double xmax = -10.0, ymax = -10.0, zmax = -10.0;
+  vector<KNAtom> atmList;
+  for (const auto& i : s) {
+    KNAtom atm = inCnf.atoms[i];
+    xmin = std::min(atm.pst[0], xmin);
+    ymin = std::min(atm.pst[1], ymin);
+    zmin = std::min(atm.pst[2], zmin);
+    xmax = std::max(atm.pst[0], xmax);
+    ymax = std::max(atm.pst[1], ymax);
+    zmax = std::max(atm.pst[2], zmax);
+    atmList.push_back(atm);
+  }
+  sortAtomLexi(atmList);
+  // lowerLimits = {xmin, ymin, zmin};
+  lowerLimits = {atmList[0].pst[0], atmList[0].pst[1], atmList[0].pst[2]};
+
+  if (xmax - xmin - 0.5 * LC >= Xlimit)
     return false;
-  if (atm1.pst[1] - atm2.pst[1] > 0.05)
+  if (ymax - ymin - 0.5 * LC >= Ylimit)
     return false;
-  if (atm1.pst[2] - atm2.pst[2] > 0.05)
+  if (zmax - zmin - 0.5 * LC >= Zlimit)
     return false;
   return true;
 }
-
 
 pair<unordered_set<int>, unordered_set<int>> gbCnf::findSoluteAtoms( \
                                           const Config& inCnf, \
@@ -606,7 +609,7 @@ void KNHome::resizeCluster(gbCnf& inGbCnf, const string& fname) {
   inGbCnf.cnvprl2pst(inCnf);
 
   // fliter size
-  int low = iparams["low"] ? iparams["low"] : 12;
+  int low = iparams["low"] ? iparams["low"] : 15;
   int high = iparams["high"] ? iparams["high"] : 100;
   vector<unordered_set<int>> map = filter(oldmap, low, high);
   MPI_Barrier(MPI_COMM_WORLD);
@@ -619,16 +622,18 @@ void KNHome::resizeCluster(gbCnf& inGbCnf, const string& fname) {
     int count = 0;
     int NConfigs = iparams["NConfigs"] < map.size()
                   ? iparams["NConfigs"] : map.size();
-    for (int i = 0; i < NConfigs; ++i) {
-      if (map[i].empty())
+    int validCount = 0;
+    while(validCount < NConfigs) {
+      if (map[validCount++].empty())
         continue;
       vector<double> lowerLimits = {0.0, 0.0, 0.0};
-      if (sizeMatch(inCnf, map[i], refCnf, lowerLimits, LC)) {
+      if (sizeMatch(inCnf, map[validCount], refCnf, lowerLimits, LC)) {
         Config outCnf = inGbCnf.Complete(inCnf, \
-                                         map[i], \
+                                         map[validCount], \
                                          refCnf, \
                                          lowerLimits);
-        string outfname = to_string(count++) + "_" + to_string(i) + ".cfg";
+        string outfname = to_string(count++) + "_" + to_string(validCount) \
+                        + ".cfg";
         inGbCnf.writeCfgData(outCnf, outfname);
       }
     }
@@ -651,22 +656,35 @@ Config gbCnf::Complete(const Config& inCnf, \
 
   for (auto i : s) {
     KNAtom atm = inCnf.atoms[i];
-    for (int j = 0; j < 3; ++j)
+    for (int j = 0; j < 3; ++j) {
       atm.pst[j] -= lowerLimits[j];
+      if (atm.pst[j] > outCnf.length[j])
+        atm.pst[j] -= outCnf.length[j];
+      if (atm.pst[j] < 0.0)
+        atm.pst[j] += outCnf.length[j];
+    }
+
     outCnf.atoms.push_back(atm);
   }
+  cnvpst2prl(outCnf);
   vector<KNAtom> atomList = outCnf.atoms;
+  int count = 0;
+  atomList.insert(atomList.end(), refCnf.atoms.begin(), refCnf.atoms.end());
 
-  for (auto&& atmRef : refCnf.atoms)
-    for (const auto& atmIn : atomList)
-      if (!samePos(atmRef, atmIn)) {
-        cout << atmRef.pst[0] << " " << atmIn.pst[0] << " "
-             << atmRef.pst[1] << " " << atmIn.pst[1] << " "
-             << atmRef.pst[2] << " " << atmIn.pst[2] << endl;
-        outCnf.atoms.push_back(atmRef);
-        break;
-      }
 
+  vector<KNAtom> outList;
+  for (int i = 0; i < atomList.size(); ++i) {
+    bool isDup = false;
+    for (int j = 0; j < outList.size(); ++j) {
+      // if (samePos(atomList[i], outList[j]))
+      if (calDistPrl(outCnf.length, atomList[i], outList[j]) < 0.2)
+        isDup = true;
+    }
+    if (!isDup)
+      outList.push_back(atomList[i]);
+  }
+
+  outCnf.atoms = outList;
   outCnf.natoms = outCnf.atoms.size();
   cnvpst2prl(outCnf);
   return outCnf;
