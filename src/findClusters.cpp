@@ -490,6 +490,54 @@ void KNHome::loopClusterStat(gbCnf& inGbCnf) {
   long long increment = (iparams["increment"] == 0) ? 0 : iparams["increment"];
   long long finalNum = (iparams["finalNum"] == 0) ? 0 : iparams["finalNum"];
   ofs.open("clusters_size_distr.txt", std::ofstream::app);
+  ofs << "filename ";
+  for (int i = 0; i < viparams["factors"].size(); ++i) {
+    ofs << viparams["factors"][i] << "_count ";
+  }
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_count ";
+
+
+  for (int i = 0; i < viparams["factors"].size(); ++i) {
+    ofs << viparams["factors"][i] << "_mean " \
+        << viparams["factors"][i] << "_std ";
+  }
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_mean ";
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "std ";
+
+  for (int i = 0; i < viparams["factors"].size(); ++i) {
+    ofs << viparams["factors"][i] << "_Al_conc " \
+        << viparams["factors"][i] << "_Mg_conc " \
+        << viparams["factors"][i] << "_Zn_conc " ;
+  }
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_Al_conc ";
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_Mg_conc ";
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_Zn_conc ";
+
+  for (int i = 0; i < viparams["factors"].size(); ++i) {
+    ofs << viparams["factors"][i] << "_Zn/Mg_ratio " ;
+    ofs << viparams["factors"][i] << "_Al/(Zn+Mg)_ratio " ;
+  }
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_Zn/Mg_ratio ";
+  ofs << ">=" \
+      << to_string(viparams["factors"][viparams["factors"].size() - 1]) \
+      << "_Al/(Zn+Mg)_ratio ";
+
+  ofs << "\n";
+
   for (long long i = initNum; i <= finalNum; i += increment) {
     ofs << i << " ";
     string fname = to_string(i) + "_cluster.cfg";
@@ -497,22 +545,59 @@ void KNHome::loopClusterStat(gbCnf& inGbCnf) {
   }
 }
 
+inline void online_variance(const int& x, \
+                            map<int, int>& mp, \
+                            map<int, pair<double, double>>& mp_mu_std) {
+
+  for (auto&& j : mp) {
+    if (x < j.first) {
+      ++j.second;
+      double delta = static_cast<double>(x - mp_mu_std[j.first].first);
+      mp_mu_std[j.first].first += delta / static_cast<double>(j.second);
+      double var = delta * static_cast<double>(x - mp_mu_std[j.first].first);
+      if (j.second >= 2)
+        mp_mu_std[j.first].second = var / static_cast<double>(j.second - 1);
+      else
+        mp_mu_std[j.first].second = 0.0;
+      break;
+    }
+  }
+
+}
+
 void KNHome::clusterStat(gbCnf& inGbCnf, const string& fname) {
   cout << "working on " << fname << "\n";
   vector<unordered_set<int>> oldmap;
   Config inCnf = inGbCnf.readCfgCluster(fname, oldmap);
 
-  vector<int> dupFactors = viparams["factors"];
+  vector<int> interval = viparams["factors"]; // size interval
   map<int, int> mp;
-  for (int i = 0; i < dupFactors.size(); ++i) {
-    mp[dupFactors[i]] = 0;
+  map<int, pair<double, double>> mp_mu_std; // mean size of cluster & variance
+  map<int, vector<int>> mp_spe_count; // species count
+  vector<int> nums = viparams["nums"]; // input total number of atoms for spe
+  for (int i = 0; i < interval.size(); ++i) {
+    mp[interval[i]] = 0;
+    mp_mu_std[interval[i]] = {0.0, 0.0};
+    mp_spe_count[interval[i]] = vector<int>(3, 0); //Al Mg Zn, Xe treated as Al now
   }
 
-  mp[10000] = 0;
+  mp[10000] = 0; // for the last bin
+  mp_mu_std[10000] = {0.0, 0.0};
+  mp_spe_count[10000] = vector<int>(3, 0);
   for (int i = 0; i < oldmap.size(); ++i) {
+    online_variance(oldmap[i].size(), mp, mp_mu_std);
+    // count species
     for (auto&& j : mp) {
       if (oldmap[i].size() < j.first) {
-        ++j.second;
+        for (auto atomID : oldmap[i]) {
+          string type = inCnf.atoms[atomID].tp;
+          if (type == "Al" || "Xe")
+            ++mp_spe_count[j.first][0];
+          if (type == "Mg")
+            ++mp_spe_count[j.first][1];
+          if (type == "Zn")
+            ++mp_spe_count[j.first][2];
+        }
         break;
       }
     }
@@ -522,8 +607,23 @@ void KNHome::clusterStat(gbCnf& inGbCnf, const string& fname) {
     ofs << i.second << " ";
     cout << i.second << " ";
   }
+  for (auto i : mp_mu_std) {
+    ofs << i.second.first << " " << std::sqrt(i.second.second) << " ";
+  }
+  for (auto i : mp_spe_count) {
+    for (int j = 0; j < i.second.size(); ++j) {
+      ofs << static_cast<double>(i.second[j]) / static_cast<double>(nums[j]) \
+          << " ";
+    }
+  }
+  for (auto i : mp_spe_count) {
+    ofs << static_cast<double>(i.second[2]) / static_cast<double>(i.second[1])
+        << " "
+        << static_cast<double>(i.second[0]) / \
+           static_cast<double>(i.second[1] + i.second[2]) << " ";
+
+  }
   ofs << "\n";
-  cout << "\n";
 }
 
 void KNHome::calSRO(gbCnf& inGbCnf, const string& fname) {
