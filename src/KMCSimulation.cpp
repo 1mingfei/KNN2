@@ -192,7 +192,9 @@ double KNHome::updateTime() {
   /* update time elapsed */
   double tau = log(rand() / static_cast<double>(RAND_MAX)) \
                / (prefix * kTot);
-
+  if (isinf(tau)){
+    return 0.0;
+  }
   time -= tau;
   return -tau;
 }
